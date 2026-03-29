@@ -1,0 +1,14 @@
+name: evaluation-rubrics
+display_name: Evaluation Rubrics
+description: >
+  Tools for designing analytic grading rubrics and evaluating student or group
+  assignment submissions. Includes rubric generation from assignment descriptions
+  and automated scoring against existing rubrics with cumulative grade tracking.
+version: 1.0.0
+skills:
+  - id: rubric-creator
+    path: skills/rubric-creator
+  - id: assignment-evaluator
+    path: skills/assignment-evaluator
+commands: []
+mcp_servers: []

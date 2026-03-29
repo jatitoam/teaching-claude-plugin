@@ -1,0 +1,11 @@
+plugins:
+  - id: evaluation-rubrics
+    path: plugins/evaluation-rubrics
+    display_name: Evaluation Rubrics
+    description: >
+      Tools for designing analytic grading rubrics and evaluating student
+      or group assignment submissions with cumulative grade tracking.
+    version: 1.0.0
+    skills:
+      - rubric-creator
+      - assignment-evaluator
