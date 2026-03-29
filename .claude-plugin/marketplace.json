@@ -1,0 +1,20 @@
+{
+  "name": "teaching-claude-plugin",
+  "owner": {
+    "name": "jatitoam"
+  },
+  "metadata": {
+    "description": "Claude plugins for teaching and academic workflows",
+    "version": "1.0.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "evaluation-rubrics",
+      "source": "./plugins/evaluation-rubrics",
+      "description": "Create grading rubrics and evaluate student submissions",
+      "version": "1.0.0",
+      "category": "education"
+    }
+  ]
+}
