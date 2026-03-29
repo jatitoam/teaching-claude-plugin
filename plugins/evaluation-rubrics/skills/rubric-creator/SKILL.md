@@ -73,11 +73,17 @@ Build a JSON file matching this structure:
 }
 ```
 
-Save the JSON to `/mnt/user-data/outputs/rubrica_<slug>.json`, then run:
+Determine the output directory as follows:
+- If the user specified a destination folder, use that folder.
+- Otherwise, default to `/tmp`.
+
+Save the JSON to `<output_dir>/rubrica_<slug>.json`, then run:
 
 ```bash
-python scripts/generate_rubric.py /mnt/user-data/outputs/rubrica_<slug>.json /mnt/user-data/outputs/rubrica_<slug>.xlsx
+python scripts/generate_rubric.py <output_dir>/rubrica_<slug>.json <output_dir>/rubrica_<slug>.xlsx
 ```
+
+This ensures the JSON and xlsx are always written to the same folder.
 
 See `references/column-layout.md` for column definitions and formatting rules.
 

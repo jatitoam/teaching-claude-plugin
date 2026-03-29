@@ -31,8 +31,11 @@ Derived automatically:
   2. Present in the submission filename (e.g., `lab01_grupo3.pdf`) → use it, confirm with user if ambiguous.
   3. Found on a cover page (PDF or docx only) → extract it.
   4. None of the above → ask the user before proceeding. Do not guess.
+- **Output directory**:
+  - If the user specified a destination folder, use that folder.
+  - Otherwise, default to `/tmp`.
 - **Grades output filename**: derive from the assignment name or rubric filename.
-  - Pattern: `grades_<assignment_slug>.xlsx` in `/mnt/user-data/outputs/`.
+  - Pattern: `grades_<assignment_slug>.xlsx` in `<output_dir>`.
   - If a file with that name already exists, append to it. If not, create it.
 
 ## Step 2 — Read the Rubric
@@ -75,12 +78,12 @@ assignment brief language cannot be determined, fall back to the rubric language
 }
 ```
 
-Save to `/mnt/user-data/outputs/row_<slug>.json`.
+Save to `<output_dir>/row_<slug>.json`.
 
 ## Step 5 — Append to Grades File
 
 ```bash
-python scripts/append_grade.py <rubric_xlsx> <grades_xlsx> /mnt/user-data/outputs/row_<slug>.json
+python scripts/append_grade.py <rubric_xlsx> <grades_xlsx> <output_dir>/row_<slug>.json
 ```
 
 The script:

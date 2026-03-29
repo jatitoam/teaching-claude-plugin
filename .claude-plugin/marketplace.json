@@ -4,13 +4,13 @@
     "name": "jatitoam"
   },
   "description": "Claude plugins for teaching and academic workflows",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "plugins": [
     {
       "name": "evaluation-rubrics",
       "source": "./plugins/evaluation-rubrics",
       "description": "Create grading rubrics and evaluate student submissions",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "category": "education"
     }
   ]
