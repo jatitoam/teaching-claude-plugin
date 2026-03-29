@@ -32,12 +32,25 @@ index.yaml                   # Top-level registry of all plugins
 | **Command** | A slash command (e.g. `/grade`) that invokes a skill or workflow directly. |
 | **MCP Server** | A Model Context Protocol server that exposes tools, resources, or prompts to Claude. |
 
+## Bumping a Plugin Version
+
+Three files must be updated in sync — the CLI reads each one for a different purpose:
+
+| File | Why it must be updated |
+|------|------------------------|
+| `plugins/<plugin-id>/.claude-plugin/plugin.json` | Version authority for `claude plugin update` — **this is what the CLI checks** |
+| `plugins/<plugin-id>/plugin.yaml` | Canonical plugin definition |
+| `.claude-plugin/marketplace.json` | Repo registry used by `claude plugin install` |
+
+After updating all three, reinstall or run `claude plugin update <plugin-id>@teaching-claude-plugin` to pick up the new version.
+
 ## Adding a New Plugin
 
 1. Create a directory under `plugins/<your-plugin-id>/`.
 2. Add a `plugin.yaml` with `name`, `display_name`, `description`, `version`, and lists of `skills`, `commands`, and `mcp_servers`.
-3. Add each skill under `skills/<skill-id>/SKILL.md`. Follow the existing skills as a template.
-4. Register the plugin in `index.yaml`.
+3. Add a `plugins/<your-plugin-id>/.claude-plugin/plugin.json` with `name`, `description`, and `version` (the minimal manifest the CLI uses for update detection).
+4. Add each skill under `skills/<skill-id>/SKILL.md`. Follow the existing skills as a template.
+5. Register the plugin in `index.yaml` and in `.claude-plugin/marketplace.json`.
 
 ### plugin.yaml schema
 
