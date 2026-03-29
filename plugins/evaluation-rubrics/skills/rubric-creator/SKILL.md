@@ -28,15 +28,30 @@ Do not ask the user to list criteria manually — derive them from the assignmen
 ## Step 2 — Design the Rubric
 
 ### Criteria & Weights
-- One criterion per major deliverable or section in the assignment.
-- Typical count: 4–10. Use whatever the assignment justifies.
+
+**Align criteria to assignment steps, not abstract themes.**
+- Each step or section explicitly listed in the assignment must produce at least one criterion.
+- Do not collapse multiple steps into one criterion.
+- Do not add criteria that do not map to any step.
+- Name each criterion after its originating step (e.g., "Paso 1 — …").
+
+**A step with two distinct deliverables may be split into two criteria.**
+- Only split when the two deliverables would be graded independently (e.g., a step that asks students to *group events* AND *explain how a concept differs*).
+- Label both criteria with the originating step.
+- Do not split arbitrarily.
+
+**Do not add synthesizing or "holistic" criteria.**
+- Avoid criteria that ask students to connect everything together (e.g., "diagnosis of business pain points") unless the assignment explicitly includes such a reflection step.
+- Extra criteria inflate the rubric beyond what was assigned.
+
+**Weights:**
 - Distribute weights proportionally to complexity and effort.
 - Weights **must sum exactly** to total points regardless of criteria count.
 
 ### Performance Level Descriptions
 Read `references/performance-levels.md` for:
 - Score mapping (100% / 60% / 0%)
-- Description quality rules per level
+- Description quality rules per level — including the rule against inventing numeric thresholds
 - Language and register rules
 
 ## Step 3 — Generate the .xlsx

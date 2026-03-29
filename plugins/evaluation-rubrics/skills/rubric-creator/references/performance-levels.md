@@ -19,20 +19,20 @@
 
 ### Partial (60%)
 - Represents **meaningful but incomplete** work. The student has done a substantial portion but is missing key elements.
-- For enumerable deliverables, define the threshold explicitly:
+- **If the assignment states an explicit count**, define the threshold in terms of that count:
   - E.g., "Provides 6–9 of the 10 required items with adequate detail."
-- **Minimal effort does NOT qualify as partial.** Examples of what scores 0%, not 60%:
-  - 1–2 items out of 10 expected
-  - A single sentence where a paragraph is expected
-  - A name listed without any supporting detail
-- The partial description must reference the gap — what is present vs. what is missing.
+- **If the assignment does not state a count**, do not invent one. Describe the **nature of the gap** instead: what area is missing, where the reasoning is incomplete, or where nomenclature is inconsistent.
+  - E.g., "Groups events into contexts but does not explain how the User concept differs between them."
+- The partial description must reference what is present vs. what is absent or underdeveloped.
 
 ### None (0%)
 - Absent, incorrect, or so minimal it demonstrates no meaningful engagement.
 - Must explicitly cover two cases:
   1. Not attempted at all.
-  2. Attempted but trivially incomplete (see Partial rule above for the threshold).
-- Never use vague language like "poor quality" — describe what is concretely missing or wrong.
+  2. Attempted but fundamentally incomplete or incorrect.
+- **If the assignment states an explicit count**, use it to define what falls below the Partial threshold (e.g., "fewer than 6 of the 10 required items").
+- **If the assignment does not state a count**, describe what is **concretely absent or wrong** — not a count falling below an invented floor.
+- Never use vague language like "poor quality."
 
 ---
 
