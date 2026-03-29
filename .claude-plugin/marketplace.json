@@ -3,11 +3,8 @@
   "owner": {
     "name": "jatitoam"
   },
-  "metadata": {
-    "description": "Claude plugins for teaching and academic workflows",
-    "version": "1.0.0",
-    "pluginRoot": "./plugins"
-  },
+  "description": "Claude plugins for teaching and academic workflows",
+  "version": "1.0.0",
   "plugins": [
     {
       "name": "evaluation-rubrics",
