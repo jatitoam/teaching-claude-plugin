@@ -75,12 +75,12 @@ assignment brief language cannot be determined, fall back to the rubric language
 }
 ```
 
-Save to `/tmp/row_<slug>.json`.
+Save to `/mnt/user-data/outputs/row_<slug>.json`.
 
 ## Step 5 — Append to Grades File
 
 ```bash
-python scripts/append_grade.py <rubric_xlsx> <grades_xlsx> /tmp/row_<slug>.json
+python scripts/append_grade.py <rubric_xlsx> <grades_xlsx> /mnt/user-data/outputs/row_<slug>.json
 ```
 
 The script:

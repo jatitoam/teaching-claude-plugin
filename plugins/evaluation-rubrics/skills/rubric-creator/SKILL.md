@@ -73,10 +73,10 @@ Build a JSON file matching this structure:
 }
 ```
 
-Then run:
+Save the JSON to `/mnt/user-data/outputs/rubrica_<slug>.json`, then run:
 
 ```bash
-python scripts/generate_rubric.py <input.json> /mnt/user-data/outputs/rubrica_<slug>.xlsx
+python scripts/generate_rubric.py /mnt/user-data/outputs/rubrica_<slug>.json /mnt/user-data/outputs/rubrica_<slug>.xlsx
 ```
 
 See `references/column-layout.md` for column definitions and formatting rules.
