@@ -1,0 +1,63 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What This Repo Is
+
+A Claude plugin marketplace for teaching and academic workflows. Plugins are collections of **skills**, **commands**, and **MCP servers** installed into Claude Code. Currently contains one plugin: `evaluation-rubrics` (v1.0.1).
+
+## No Build System
+
+There is no build step, no package manager, and no test suite. Development is editing YAML, Markdown, and Python files directly.
+
+The only runtime dependency is `openpyxl` (used by the Python helper scripts). Install with:
+
+```bash
+pip install openpyxl
+```
+
+## Plugin Architecture
+
+```
+plugins/<plugin-id>/
+├── plugin.yaml          # Plugin metadata and skill/command/mcp_server lists
+├── skills/<skill-id>/
+│   ├── SKILL.md         # Instructs Claude how to behave when the skill is triggered
+│   ├── scripts/         # Python scripts Claude invokes during skill execution
+│   └── references/      # Markdown docs Claude reads at runtime for context
+```
+
+- `index.yaml` — top-level registry; must be updated when adding a plugin
+- `.claude-plugin/marketplace.json` — marketplace distribution metadata
+
+## How Skills Work
+
+A skill is activated when Claude recognizes the user's intent matches the skill's `description` in `SKILL.md` frontmatter. Claude then follows the numbered steps in that file, consulting `references/` docs and invoking `scripts/` via shell commands.
+
+**Key pattern:** Claude generates a JSON intermediate file → passes it to a Python script → script produces an `.xlsx` output to `/mnt/user-data/outputs/`.
+
+## Adding a New Plugin
+
+1. Create `plugins/<plugin-id>/plugin.yaml` (see schema in README.md)
+2. Add skills under `plugins/<plugin-id>/skills/<skill-id>/SKILL.md`
+3. Register the plugin in `index.yaml`
+4. Update `.claude-plugin/marketplace.json` if publishing to the marketplace
+
+## evaluation-rubrics Plugin
+
+Two skills:
+
+| Skill | Purpose | Output |
+|-------|---------|--------|
+| `rubric-creator` | Generate analytic grading rubrics from assignment descriptions | `rubrica_<slug>.xlsx` |
+| `assignment-evaluator` | Score student submissions against a rubric; append to cumulative grades file | `grades_<slug>.xlsx` |
+
+Both skills support bilingual output (Spanish/English), auto-detected from content. Performance levels are fixed at 100% / 60% / 0% — do not add intermediate levels.
+
+**Criterion points must sum to exactly 100** (enforced by `generate_rubric.py`).
+
+**Score labels must be exactly** one of: `Meets Expectations`, `Partially Meets`, `Does Not Meet` (enforced by `append_grade.py`).
+
+## Versioning
+
+When modifying a plugin, bump its `version` in both `plugins/<plugin-id>/plugin.yaml` and `.claude-plugin/marketplace.json`.
