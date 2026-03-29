@@ -60,4 +60,17 @@ Both skills support bilingual output (Spanish/English), auto-detected from conte
 
 ## Versioning
 
-When modifying a plugin, bump its `version` in both `plugins/<plugin-id>/plugin.yaml` and `.claude-plugin/marketplace.json`.
+When modifying a plugin, bump its `version` in all three of these files:
+
+1. `plugins/<plugin-id>/.claude-plugin/plugin.json` — version the CLI reads for update detection
+2. `plugins/<plugin-id>/plugin.yaml` — canonical plugin definition
+3. `.claude-plugin/marketplace.json` — marketplace registry
+
+After committing and pushing, apply the update locally with:
+
+```bash
+claude plugin marketplace update <marketplace-id>
+claude plugin update <plugin-id>@<marketplace-id>
+```
+
+The marketplace refresh must come first — skipping it causes the CLI to report the old version as latest.

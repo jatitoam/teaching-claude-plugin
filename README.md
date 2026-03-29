@@ -42,7 +42,14 @@ Three files must be updated in sync — the CLI reads each one for a different p
 | `plugins/<plugin-id>/plugin.yaml` | Canonical plugin definition |
 | `.claude-plugin/marketplace.json` | Repo registry used by `claude plugin install` |
 
-After updating all three, reinstall or run `claude plugin update <plugin-id>@teaching-claude-plugin` to pick up the new version.
+After updating all three files, commit and push, then run these two commands in order:
+
+```bash
+claude plugin marketplace update <marketplace-id>
+claude plugin update <plugin-id>@<marketplace-id>
+```
+
+The marketplace must be refreshed first — otherwise the CLI reads a stale registry and reports the old version as latest.
 
 ## Adding a New Plugin
 
