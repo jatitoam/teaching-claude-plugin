@@ -58,8 +58,8 @@ Compile all observations into a **single string** — no line breaks, no separat
 Format: `Criterion Name: <reason>. Criterion Name: <reason>.`
 If all criteria meet expectations, leave observations blank.
 
-**Language rule**: write observations in the language of the submission. If the submission
-and rubric are in different languages, the submission language wins.
+**Language rule**: write observations in the language of the assignment brief. If the
+assignment brief language cannot be determined, fall back to the rubric language.
 
 ## Step 4 — Build the Row JSON
 

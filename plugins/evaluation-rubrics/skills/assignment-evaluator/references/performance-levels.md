@@ -1,34 +1,28 @@
 # Performance Levels Reference
 
-## Score Mapping
+## How Levels Work
 
-| Level Label (display) | Score | When to apply |
-|----------------------|-------|---------------|
-| Meets Expectations | 100% of criterion weight | All required elements are present and complete |
-| Partially Meets | 60% of criterion weight | Meaningful work done but key elements missing; see threshold rules below |
-| Does Not Meet | 0% of criterion weight | Absent, incorrect, or trivially incomplete |
+Each rubric criterion defines three performance levels with explicit descriptions. Your job is to match the student's work to the level whose description best fits — not to invent thresholds or reinterpret what each level means.
 
-## Threshold Rules for Partial Credit
+| Level | Multiplier |
+|-------|------------|
+| Meets Expectations / Cumple | 1.0 × criterion weight |
+| Partially Meets / Cumple Parcialmente | 0.6 × criterion weight |
+| Does Not Meet / No Cumple | 0.0 × criterion weight |
 
-Partial credit (60%) requires **meaningful** work. Minimal effort scores 0%, not 60%.
+The multipliers are fixed. The level boundaries are defined entirely by the rubric.
 
-For enumerable deliverables, apply these thresholds:
-- If the assignment specifies N items required: ≥60% of N present and adequate → Partially Meets; <60% → Does Not Meet.
-- Example: 10 items required → 6–9 present = Partially Meets; ≤5 = Does Not Meet.
-- A single sentence where a paragraph is expected = Does Not Meet.
-- A name or label listed without any supporting detail = Does Not Meet.
+## Matching Student Work to a Level
 
-## Language
+1. Read the rubric's description for each level of the criterion.
+2. Compare the student's submission against those descriptions.
+3. Assign the level whose description the submission most closely satisfies.
 
-Write all observation text in the language of the student submission.
-If the submission and rubric are in different languages, the submission language wins.
+Do not apply judgment that goes beyond what the rubric describes. If the rubric says "Partially Meets requires 6–9 of the 10 items," use that. If the rubric gives a qualitative description instead, use that. Never substitute your own threshold rules for the rubric's language.
 
 ## Score Calculation
 
 For each criterion:
 - `criterion_score = criterion_weight × level_multiplier`
-- Meets Expectations → multiplier = 1.0
-- Partially Meets → multiplier = 0.6
-- Does Not Meet → multiplier = 0.0
 
 Row total = sum of all criterion scores.
