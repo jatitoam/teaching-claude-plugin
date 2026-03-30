@@ -33,10 +33,12 @@ Derived automatically:
   4. None of the above → ask the user before proceeding. Do not guess.
 - **Output directory**:
   - If the user specified a destination folder, use that folder.
-  - Otherwise, default to `/tmp`.
+  - Otherwise, default to the **same folder as the submission file**.
+- **Evaluations subfolder**: row JSONs are always stored in `<output_dir>/evaluations/`.
+  Create this subfolder if it doesn't exist.
 - **Grades output filename**: derive from the assignment name or rubric filename.
   - Pattern: `grades_<assignment_slug>.xlsx` in `<output_dir>`.
-  - If a file with that name already exists, append to it. If not, create it.
+  - If a file with that name already exists, it will be appended to by `/build-grades`. If not, it will be created.
 
 ## Step 2 — Read the Rubric
 
@@ -57,14 +59,13 @@ For every criterion scored as **Partially Meets** or **Does Not Meet**, write a 
 observation explaining why. Be specific — reference actual content (or absence of it) from
 the submission. Example: "only 2 of the 10 required items were completed."
 
-Compile all observations into a **single string** — no line breaks, no separate cells.
-Format: `Criterion Name: <reason>. Criterion Name: <reason>.`
-If all criteria meet expectations, leave observations blank.
-
 **Language rule**: write observations in the language of the assignment brief. If the
 assignment brief language cannot be determined, fall back to the rubric language.
 
 ## Step 4 — Build the Row JSON
+
+`observations` is an object with one key per criterion. Set the value to an empty string
+for criteria that meet expectations; write the reason for those that don't.
 
 ```json
 {
@@ -74,21 +75,32 @@ assignment brief language cannot be determined, fall back to the rubric language
     "Hardware Personal (PCs)": "Partially Meets",
     "Software Empresarial (Sistemas Críticos)": "Does Not Meet"
   },
-  "observations": "Hardware Personal (PCs): specs documented for only 1 of 3 group members. Software Empresarial (Sistemas Críticos): no software investigated."
+  "observations": {
+    "Hardware Empresarial (Servidores)": "",
+    "Hardware Personal (PCs)": "specs documented for only 1 of 3 group members.",
+    "Software Empresarial (Sistemas Críticos)": "no software investigated."
+  }
 }
 ```
 
-Save to `<output_dir>/row_<slug>.json`.
+Save to `<output_dir>/evaluations/row_<slug>.json`.
+
+**Pause here.** Present the evaluation to the user in chat as a summary table (name, each
+criterion with its score, and any observations). Ask the user to confirm or request
+corrections before writing the grades file. Do not run Step 5 until the user approves.
 
 ## Step 5 — Append to Grades File
 
+Once the user confirms the evaluation:
+
 ```bash
-python scripts/append_grade.py <rubric_xlsx> <grades_xlsx> <output_dir>/row_<slug>.json
+python scripts/append_grade.py <rubric_xlsx> <grades_xlsx> <output_dir>/evaluations/row_<slug>.json
 ```
 
 The script:
 - Creates the grades file with the correct header if it doesn't exist yet.
 - Appends the row and calculates the total automatically from rubric weights.
+- Compiles the `observations` dict into a single string for the xlsx cell.
 - See `references/column-layout.md` for output file structure and formatting rules.
 
 ## Step 6 — Deliver

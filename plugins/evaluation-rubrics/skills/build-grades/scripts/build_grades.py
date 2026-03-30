@@ -1,16 +1,16 @@
 """
-append_grade.py — Assignment Evaluator output script
-Appends one evaluated row to the grades xlsx, creating the file if it doesn't exist.
+build_grades.py — Build Grades output script
+Rebuilds the grades xlsx from scratch using all row_*.json files in a folder.
 
 Usage:
-    python append_grade.py <rubric_xlsx> <grades_xlsx> <row_json>
+    python build_grades.py <rubric_xlsx> <grades_xlsx> <evaluations_dir>
 
 Arguments:
-    rubric_xlsx   Path to the rubric .xlsx produced by rubric-creator
-    grades_xlsx   Path to the grades output file (created if missing)
-    row_json      Path to a JSON file with the evaluated row:
+    rubric_xlsx      Path to the rubric .xlsx produced by rubric-creator
+    grades_xlsx      Path to the grades output file (always recreated from scratch)
+    evaluations_dir Directory containing row_*.json evaluation files
 
-Row JSON structure:
+Row JSON structure (observations may be a dict or a legacy plain string):
 {
   "name": "Group 1",
   "scores": {
@@ -24,13 +24,6 @@ Row JSON structure:
     "Criterion Name 3": "missing price and link."
   }
 }
-
-observations may also be a plain string (legacy format) — both are accepted.
-When a dict is provided, non-empty values are compiled into a single string:
-"Criterion Name 2: only 2 out of 10 elements completed. Criterion Name 3: missing price and link."
-
-Score labels must be exactly one of:
-    "Meets Expectations" | "Partially Meets" | "Does Not Meet"
 """
 
 import json
@@ -60,37 +53,36 @@ def read_rubric(rubric_path):
     return criteria
 
 
-def build_header(criteria):
-    headers = ["Name / Group"] + [c[0] for c in criteria] + ["Total", "Observations"]
-    return headers
-
-
 def create_grades_file(grades_path, criteria):
     wb = Workbook()
     ws = wb.active
     ws.title = "Grades"
 
-    headers = build_header(criteria)
+    headers = ["Name / Group"] + [c[0] for c in criteria] + ["Total", "Observations"]
     ws.append(headers)
 
     for cell in ws[1]:
         cell.font = Font(bold=True)
         cell.alignment = Alignment(wrap_text=True, vertical='top')
 
-    # Column widths
     ws.column_dimensions['A'].width = 28
     for i in range(len(criteria)):
         col_letter = ws.cell(1, i + 2).column_letter
         ws.column_dimensions[col_letter].width = 22
-    # Total
     total_col = ws.cell(1, len(criteria) + 2).column_letter
     ws.column_dimensions[total_col].width = 10
-    # Observations
     obs_col = ws.cell(1, len(criteria) + 3).column_letter
     ws.column_dimensions[obs_col].width = 80
 
     ws.freeze_panes = "A2"
     wb.save(grades_path)
+
+
+def compile_observations(raw_obs):
+    """Compile observations dict or string into a single xlsx-ready string."""
+    if isinstance(raw_obs, dict):
+        return " ".join(f"{k}: {v}" for k, v in raw_obs.items() if v)
+    return raw_obs or ""
 
 
 def append_row(grades_path, criteria, row_data):
@@ -99,20 +91,15 @@ def append_row(grades_path, criteria, row_data):
 
     name = row_data["name"]
     scores = row_data["scores"]
-    raw_obs = row_data.get("observations", "")
-    if isinstance(raw_obs, dict):
-        observations = " ".join(
-            f"{k}: {v}" for k, v in raw_obs.items() if v
-        )
-    else:
-        observations = raw_obs
+    observations = compile_observations(row_data.get("observations", ""))
 
-    # Validate labels
     for cname, label in scores.items():
         if label not in VALID_LABELS:
-            raise ValueError(f"Invalid score label '{label}' for criterion '{cname}'. Must be one of: {VALID_LABELS}")
+            raise ValueError(
+                f"Invalid score label '{label}' for criterion '{cname}'. "
+                f"Must be one of: {VALID_LABELS}"
+            )
 
-    # Calculate total
     total = sum(
         weight * MULTIPLIERS[scores.get(cname, "Does Not Meet")]
         for cname, weight in criteria
@@ -134,26 +121,36 @@ def append_row(grades_path, criteria, row_data):
         cell.alignment = Alignment(**kwargs)
 
     wb.save(grades_path)
-    print(f"Appended row for '{name}' → total: {round(total, 1)}")
+    return name, round(total, 1)
 
 
 def main():
     if len(sys.argv) != 4:
-        print("Usage: python append_grade.py <rubric_xlsx> <grades_xlsx> <row_json>")
+        print("Usage: python build_grades.py <rubric_xlsx> <grades_xlsx> <evaluations_dir>")
         sys.exit(1)
 
-    rubric_path, grades_path, row_json_path = sys.argv[1], sys.argv[2], sys.argv[3]
+    rubric_path, grades_path, evaluations_dir = sys.argv[1], sys.argv[2], sys.argv[3]
 
     criteria = read_rubric(rubric_path)
 
-    if not Path(grades_path).exists():
-        create_grades_file(grades_path, criteria)
-        print(f"Created grades file: {grades_path}")
+    json_files = sorted(Path(evaluations_dir).glob("row_*.json"))
+    if not json_files:
+        print(f"No row_*.json files found in {evaluations_dir}")
+        sys.exit(1)
 
-    with open(row_json_path) as f:
-        row_data = json.load(f)
+    # Always recreate from scratch
+    create_grades_file(grades_path, criteria)
+    print(f"Created grades file: {grades_path}")
 
-    append_row(grades_path, criteria, row_data)
+    count = 0
+    for json_file in json_files:
+        with open(json_file) as f:
+            row_data = json.load(f)
+        name, total = append_row(grades_path, criteria, row_data)
+        print(f"  [{count + 1}] '{name}' → total: {total}")
+        count += 1
+
+    print(f"\nRebuilt {count} row(s).")
 
 
 if __name__ == "__main__":
