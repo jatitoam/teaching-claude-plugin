@@ -66,7 +66,9 @@ When modifying a plugin, bump its `version` in all three of these files:
 2. `plugins/<plugin-id>/plugin.yaml` — canonical plugin definition
 3. `.claude-plugin/marketplace.json` — marketplace registry
 
-After committing and pushing, apply the update locally with:
+## Updating the Plugin Locally
+
+When the plugin is updated remotely, run these two commands in order to update the marketplace and plugin locally:
 
 ```bash
 claude plugin marketplace update <marketplace-id>

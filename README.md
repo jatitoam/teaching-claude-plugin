@@ -42,7 +42,9 @@ Three files must be updated in sync — the CLI reads each one for a different p
 | `plugins/<plugin-id>/plugin.yaml` | Canonical plugin definition |
 | `.claude-plugin/marketplace.json` | Repo registry used by `claude plugin install` |
 
-After updating all three files, commit and push, then run these two commands in order:
+## Updating a the plugin locally
+
+When the plugin is updated remotely, the marketplace and plugin must be updated locally to reflect the new version. Run:
 
 ```bash
 claude plugin marketplace update <marketplace-id>
