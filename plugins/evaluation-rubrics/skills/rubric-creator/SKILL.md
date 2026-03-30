@@ -54,7 +54,19 @@ Read `references/performance-levels.md` for:
 - Description quality rules per level — including the rule against inventing numeric thresholds
 - Language and register rules
 
-## Step 3 — Generate the .xlsx
+## Step 3 — Review in Chat
+
+Before writing any files, present the rubric as a Markdown table and ask the user to confirm or request changes:
+
+| Criterion | Meets (100%) | Partially Meets (60%) | Does Not Meet (0%) | Pts |
+|-----------|-------------|----------------------|--------------------|-----|
+| …         | …           | …                    | …                  | …   |
+
+- Wait for explicit approval before proceeding.
+- If the user requests changes, apply them and re-present the updated table.
+- Repeat until the user approves.
+
+## Step 4 — Generate the .xlsx
 
 Build a JSON file matching this structure:
 
@@ -87,7 +99,14 @@ This ensures the JSON and xlsx are always written to the same folder.
 
 See `references/column-layout.md` for column definitions and formatting rules.
 
-## Step 4 — Deliver
+## Step 5 — Deliver
 
 - Present the file with `present_files`.
 - Report: criteria count and total points — nothing else.
+- If the user edits the saved JSON file afterwards and asks to regenerate, run:
+
+```bash
+python scripts/generate_rubric.py <output_dir>/rubrica_<slug>.json <output_dir>/rubrica_<slug>.xlsx
+```
+
+Then re-present the updated file with `present_files`.
