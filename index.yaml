@@ -9,3 +9,13 @@ plugins:
     skills:
       - rubric-creator
       - assignment-evaluator
+  - id: exam-creator
+    path: plugins/exam-creator
+    display_name: Exam Creator
+    description: >
+      Tools for generating multiple-choice exams from course content.
+      Produces structured JSON exam files ready to be imported into any
+      exam delivery system.
+    version: 1.0.0
+    skills:
+      - mcq-generator

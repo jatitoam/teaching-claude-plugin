@@ -12,6 +12,13 @@
       "description": "Create grading rubrics and evaluate student submissions",
       "version": "1.1.0",
       "category": "education"
+    },
+    {
+      "name": "exam-creator",
+      "source": "./plugins/exam-creator",
+      "description": "Generate multiple-choice exams from course content",
+      "version": "1.0.0",
+      "category": "education"
     }
   ]
 }
