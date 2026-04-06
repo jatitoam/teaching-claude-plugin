@@ -23,6 +23,7 @@ index.yaml                   # Top-level registry of all plugins
 | Plugin | Description | Skills | Commands | MCP Servers |
 |--------|-------------|--------|----------|-------------|
 | [evaluation-rubrics](plugins/evaluation-rubrics) | Create grading rubrics and evaluate student submissions | 2 | — | — |
+| [exam-creator](plugins/exam-creator) | Generate multiple-choice exams from course content | 1 | — | — |
 
 ## Plugin Concepts
 
