@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-A Claude plugin marketplace for teaching and academic workflows. Plugins are collections of **skills**, **commands**, and **MCP servers** installed into Claude Code. Currently contains one plugin: `evaluation-rubrics` (v1.0.1).
+A Claude plugin marketplace for teaching and academic workflows. Plugins are collections of **skills**, **commands**, and **MCP servers** installed into Claude Code.
 
 ## No Build System
 
@@ -34,7 +34,7 @@ plugins/<plugin-id>/
 
 A skill is activated when Claude recognizes the user's intent matches the skill's `description` in `SKILL.md` frontmatter. Claude then follows the numbered steps in that file, consulting `references/` docs and invoking `scripts/` via shell commands.
 
-**Key pattern:** Claude generates a JSON intermediate file → passes it to a Python script → script produces an `.xlsx` output to `/mnt/user-data/outputs/`.
+**Common pattern:** Claude generates a JSON intermediate file and either passes it to a Python script to produce a formatted output (e.g. `.xlsx`), or writes the JSON directly as the final artifact — depending on the skill's design.
 
 ## Adding a New Plugin
 
@@ -42,21 +42,6 @@ A skill is activated when Claude recognizes the user's intent matches the skill'
 2. Add skills under `plugins/<plugin-id>/skills/<skill-id>/SKILL.md`
 3. Register the plugin in `index.yaml`
 4. Update `.claude-plugin/marketplace.json` if publishing to the marketplace
-
-## evaluation-rubrics Plugin
-
-Two skills:
-
-| Skill | Purpose | Output |
-|-------|---------|--------|
-| `rubric-creator` | Generate analytic grading rubrics from assignment descriptions | `rubrica_<slug>.xlsx` |
-| `assignment-evaluator` | Score student submissions against a rubric; append to cumulative grades file | `grades_<slug>.xlsx` |
-
-Both skills support bilingual output (Spanish/English), auto-detected from content. Performance levels are fixed at 100% / 60% / 0% — do not add intermediate levels.
-
-**Criterion points must sum to exactly 100** (enforced by `generate_rubric.py`).
-
-**Score labels must be exactly** one of: `Meets Expectations`, `Partially Meets`, `Does Not Meet` (enforced by `append_grade.py`).
 
 ## Versioning
 
