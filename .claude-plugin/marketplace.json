@@ -19,6 +19,13 @@
       "description": "Generate multiple-choice exams from course content",
       "version": "1.0.0",
       "category": "education"
+    },
+    {
+      "name": "pdds-student-guide",
+      "source": "./plugins/pdds-student-guide",
+      "description": "Transform teacher demo guides into student-facing READMEs",
+      "version": "1.0.0",
+      "category": "education"
     }
   ]
 }

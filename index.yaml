@@ -19,3 +19,13 @@ plugins:
     version: 1.0.0
     skills:
       - mcq-generator
+  - id: pdds-student-guide
+    path: plugins/pdds-student-guide
+    display_name: PDDS Student Guide
+    description: >
+      Transforms teacher/instructor demo guides into clean student-facing READMEs.
+      Strips timing, pause points, and instructor notes — keeps commands, expected
+      outputs, and learning objectives.
+    version: 1.0.0
+    skills:
+      - pdds-student-guide
