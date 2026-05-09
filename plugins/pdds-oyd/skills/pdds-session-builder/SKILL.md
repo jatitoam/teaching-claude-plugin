@@ -40,11 +40,12 @@ Each step requires explicit approval before the next begins. Never skip ahead.
 
 1. **Outline** — present full session structure in chat (time blocks, demo placement,
    exercise titles, K8s extension if applicable). Wait for "Go" or explicit approval.
-2. **Demo script(s)** — one `DEMO.md` per demo, numbered steps + talking points.
-   Wait for approval.
+2. **Demo script(s) + code example zips** — one `DEMO.md` per demo (numbered steps +
+   talking points) **and** the full zip for each demo (`start/` + `end/` + DEMO.md),
+   produced together in the same step. The zip is deliverable the moment the script
+   is approved — do not defer it. Wait for approval of both.
 3. **Exercise specs** — exercises as DOCX files (see Section 5). Wait for approval.
-4. **Deck** — PowerPoint via pptxgenjs (see Section 6). Wait for approval.
-5. **Code examples** — zip with `start/` and `end/` states for each demo.
+4. **Deck** — PowerPoint via pptxgenjs (see Section 7). Wait for approval.
 
 Structural corrections to outlines (e.g., repositioning exercises, removing blocks,
 re-ordering demos) must be applied *before* any content is developed.
@@ -181,7 +182,8 @@ is harder to grasp from code alone.
 ### Style 2 — Live-coding companion
 
 Slides advance in sync with the terminal. No separate theory block precedes the demo.
-The slides ARE the demo — each slide corresponds to exactly one action in the terminal.
+Each slide guides one step of the demo — but it is a **teaching guide, not a code mirror**.
+The terminal holds the code; the slide holds the context the instructor speaks out loud.
 
 **Use when:** students are ready to follow along in real time (Session 3+), the session
 covers multiple parallel primitives of the same shape (e.g., four module types), and
@@ -191,24 +193,19 @@ watching the instructor type is itself the tutorial.
 
 | Slide | Type | Content |
 |---|---|---|
-| 1 — Context | `lSlide` | One sentence: what we're building and why. Optional resource diagram or directory tree. |
-| 2 — Module structure | `dSlide` | Directory tree of files to be created (`tree` output style in code block) |
-| Per file | `dSlide` | Exact HCL content of one file. One file per slide — never combine two files. |
-| Per command | `dSlide` | Exact command in a code block. Expected output truncated to ≤ 8 lines; use `[...]` for the rest. |
-| Final — Callout | `lSlide` | One key concept from this demo highlighted. Bold label + two sentences max. |
+| 1 — Context | `lSlide` | What we're building, why it matters, what the module interface looks like. 3–4 bullets. |
+| Per step | `stepSlide` | One action per slide: what to do, why it matters, what to verify. See Section 7. |
+| Final — Callout | `calloutSlide` | One key concept from this demo: label pill + two paragraphs max. |
 
 **Hard rules for live-coding companion slides:**
-- One terminal action per slide — never combine two commands on one slide
-- `demoSlide` marker still appears at the very start of the demo sequence — it signals
-  the live segment is beginning even in companion style
-- Code blocks on per-file and per-command slides use the standard `codeBox` helper
-  (see Section 7); never exceed 11 lines
-- Expected output on command slides must be truncated — graders and students cannot
-  read 40-line plan outputs on a slide; show the signal lines only
+- One terminal action per `stepSlide` — never combine two steps on one slide
+- `demoSlide` marker appears at the very start of the demo sequence — required even in companion style
+- **Never reproduce HCL on slides.** The terminal is the code; the slide is the guide. Key argument names may appear inline in prose (e.g., "set `sensitive = true`"), but never full resource blocks or command output
+- Each `stepSlide` uses exactly three bullets: (1) what to do in the terminal, (2) the concept or decision behind it, (3) what to verify in the output or the common pitfall to call out
 
-**Demo script implication:** in live-coding companion mode, the DEMO.md steps map
-1-to-1 to slides. Number the DEMO.md steps to match slide numbers so the instructor
-can call out "slide 4" without mental translation.
+**Demo script implication:** DEMO.md steps map 1-to-1 to `stepSlide` slides. Number
+the DEMO.md steps to match slide numbers so the instructor can call out "slide 4"
+without mental translation.
 
 ---
 
@@ -351,11 +348,13 @@ Font: Calibri body, Courier New for all code.
 | Type | When to use |
 |------|-------------|
 | `cSlide(title)` | Standard content, white background |
-| `lSlide(title)` | Standard content, light indigo (LB) background |
-| `dSlide(title)` | Dark code-heavy slide (CB background, purple nav bar) |
+| `lSlide(title, bullets)` | Standard content, light indigo (LB) background — context slides, cold open, wrap-up |
+| `dSlide(title, code, fileLabel?)` | Dark code-heavy slide (CB background, purple nav bar) — reserved for before/after anti-pattern pairs where the code itself is the concept |
 | `sdSlide(title, sub)` | Section divider — full navy, purple vertical bar, large type |
 | `exSlide(n, title, desc)` | Exercise card — purple left panel, navy right |
 | `demoSlide(title)` | Live demo marker — very dark bg, sky-blue LIVE DEMO label |
+| `stepSlide(demo, n, total, title, bullets)` | Live-coding companion step — LB bg, navy bar with "N/TOTAL" badge, 3 context bullets (what / why / verify) |
+| `calloutSlide(title, label, body)` | Key concept highlight — navy bg, dark box, purple label pill; used as the final slide of every demo |
 
 ### Required slides — every session deck
 
@@ -399,6 +398,85 @@ const codeBox = (slide, code, x, y, w, h) => {
 **Hard line limit:** at `fontSize: 10.5`, each line ≈ `0.175"`. Inner text height = `h - 0.24"`.
 **Never exceed 11 lines** in a single code box — truncate with `[...]` or split across slides.
 Overflow is invisible during generation but visible in every render.
+
+### stepSlide implementation
+
+Used for every step in a live-coding companion demo. The "N/TOTAL" badge gives the
+instructor instant location awareness mid-demo; the three bullets replace the terminal
+as the thing students read.
+
+```javascript
+function stepSlide(demoLabel, stepNum, totalSteps, title, bullets) {
+  const sl = pres.addSlide();
+  sl.background = { color: C.LB };
+  // Nav bar
+  sl.addShape(pres.shapes.RECTANGLE,
+    { x:0, y:0, w:10, h:0.65, fill:{color:C.N}, line:{color:C.N} });
+  // Step badge
+  sl.addShape(pres.shapes.RECTANGLE,
+    { x:0.3, y:0.12, w:1.3, h:0.4, fill:{color:C.P}, line:{color:C.P} });
+  sl.addText(`${stepNum} / ${totalSteps}`, {
+    x:0.3, y:0.12, w:1.3, h:0.4,
+    fontSize:13, color:C.W, fontFace:"Calibri", bold:true,
+    align:"center", valign:"middle",
+  });
+  // Demo label + step title
+  sl.addText(`${demoLabel}  —  ${title}`, {
+    x:1.78, y:0, w:7.9, h:0.65,
+    fontSize:14, color:C.W, fontFace:"Calibri", bold:true,
+    align:"left", valign:"middle",
+  });
+  // 3-bullet content
+  const items = bullets.map((b, i) => ({
+    text: b,
+    options: { bullet:true, breakLine: i < bullets.length-1,
+      color:C.D, fontSize:15, fontFace:"Calibri", paraSpaceAfter:12 },
+  }));
+  sl.addText(items, { x:0.45, y:0.82, w:9.0, h:4.35, align:"left", valign:"top" });
+  footer(sl);
+}
+```
+
+**Bullet discipline:** three bullets per `stepSlide`, no more:
+- Bullet 1 — **What:** the imperative action ("Write aws_s3_bucket_versioning referencing the bucket.id...")
+- Bullet 2 — **Why:** the concept or architectural decision behind it
+- Bullet 3 — **Verify/Watch:** what correct output looks like, or the common pitfall to name
+
+Inline code references (argument names, resource types) are acceptable in prose — e.g.,
+"set `sensitive = true`". Full resource blocks or command output are not.
+
+### calloutSlide implementation
+
+Used as the closing slide of every demo (replaces the old final `lSlide` callout).
+
+```javascript
+function calloutSlide(title, label, body) {
+  const sl = pres.addSlide();
+  sl.background = { color: C.N };
+  sl.addShape(pres.shapes.RECTANGLE,
+    { x:0, y:0, w:10, h:0.55, fill:{color:C.P}, line:{color:C.P} });
+  sl.addText(title, {
+    x:0.35, y:0, w:9.3, h:0.55,
+    fontSize:14, color:C.W, fontFace:"Calibri", bold:true,
+    align:"left", valign:"middle",
+  });
+  sl.addShape(pres.shapes.RECTANGLE,
+    { x:0.45, y:0.75, w:9.1, h:4.35, fill:{color:"131A4A"}, line:{color:C.P} });
+  sl.addShape(pres.shapes.ROUNDED_RECTANGLE,
+    { x:0.75, y:1.0, w:2.8, h:0.42, fill:{color:C.P}, line:{color:C.P}, rectRadius:0.06 });
+  sl.addText(label, {
+    x:0.75, y:1.0, w:2.8, h:0.42,
+    fontSize:11, color:C.W, fontFace:"Calibri", bold:true,
+    align:"center", valign:"middle",
+  });
+  sl.addText(body, {
+    x:0.75, y:1.58, w:8.5, h:3.35,
+    fontSize:15, color:C.W, fontFace:"Calibri",
+    align:"left", valign:"top",
+  });
+  footer(sl);
+}
+```
 
 ---
 
@@ -493,22 +571,16 @@ session<N>/
 - **Submission instructions missing or paraphrased**: use verbatim wording from Section 6
 
 ### Deck defects
-- **Code block overflow**: count lines before placing — never exceed 11 at fontSize 10.5
-- **Before/after concept taught with only prose**: use before/after slide pair with
-  code examples (see Section 7, before/after slides)
+- **Code mirroring on companion slides**: `dSlide` with full HCL content, simulated `terraform plan` output, or directory tree output in the demo sequence — replace every instance with `stepSlide`. The terminal is the code; the slide is the guide
+- **stepSlide has more than three bullets**: each step slide gets exactly three bullets (what / why / verify). A fourth bullet means the step is trying to teach two concepts — split it into two `stepSlide` calls
+- **calloutSlide missing at end of demo**: every demo must close with a `calloutSlide` (navy bg, dark box, label pill), not a plain `lSlide`
+- **Before/after concept taught with only prose**: use a before/after slide pair with `dSlide` code examples (see Section 7) — the one valid use of `dSlide` in a demo context
 
 ### Style defects (Section 4b)
-- **Style not declared in outline**: every demo entry in the agenda table must name
-  its style (Classic or Live-coding companion) — absence means the deck builder has
-  no spec to follow
-- **Live-coding companion without `demoSlide` marker**: the marker is required even in
-  companion style — it signals the live segment boundary in the deck
-- **Two terminal actions on one companion slide**: one action per slide is a hard rule;
-  split into separate slides
-- **Command slide output not truncated**: expected output longer than 8 lines on a
-  companion slide overflows invisibly — always trim with `[...]`
-- **DEMO.md steps not numbered to match slides**: in companion mode, step N in DEMO.md
-  must correspond to slide N so the instructor can call out slide numbers live
+- **Style not declared in outline**: every demo entry in the agenda table must name its style (Classic or Live-coding companion) — absence means the deck builder has no spec to follow
+- **Live-coding companion without `demoSlide` marker**: the marker is required even in companion style — it signals the live segment boundary in the deck
+- **Two actions on one `stepSlide`**: one terminal action per slide is a hard rule; split into separate `stepSlide` calls
+- **DEMO.md steps not numbered to match slides**: in companion mode, step N in DEMO.md must correspond to slide N so the instructor can call out slide numbers live
 
 ### Handover defects (Section 2a)
 - **Handover not produced after an approved step**: every approval gate must produce
