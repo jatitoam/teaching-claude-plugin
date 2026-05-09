@@ -51,6 +51,40 @@ re-ordering demos) must be applied *before* any content is developed.
 
 ---
 
+## 2a. Handover Document
+
+After each approval-gated step is **approved** and before the next step begins, produce
+a handover document at `/mnt/user-data/outputs/session<N>-handover.md` and present it
+via `present_files`. This document is the single source of truth for any agent picking
+up the build mid-stream.
+
+### Required sections
+
+1. **Session identity** — session number, date, topic, modality, K8s extension flag,
+   delivery milestone if relevant
+2. **Completed steps** — table of all five steps with ✅ / ⬜ status and a one-line note
+   per completed step
+3. **Next step** — exact step name, what it produces, and the approval gate that follows
+4. **Approved outline** — concept thread, full agenda table, demo roster table
+5. **Exercise separation matrix** — full matrix with copy-paste blocking rationale
+6. **Style decisions** — which block+demo style was chosen per demo and why (see
+   Section 4b); any instructor corrections applied to the default
+7. **Constraints honored** — table of course constraints applied, their source, and
+   confirmation they were respected
+8. **File inventory** — paths of all files produced so far; "None" if outline only
+9. **Pending decisions** — any open question the next agent must resolve before proceeding;
+   "None" if all decisions are confirmed
+
+### Format rules
+
+- Markdown only; bold labels, no colors (lightweight formatting preference)
+- Every table must have a header row
+- File paths must be exact and absolute
+- Produce the handover after **every** approved step, even if the same agent continues —
+  it is the record, not just a relay artifact
+
+---
+
 ## 3. Course Constants (hardcoded — never ask the user)
 
 ```
@@ -116,6 +150,65 @@ When a session covers a single coherent topic, the classic arrangement is still 
 | Content | Block 3 + live demo | 25–35 min |
 | Pacing | Exercise 2 | 30 min |
 | Optional | Extension block + demo + exercise | 20–30 min |
+
+---
+
+## 4b. Block + Demo Styles
+
+Two named styles govern how content blocks and demos are combined. **Declare the style
+per demo in the outline** and apply it consistently through demo scripts and deck generation.
+
+---
+
+### Style 1 — Classic (default)
+
+Content slides precede the demo. A `demoSlide` marker separates theory from live coding.
+Students read the theory, then watch the demo with no concurrent slides.
+
+```
+[Theory slides — prose + diagrams] → [demoSlide marker] → [live demo, terminal only]
+```
+
+**Use when:** the topic requires conceptual grounding before code is shown — state
+management models, distributed locking theory, IAM trust policy structure. The concept
+is harder to grasp from code alone.
+
+**Deck implication:** one or more `cSlide` / `lSlide` theory slides followed by a single
+`demoSlide`. No slides during the live coding segment.
+
+---
+
+### Style 2 — Live-coding companion
+
+Slides advance in sync with the terminal. No separate theory block precedes the demo.
+The slides ARE the demo — each slide corresponds to exactly one action in the terminal.
+
+**Use when:** students are ready to follow along in real time (Session 3+), the session
+covers multiple parallel primitives of the same shape (e.g., four module types), and
+watching the instructor type is itself the tutorial.
+
+**Slide sequence per demo — strictly in this order:**
+
+| Slide | Type | Content |
+|---|---|---|
+| 1 — Context | `lSlide` | One sentence: what we're building and why. Optional resource diagram or directory tree. |
+| 2 — Module structure | `dSlide` | Directory tree of files to be created (`tree` output style in code block) |
+| Per file | `dSlide` | Exact HCL content of one file. One file per slide — never combine two files. |
+| Per command | `dSlide` | Exact command in a code block. Expected output truncated to ≤ 8 lines; use `[...]` for the rest. |
+| Final — Callout | `lSlide` | One key concept from this demo highlighted. Bold label + two sentences max. |
+
+**Hard rules for live-coding companion slides:**
+- One terminal action per slide — never combine two commands on one slide
+- `demoSlide` marker still appears at the very start of the demo sequence — it signals
+  the live segment is beginning even in companion style
+- Code blocks on per-file and per-command slides use the standard `codeBox` helper
+  (see Section 7); never exceed 11 lines
+- Expected output on command slides must be truncated — graders and students cannot
+  read 40-line plan outputs on a slide; show the signal lines only
+
+**Demo script implication:** in live-coding companion mode, the DEMO.md steps map
+1-to-1 to slides. Number the DEMO.md steps to match slide numbers so the instructor
+can call out "slide 4" without mental translation.
 
 ---
 
@@ -403,3 +496,25 @@ session<N>/
 - **Code block overflow**: count lines before placing — never exceed 11 at fontSize 10.5
 - **Before/after concept taught with only prose**: use before/after slide pair with
   code examples (see Section 7, before/after slides)
+
+### Style defects (Section 4b)
+- **Style not declared in outline**: every demo entry in the agenda table must name
+  its style (Classic or Live-coding companion) — absence means the deck builder has
+  no spec to follow
+- **Live-coding companion without `demoSlide` marker**: the marker is required even in
+  companion style — it signals the live segment boundary in the deck
+- **Two terminal actions on one companion slide**: one action per slide is a hard rule;
+  split into separate slides
+- **Command slide output not truncated**: expected output longer than 8 lines on a
+  companion slide overflows invisibly — always trim with `[...]`
+- **DEMO.md steps not numbered to match slides**: in companion mode, step N in DEMO.md
+  must correspond to slide N so the instructor can call out slide numbers live
+
+### Handover defects (Section 2a)
+- **Handover not produced after an approved step**: every approval gate must produce
+  a handover file before the next step begins — skipping it breaks agent relay
+- **Handover missing a required section**: all nine sections are mandatory; "None"
+  is a valid value but the section must still appear
+- **File inventory lists relative paths**: all paths in the inventory must be absolute
+- **Handover produced before approval**: the handover is a post-approval artifact;
+  producing it speculatively (before the user says Go) is incorrect
