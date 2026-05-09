@@ -42,6 +42,7 @@ A skill is activated when Claude recognizes the user's intent matches the skill'
 2. Add skills under `plugins/<plugin-id>/skills/<skill-id>/SKILL.md`
 3. Register the plugin in `index.yaml`
 4. Update `.claude-plugin/marketplace.json` if publishing to the marketplace
+5. **Update `README.md`** — add a row to the Plugins table with the plugin id, description, and skill/command/mcp counts
 
 ## Versioning
 
