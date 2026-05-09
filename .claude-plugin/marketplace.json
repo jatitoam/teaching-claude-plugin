@@ -21,9 +21,9 @@
       "category": "education"
     },
     {
-      "name": "pdds-student-guide",
-      "source": "./plugins/pdds-student-guide",
-      "description": "Transform teacher demo guides into student-facing READMEs",
+      "name": "pdds",
+      "source": "./plugins/pdds",
+      "description": "Tools for the PDDS course: student guides and assignment reference solutions",
       "version": "1.0.0",
       "category": "education"
     }

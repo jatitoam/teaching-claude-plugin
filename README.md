@@ -24,7 +24,7 @@ index.yaml                   # Top-level registry of all plugins
 |--------|-------------|--------|----------|-------------|
 | [evaluation-rubrics](plugins/evaluation-rubrics) | Create grading rubrics and evaluate student submissions | 2 | — | — |
 | [exam-creator](plugins/exam-creator) | Generate multiple-choice exams from course content | 1 | — | — |
-| [pdds-student-guide](plugins/pdds-student-guide) | Transform instructor demo guides into clean student-facing READMEs | 1 | — | — |
+| [pdds](plugins/pdds) | Tools for the PDDS course: student guides and assignment reference solutions | 2 | — | — |
 
 ## Plugin Concepts
 
