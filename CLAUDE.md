@@ -46,11 +46,13 @@ A skill is activated when Claude recognizes the user's intent matches the skill'
 
 ## Versioning
 
-When modifying a plugin, bump its `version` in all three of these files:
+When modifying a plugin, bump its `version` in all five of these files:
 
 1. `plugins/<plugin-id>/.claude-plugin/plugin.json` — version the CLI reads for update detection
 2. `plugins/<plugin-id>/plugin.yaml` — canonical plugin definition
-3. `.claude-plugin/marketplace.json` — marketplace registry
+3. `.claude-plugin/marketplace.json` — the plugin's entry inside `"plugins": [...]`
+4. `.claude-plugin/marketplace.json` — the **top-level** `"version"` field (controls whether `claude plugin marketplace update` fetches fresh data at all)
+5. `index.yaml` — top-level registry entry for the plugin
 
 ## Updating the Plugin Locally
 

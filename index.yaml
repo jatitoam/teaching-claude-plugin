@@ -38,7 +38,7 @@ plugins:
       Automation" at FISICC, Universidad Galileo. Builds graded project delivery
       documents and rubrics (5-delivery arc), and generates full session instructional
       materials (demo scripts, exercise DOCX files, PPTX decks, and code example zips).
-    version: 1.0.0
+    version: 1.2.0
     skills:
       - pdds-delivery-builder
       - pdds-session-builder
