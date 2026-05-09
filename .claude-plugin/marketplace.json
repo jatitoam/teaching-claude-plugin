@@ -4,7 +4,7 @@
     "name": "jatitoam"
   },
   "description": "Claude plugins for teaching and academic workflows",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "plugins": [
     {
       "name": "evaluation-rubrics",
