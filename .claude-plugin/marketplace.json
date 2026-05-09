@@ -26,6 +26,13 @@
       "description": "Tools for the PDDS course: student guides and assignment reference solutions",
       "version": "1.0.0",
       "category": "education"
+    },
+    {
+      "name": "pdds-oyd",
+      "source": "./plugins/pdds-oyd",
+      "description": "Course-specific tools for PDDS OyD: delivery builder and session builder",
+      "version": "1.0.0",
+      "category": "education"
     }
   ]
 }

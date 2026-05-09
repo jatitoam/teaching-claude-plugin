@@ -1,0 +1,15 @@
+name: pdds-oyd
+display_name: PDDS — Optimizaciones y Desempeño
+description: >
+  Course-specific tools for PDDS "Optimizaciones y Desempeño / Cloud Deployment
+  Automation" at FISICC, Universidad Galileo. Builds graded project delivery
+  documents and rubrics (5-delivery arc), and generates full session instructional
+  materials (demo scripts, exercise DOCX files, PPTX decks, and code example zips).
+version: 1.0.0
+skills:
+  - id: pdds-delivery-builder
+    path: skills/pdds-delivery-builder
+  - id: pdds-session-builder
+    path: skills/pdds-session-builder
+commands: []
+mcp_servers: []
