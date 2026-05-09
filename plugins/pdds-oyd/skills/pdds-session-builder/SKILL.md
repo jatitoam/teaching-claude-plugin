@@ -36,16 +36,32 @@ Do NOT use this skill for:
 
 ## 2. Approval-Gated Sequence — mandatory, always in this order
 
-Each step requires explicit approval before the next begins. Never skip ahead.
+Each step follows this exact pattern — no exceptions:
+
+```
+Produce deliverable(s) → present to user → produce handover → call present_files → STOP
+```
+
+The agent must stop after calling `present_files`. The next step begins only after the
+user provides explicit approval ("Go" or equivalent) in a new message.
+
+### Steps
 
 1. **Outline** — present full session structure in chat (time blocks, demo placement,
-   exercise titles, K8s extension if applicable). Wait for "Go" or explicit approval.
+   exercise titles, K8s extension if applicable).
+   → Produce and present handover. Stop. Wait for "Go".
+
 2. **Demo script(s) + code example zips** — one `DEMO.md` per demo (numbered steps +
    talking points) **and** the full zip for each demo (`start/` + `end/` + DEMO.md),
    produced together in the same step. The zip is deliverable the moment the script
-   is approved — do not defer it. Wait for approval of both.
-3. **Exercise specs** — exercises as DOCX files (see Section 5). Wait for approval.
-4. **Deck** — PowerPoint via pptxgenjs (see Section 7). Wait for approval.
+   is approved — do not defer it.
+   → Produce and present handover. Stop. Wait for "Go".
+
+3. **Exercise specs** — exercises as DOCX files (see Section 6).
+   → Produce and present handover. Stop. Wait for "Go".
+
+4. **Deck** — PowerPoint via pptxgenjs (see Section 7).
+   → Session complete. No further handover required.
 
 Structural corrections to outlines (e.g., repositioning exercises, removing blocks,
 re-ordering demos) must be applied *before* any content is developed.
@@ -54,25 +70,34 @@ re-ordering demos) must be applied *before* any content is developed.
 
 ## 2a. Handover Document
 
-After each approval-gated step is **approved** and before the next step begins, produce
-a handover document at `/mnt/user-data/outputs/session<N>-handover.md` and present it
-via `present_files`. This document is the single source of truth for any agent picking
-up the build mid-stream.
+The handover document is produced after every approved step, before the next step
+begins. It is the single source of truth for any agent picking up the build mid-stream.
+
+**Path:** `/mnt/user-data/outputs/session<N>-handover.md`
+**Delivery:** via `present_files` — always the last action in a turn.
+
+**The handover is a stopping artifact.** After calling `present_files` with the
+handover, the agent must stop. Do not proceed to the next step in the same turn,
+even if the next step is obvious. The next step begins only after the user provides
+explicit approval ("Go" or equivalent) in a new message.
 
 ### Required sections
 
 1. **Session identity** — session number, date, topic, modality, K8s extension flag,
    delivery milestone if relevant
-2. **Completed steps** — table of all five steps with ✅ / ⬜ status and a one-line note
+2. **Completed steps** — table of all steps with ✅ / ⬜ status and a one-line note
    per completed step
-3. **Next step** — exact step name, what it produces, and the approval gate that follows
+3. **Next step** — exact step name, what it produces, the skill to read first, the
+   output path, the validation command, and the approval gate that follows. A bare
+   step name is not sufficient — the next agent must be able to act without reading
+   back through the conversation.
 4. **Approved outline** — concept thread, full agenda table, demo roster table
 5. **Exercise separation matrix** — full matrix with copy-paste blocking rationale
 6. **Style decisions** — which block+demo style was chosen per demo and why (see
    Section 4b); any instructor corrections applied to the default
 7. **Constraints honored** — table of course constraints applied, their source, and
    confirmation they were respected
-8. **File inventory** — paths of all files produced so far; "None" if outline only
+8. **File inventory** — absolute paths of all files produced so far; "None" if outline only
 9. **Pending decisions** — any open question the next agent must resolve before proceeding;
    "None" if all decisions are confirmed
 
@@ -193,6 +218,7 @@ watching the instructor type is itself the tutorial.
 
 | Slide | Type | Content |
 |---|---|---|
+| demoSlide | `demoSlide` | Live demo marker — always the first slide of every demo, both styles |
 | 1 — Context | `lSlide` | What we're building, why it matters, what the module interface looks like. 3–4 bullets. |
 | Per step | `stepSlide` | One action per slide: what to do, why it matters, what to verify. See Section 7. |
 | Final — Callout | `calloutSlide` | One key concept from this demo: label pill + two paragraphs max. |
@@ -362,7 +388,7 @@ Font: Calibri body, Courier New for all code.
 2. **Tonight's Plan** — agenda table with times; exercise rows highlighted in green
 3. **Section divider** (`sdSlide`) per content block
 4. **Content slides** per block (as many as the topic needs)
-5. **Live demo marker** (`demoSlide`) immediately before each demo
+5. **Live demo marker** (`demoSlide`) immediately before each demo — both styles
 6. **Exercise card** (`exSlide`) at each exercise slot
 
 Course admin slides (schedule, assessment, policies) — include for Session 1 and
@@ -571,16 +597,29 @@ session<N>/
 - **Submission instructions missing or paraphrased**: use verbatim wording from Section 6
 
 ### Deck defects
-- **Code mirroring on companion slides**: `dSlide` with full HCL content, simulated `terraform plan` output, or directory tree output in the demo sequence — replace every instance with `stepSlide`. The terminal is the code; the slide is the guide
-- **stepSlide has more than three bullets**: each step slide gets exactly three bullets (what / why / verify). A fourth bullet means the step is trying to teach two concepts — split it into two `stepSlide` calls
-- **calloutSlide missing at end of demo**: every demo must close with a `calloutSlide` (navy bg, dark box, label pill), not a plain `lSlide`
-- **Before/after concept taught with only prose**: use a before/after slide pair with `dSlide` code examples (see Section 7) — the one valid use of `dSlide` in a demo context
+- **Code mirroring on companion slides**: `dSlide` with full HCL content, simulated
+  `terraform plan` output, or directory tree output in the demo sequence — replace
+  every instance with `stepSlide`. The terminal is the code; the slide is the guide
+- **stepSlide has more than three bullets**: each step slide gets exactly three bullets
+  (what / why / verify). A fourth bullet means the step is trying to teach two concepts
+  — split it into two `stepSlide` calls
+- **calloutSlide missing at end of demo**: every demo must close with a `calloutSlide`
+  (navy bg, dark box, label pill), not a plain `lSlide`
+- **demoSlide missing**: every demo must open with a `demoSlide` marker — both Classic
+  and Live-coding companion styles require it
+- **Before/after concept taught with only prose**: use a before/after slide pair with
+  `dSlide` code examples (see Section 7) — the one valid use of `dSlide` in a demo context
 
 ### Style defects (Section 4b)
-- **Style not declared in outline**: every demo entry in the agenda table must name its style (Classic or Live-coding companion) — absence means the deck builder has no spec to follow
-- **Live-coding companion without `demoSlide` marker**: the marker is required even in companion style — it signals the live segment boundary in the deck
-- **Two actions on one `stepSlide`**: one terminal action per slide is a hard rule; split into separate `stepSlide` calls
-- **DEMO.md steps not numbered to match slides**: in companion mode, step N in DEMO.md must correspond to slide N so the instructor can call out slide numbers live
+- **Style not declared in outline**: every demo entry in the agenda table must name its
+  style (Classic or Live-coding companion) — absence means the deck builder has no spec
+  to follow
+- **Live-coding companion without `demoSlide` marker**: the marker is required even in
+  companion style — it signals the live segment boundary in the deck
+- **Two actions on one `stepSlide`**: one terminal action per slide is a hard rule;
+  split into separate `stepSlide` calls
+- **DEMO.md steps not numbered to match slides**: in companion mode, step N in DEMO.md
+  must correspond to slide N so the instructor can call out slide numbers live
 
 ### Handover defects (Section 2a)
 - **Handover not produced after an approved step**: every approval gate must produce
@@ -590,3 +629,12 @@ session<N>/
 - **File inventory lists relative paths**: all paths in the inventory must be absolute
 - **Handover produced before approval**: the handover is a post-approval artifact;
   producing it speculatively (before the user says Go) is incorrect
+- **Agent continued past the handover in the same turn**: after `present_files` is
+  called with the handover, the agent must stop — no further step content, no file
+  generation, no reading of the next skill. Producing handover + next step in one
+  turn silently skips an approval gate and leaves the handover describing a state
+  that is already stale before the user reads it
+- **Next step section missing build notes**: the "Next step" section must include the
+  skill to read first, the output path, the validation command, and the approval gate —
+  not just the step name. A bare "build the deck" entry gives the next agent nothing
+  to act on
