@@ -14,8 +14,8 @@ description: >
 
 # PDDS Cloud Deployment Automation — Session Builder
 
-Produces the complete set of instructional materials for one session of the course:
-demo scripts, exercise DOCX files, a PowerPoint deck, and a zipped examples directory.
+Produces the complete set of instructional materials for one session: demo scripts,
+exercise DOCX files, a PowerPoint deck, and zipped code examples.
 
 ---
 
@@ -49,18 +49,22 @@ user provides explicit approval ("Go" or equivalent) in a new message.
 
 1. **Outline** — present full session structure in chat (time blocks, demo placement,
    exercise titles, K8s extension if applicable).
+   → Read `references/session-structure.md` and `references/defect-checklist.md` first.
    → Produce and present handover. Stop. Wait for "Go".
 
 2. **Demo script(s) + code example zips** — one `DEMO.md` per demo (numbered steps +
    talking points) **and** the full zip for each demo (`start/` + `end/` + DEMO.md),
-   produced together in the same step. The zip is deliverable the moment the script
-   is approved — do not defer it.
+   produced together in the same step.
+   → Read `references/demo-spec.md` and `references/defect-checklist.md` first.
    → Produce and present handover. Stop. Wait for "Go".
 
-3. **Exercise specs** — exercises as DOCX files (see Section 6).
+3. **Exercise specs** — exercises as DOCX files.
+   → Read `references/exercise-spec.md` and `references/defect-checklist.md` first.
    → Produce and present handover. Stop. Wait for "Go".
 
-4. **Deck** — PowerPoint via pptxgenjs (see Section 7).
+4. **Deck** — PowerPoint via pptxgenjs.
+   → Read `references/deck-spec.md`, `scripts/pptx-code-box.js`,
+     `scripts/pptx-step-slide.js`, and `scripts/pptx-callout-slide.js` first.
    → Session complete. No further handover required.
 
 Structural corrections to outlines (e.g., repositioning exercises, removing blocks,
@@ -70,16 +74,14 @@ re-ordering demos) must be applied *before* any content is developed.
 
 ## 2a. Handover Document
 
-The handover document is produced after every approved step, before the next step
-begins. It is the single source of truth for any agent picking up the build mid-stream.
+Produced after every approved step. Single source of truth for any agent picking up
+mid-stream.
 
 **Path:** `/mnt/user-data/outputs/session<N>-handover.md`
 **Delivery:** via `present_files` — always the last action in a turn.
 
-**The handover is a stopping artifact.** After calling `present_files` with the
-handover, the agent must stop. Do not proceed to the next step in the same turn,
-even if the next step is obvious. The next step begins only after the user provides
-explicit approval ("Go" or equivalent) in a new message.
+**The handover is a stopping artifact.** After calling `present_files`, the agent must
+stop. Do not proceed to the next step in the same turn.
 
 ### Required sections
 
@@ -87,27 +89,23 @@ explicit approval ("Go" or equivalent) in a new message.
    delivery milestone if relevant
 2. **Completed steps** — table of all steps with ✅ / ⬜ status and a one-line note
    per completed step
-3. **Next step** — exact step name, what it produces, the skill to read first, the
-   output path, the validation command, and the approval gate that follows. A bare
-   step name is not sufficient — the next agent must be able to act without reading
-   back through the conversation.
+3. **Next step** — exact step name, what it produces, the reference files to read first,
+   the output path, the validation command, and the approval gate that follows
 4. **Approved outline** — concept thread, full agenda table, demo roster table
 5. **Exercise separation matrix** — full matrix with copy-paste blocking rationale
-6. **Style decisions** — which block+demo style was chosen per demo and why (see
-   Section 4b); any instructor corrections applied to the default
+6. **Style decisions** — which block+demo style was chosen per demo and why; any
+   instructor corrections applied
 7. **Constraints honored** — table of course constraints applied, their source, and
    confirmation they were respected
 8. **File inventory** — absolute paths of all files produced so far; "None" if outline only
-9. **Pending decisions** — any open question the next agent must resolve before proceeding;
-   "None" if all decisions are confirmed
+9. **Pending decisions** — any open question the next agent must resolve; "None" if all confirmed
 
 ### Format rules
 
-- Markdown only; bold labels, no colors (lightweight formatting preference)
+- Markdown only; bold labels, no colors
 - Every table must have a header row
 - File paths must be exact and absolute
-- Produce the handover after **every** approved step, even if the same agent continues —
-  it is the record, not just a relay artifact
+- Produce after **every** approved step, even if the same agent continues
 
 ---
 
@@ -142,413 +140,7 @@ Sessions 5 and 10 are on-site exam/presentation sessions — no session material
 
 ---
 
-## 4. Session Structure (3 hours, no break, no debrief)
-
-### Hard constraints
-- **Two exercises minimum, 30 min each** — fixed
-- **No break block, no debrief block**
-- Exercises are pacing breaks — isolated, standalone tasks
-- Optional extensions (K8s/EKS, advanced topics) are a clean cutoff block at the
-  end of the session — never embedded mid-session; always carry their own demo and
-  optional exercise
-
-### Preferred flow pattern — interleaved learn → demo → exercise
-
-When a session covers multiple parallel primitives of equal weight (e.g., three compute
-targets, two storage backends), prefer this interleaved pattern over batching all content
-then all exercises:
-
-```
-Block N (lean theory for primitive N) → Demo N → Exercise N → Block N+1 → ...
-```
-
-This keeps cognitive load bounded: students practice each primitive before seeing the next.
-Content blocks in this pattern should be short (10–15 min) — the demo carries the teaching.
-
-When a session covers a single coherent topic, the classic arrangement is still appropriate:
-
-| Slot | Block | Duration |
-|------|-------|----------|
-| Opening | Cold open + context setting | 10–15 min |
-| Content | Block 1 (lean theory) | 20–30 min |
-| Content | Block 2 + live demo | 30–40 min |
-| Pacing | Exercise 1 | 30 min |
-| Content | Block 3 + live demo | 25–35 min |
-| Pacing | Exercise 2 | 30 min |
-| Optional | Extension block + demo + exercise | 20–30 min |
-
----
-
-## 4b. Block + Demo Styles
-
-Two named styles govern how content blocks and demos are combined. **Declare the style
-per demo in the outline** and apply it consistently through demo scripts and deck generation.
-
----
-
-### Style 1 — Classic (default)
-
-Content slides precede the demo. A `demoSlide` marker separates theory from live coding.
-Students read the theory, then watch the demo with no concurrent slides.
-
-```
-[Theory slides — prose + diagrams] → [demoSlide marker] → [live demo, terminal only]
-```
-
-**Use when:** the topic requires conceptual grounding before code is shown — state
-management models, distributed locking theory, IAM trust policy structure. The concept
-is harder to grasp from code alone.
-
-**Deck implication:** one or more `cSlide` / `lSlide` theory slides followed by a single
-`demoSlide`. No slides during the live coding segment.
-
----
-
-### Style 2 — Live-coding companion
-
-Slides advance in sync with the terminal. No separate theory block precedes the demo.
-Each slide guides one step of the demo — but it is a **teaching guide, not a code mirror**.
-The terminal holds the code; the slide holds the context the instructor speaks out loud.
-
-**Use when:** students are ready to follow along in real time (Session 3+), the session
-covers multiple parallel primitives of the same shape (e.g., four module types), and
-watching the instructor type is itself the tutorial.
-
-**Slide sequence per demo — strictly in this order:**
-
-| Slide | Type | Content |
-|---|---|---|
-| demoSlide | `demoSlide` | Live demo marker — always the first slide of every demo, both styles |
-| 1 — Context | `lSlide` | What we're building, why it matters, what the module interface looks like. 3–4 bullets. |
-| Per step | `stepSlide` | One action per slide: what to do, why it matters, what to verify. See Section 7. |
-| Final — Callout | `calloutSlide` | One key concept from this demo: label pill + two paragraphs max. |
-
-**Hard rules for live-coding companion slides:**
-- One terminal action per `stepSlide` — never combine two steps on one slide
-- `demoSlide` marker appears at the very start of the demo sequence — required even in companion style
-- **Never reproduce HCL on slides.** The terminal is the code; the slide is the guide. Key argument names may appear inline in prose (e.g., "set `sensitive = true`"), but never full resource blocks or command output
-- Each `stepSlide` uses exactly three bullets: (1) what to do in the terminal, (2) the concept or decision behind it, (3) what to verify in the output or the common pitfall to call out
-
-**Demo script implication:** DEMO.md steps map 1-to-1 to `stepSlide` slides. Number
-the DEMO.md steps to match slide numbers so the instructor can call out "slide 4"
-without mental translation.
-
----
-
-## 5. Outline Design Principles
-
-Apply these when constructing the outline (Step 1). They are checked before presenting
-the outline to the user.
-
-### 5.1 — Lead with the concept thread
-State the core concept that unifies the session as the first element of the outline,
-before the agenda table. The thread answers: *what is the one thing every demo and
-exercise proves?* All timing, demo sequencing, and exercise design follow from it.
-
-Example: "One app, three compute primitives, same module interface" is a concept thread.
-"We will cover EC2, Lambda, and ECS" is not — it is a topic list.
-
-### 5.2 — Derive time blocks from content, not the reverse
-Size content blocks based on what the topic actually needs. If a demo will teach the
-concept better than slides, shorten the preceding content block and let the demo carry
-the weight. Never pad a content block to fill a predetermined slot.
-
-### 5.3 — Never telegraph finality on student decisions
-Do not use language like "decision is final", "you must commit tonight", or "no changes
-after this session" for architectural or tooling choices students are still exploring.
-State that students will have the full picture after the relevant content, and that
-decisions have a deadline in the delivery document — not in the session.
-
----
-
-## 6. Exercise Specs — DOCX
-
-Read `/mnt/skills/public/docx/SKILL.md` before writing any generation code.
-
-### Design rules
-
-- Each exercise: exactly 30 min
-- Complexity must match only what has been shown in class *before* the exercise
-- **Standalone**: not tied to the course project, works in isolation
-- **Demos ≠ Exercises**: different language runtime, different AWS resource type,
-  copy-paste from demo to exercise must not be possible
-- **Order by complexity, not by topic order**: if the session covers multiple concepts,
-  assign the simpler concept to Exercise 1 regardless of which demo came first in the
-  session. Students should build confidence before encountering nuance.
-- **One primitive per exercise**: do not combine multiple unrelated resource types in
-  a single exercise. If a concept requires two resources that always travel together
-  (e.g., EC2 + Security Group), that is one primitive — include both. If two concepts
-  are independently teachable, they belong in separate exercises.
-
-### Copy-paste blocking
-
-The preferred blocker is **same app scenario, different runtime**:
-- Same endpoint contract, curl-testable with identical commands across all exercises
-- Different language runtime per exercise — verified in the separation matrix
-
-When additional differentiation is needed (e.g., to prevent cross-exercise copying),
-use **different app scenario** as a secondary blocker. State the scenario difference
-explicitly in the outline's separation matrix.
-
-Always produce a separation matrix in the outline:
-
-| | Demo A | Demo B | Ex 1 | Ex 2 |
-|---|---|---|---|---|
-| Runtime | Go | Python | Ruby | Node.js |
-| AWS resource | EC2 | Lambda | EC2 | Lambda |
-| App scenario | health+echo | health+echo | health+echo | currency API |
-| Copy-paste blocked? | — | — | ✓ runtime | ✓ runtime+scenario |
-
-### Evidence requirement
-
-Every exercise must include a verifiable artifact:
-
-- **Running resource**: CLI command output saved as `evidence/<n>.txt`, rendered
-  inline in `README.md` under `## Evidence`
-- **Visual output** (K8s, running apps): screenshot saved as `evidence/<n>.png`,
-  rendered inline in `README.md` under `## Evidence`
-- **Pipeline output** (CI/CD, GitHub Actions): link to the PR + screenshot of the
-  result, saved as `evidence/<n>.png`
-
-Test: *can a grader verify this passed without access to the student's machine?*
-
-### Submission instructions (verbatim in every exercise)
-
-```
-Initialize a new repository called oyd-exercise-<session>-<n> and commit/push
-everything into it. Submit the repository URL only.
-```
-
-### DOCX section order
-
-1. **H1 title** — `Exercise <session>.<n> — <Title>`
-2. **Header block** — Course name, Session date, Time allowed, Submission instructions
-   (plain paragraphs, bold labels)
-3. **H2 Context** — scenario / starter code; inline in Courier New if file is provided
-4. **H2 Setup** — prerequisites (CLI tools, credentials, starter file location)
-5. **H2 Tasks** — H3 per task, numbered sub-questions as a numbered list
-6. **H2 Acceptance Criteria** — bullet list of what a passing submission looks like
-
-### DOCX formatting
-
-- Body: Calibri 12pt; code: Courier New — no color, bold and font size only
-- Produce as DOCX via the `docx` npm skill
-- Validate with `/mnt/skills/public/docx/scripts/office/validate.py`
-
----
-
-## 7. Deck — PowerPoint via pptxgenjs
-
-Read `/mnt/skills/public/pptx/SKILL.md` before writing any generation code.
-
-### Output path
-
-Generate to `/home/claude/session<N>/Session<N>_<Topic>.pptx`, then copy to
-`/mnt/user-data/outputs/`.
-Validate by converting to PDF (`soffice`) and rendering to JPG (`pdftoppm`).
-
-### Color palette
-
-```
-N  = "1A237E"   // deep navy       — title bars, section headers, dark backgrounds
-P  = "6540A8"   // medium purple   — accents, exercise cards, code header bars
-B  = "2563EB"   // royal blue      — table headers, callouts
-W  = "FFFFFF"   // white
-LB = "EEF2FF"   // light indigo    — alternating content background
-D  = "1F2937"   // near-black      — body text
-M  = "9CA3AF"   // muted grey      — captions, footer
-CB = "13172E"   // very dark navy  — code block background
-CT = "D4D4D8"   // light grey      — code block text
-AC = "38BDF8"   // sky blue        — live demo accent label
-GR = "10B981"   // emerald         — positive, exercise rows, "after" state
-RE = "EF4444"   // red             — warnings, "before" state, errors
-GO = "F59E0B"   // amber           — notes, caution rows
-TA = "F5F7FF"   // very light blue — table alternate rows
-TB = "C7D2FE"   // periwinkle      — table borders
-```
-
-Font: Calibri body, Courier New for all code.
-
-### Slide types
-
-| Type | When to use |
-|------|-------------|
-| `cSlide(title)` | Standard content, white background |
-| `lSlide(title, bullets)` | Standard content, light indigo (LB) background — context slides, cold open, wrap-up |
-| `dSlide(title, code, fileLabel?)` | Dark code-heavy slide (CB background, purple nav bar) — reserved for before/after anti-pattern pairs where the code itself is the concept |
-| `sdSlide(title, sub)` | Section divider — full navy, purple vertical bar, large type |
-| `exSlide(n, title, desc)` | Exercise card — purple left panel, navy right |
-| `demoSlide(title)` | Live demo marker — very dark bg, sky-blue LIVE DEMO label |
-| `stepSlide(demo, n, total, title, bullets)` | Live-coding companion step — LB bg, navy bar with "N/TOTAL" badge, 3 context bullets (what / why / verify) |
-| `calloutSlide(title, label, body)` | Key concept highlight — navy bg, dark box, purple label pill; used as the final slide of every demo |
-
-### Required slides — every session deck
-
-1. **Title slide** — session number, topic, date, instructor names
-2. **Tonight's Plan** — agenda table with times; exercise rows highlighted in green
-3. **Section divider** (`sdSlide`) per content block
-4. **Content slides** per block (as many as the topic needs)
-5. **Live demo marker** (`demoSlide`) immediately before each demo — both styles
-6. **Exercise card** (`exSlide`) at each exercise slot
-
-Course admin slides (schedule, assessment, policies) — include for Session 1 and
-any session with a significant announcement; omit otherwise.
-
-### Slide density
-
-Prefer many small focused slides over large dense ones. Split when a slide has
-more than ~5 bullet points or two unrelated ideas. Exception: comparison slides
-(before/after, A vs B) stay together.
-
-### Before/after and anti-pattern slides
-
-When a content block introduces a concept that is better shown than described
-(module design, dependency chains, copy-paste drift), use a dedicated before/after
-slide pair:
-- **Before slide** (`RE` accent): the problematic pattern with code example
-- **After slide** (`GR` accent): the correct pattern with code example
-- Keep both on adjacent slides — never split across a section divider
-
-### Code blocks
-
-```javascript
-const codeBox = (slide, code, x, y, w, h) => {
-  slide.addShape(pres.shapes.RECTANGLE,
-    { x, y, w, h, fill:{color:"0D1021"}, line:{color:"2E3A59"} });
-  slide.addText(code, { x:x+0.15, y:y+0.12, w:w-0.3, h:h-0.24,
-    fontSize:10.5, color:"D4D4D8", fontFace:"Courier New",
-    align:"left", valign:"top", margin:0 });
-};
-```
-
-**Hard line limit:** at `fontSize: 10.5`, each line ≈ `0.175"`. Inner text height = `h - 0.24"`.
-**Never exceed 11 lines** in a single code box — truncate with `[...]` or split across slides.
-Overflow is invisible during generation but visible in every render.
-
-### stepSlide implementation
-
-Used for every step in a live-coding companion demo. The "N/TOTAL" badge gives the
-instructor instant location awareness mid-demo; the three bullets replace the terminal
-as the thing students read.
-
-```javascript
-function stepSlide(demoLabel, stepNum, totalSteps, title, bullets) {
-  const sl = pres.addSlide();
-  sl.background = { color: C.LB };
-  // Nav bar
-  sl.addShape(pres.shapes.RECTANGLE,
-    { x:0, y:0, w:10, h:0.65, fill:{color:C.N}, line:{color:C.N} });
-  // Step badge
-  sl.addShape(pres.shapes.RECTANGLE,
-    { x:0.3, y:0.12, w:1.3, h:0.4, fill:{color:C.P}, line:{color:C.P} });
-  sl.addText(`${stepNum} / ${totalSteps}`, {
-    x:0.3, y:0.12, w:1.3, h:0.4,
-    fontSize:13, color:C.W, fontFace:"Calibri", bold:true,
-    align:"center", valign:"middle",
-  });
-  // Demo label + step title
-  sl.addText(`${demoLabel}  —  ${title}`, {
-    x:1.78, y:0, w:7.9, h:0.65,
-    fontSize:14, color:C.W, fontFace:"Calibri", bold:true,
-    align:"left", valign:"middle",
-  });
-  // 3-bullet content
-  const items = bullets.map((b, i) => ({
-    text: b,
-    options: { bullet:true, breakLine: i < bullets.length-1,
-      color:C.D, fontSize:15, fontFace:"Calibri", paraSpaceAfter:12 },
-  }));
-  sl.addText(items, { x:0.45, y:0.82, w:9.0, h:4.35, align:"left", valign:"top" });
-  footer(sl);
-}
-```
-
-**Bullet discipline:** three bullets per `stepSlide`, no more:
-- Bullet 1 — **What:** the imperative action ("Write aws_s3_bucket_versioning referencing the bucket.id...")
-- Bullet 2 — **Why:** the concept or architectural decision behind it
-- Bullet 3 — **Verify/Watch:** what correct output looks like, or the common pitfall to name
-
-Inline code references (argument names, resource types) are acceptable in prose — e.g.,
-"set `sensitive = true`". Full resource blocks or command output are not.
-
-### calloutSlide implementation
-
-Used as the closing slide of every demo (replaces the old final `lSlide` callout).
-
-```javascript
-function calloutSlide(title, label, body) {
-  const sl = pres.addSlide();
-  sl.background = { color: C.N };
-  sl.addShape(pres.shapes.RECTANGLE,
-    { x:0, y:0, w:10, h:0.55, fill:{color:C.P}, line:{color:C.P} });
-  sl.addText(title, {
-    x:0.35, y:0, w:9.3, h:0.55,
-    fontSize:14, color:C.W, fontFace:"Calibri", bold:true,
-    align:"left", valign:"middle",
-  });
-  sl.addShape(pres.shapes.RECTANGLE,
-    { x:0.45, y:0.75, w:9.1, h:4.35, fill:{color:"131A4A"}, line:{color:C.P} });
-  sl.addShape(pres.shapes.ROUNDED_RECTANGLE,
-    { x:0.75, y:1.0, w:2.8, h:0.42, fill:{color:C.P}, line:{color:C.P}, rectRadius:0.06 });
-  sl.addText(label, {
-    x:0.75, y:1.0, w:2.8, h:0.42,
-    fontSize:11, color:C.W, fontFace:"Calibri", bold:true,
-    align:"center", valign:"middle",
-  });
-  sl.addText(body, {
-    x:0.75, y:1.58, w:8.5, h:3.35,
-    fontSize:15, color:C.W, fontFace:"Calibri",
-    align:"left", valign:"top",
-  });
-  footer(sl);
-}
-```
-
----
-
-## 8. Demo Script Rules
-
-### Structure
-
-Each demo:
-- Has a `start/` state (instructor opens this) and `end/` state (target)
-- `DEMO.md` contains: numbered steps, verbatim bash commands, pause points with
-  talking-point annotations, key conceptual callouts, timing guide
-- Zipped as `demo-<N>-<topic>.zip` for download — never `example-<N>.zip`
-
-Demo names are concrete (e.g., `demo-3-ec2/`) — never `example-1/`.
-
-### 8.1 — Demos carry the teaching weight
-Content blocks preceding a demo should be lean (10–20 min max for complex topics).
-The demo is the tutorial; the block is the map. Do not duplicate in slides what the
-live demo will show in code.
-
-### 8.2 — Multiple parallel primitives → labeled phases or sequential demos
-When a session covers multiple resource types that share a concept (e.g., three
-compute targets that all expose an HTTP endpoint), structure the session as sequential
-demos (Demo A, Demo B, Demo C) each covering one primitive, rather than one large
-demo with crowded phases. Each demo has its own content block, its own exercise, and
-its own start/end zip.
-
-### 8.3 — Bridging resources belong in the block and demo from the start
-If a resource has no public interface on its own, identify the required bridging
-resource during outline design and include it in the same content block and demo.
-Do not add it as a mid-session afterthought.
-
-Examples:
-- Lambda has no public URL → API Gateway is a first-class part of the Lambda block
-- ECS Fargate has no stable public IP → ALB is a first-class part of the ECS block
-- EKS cluster has no app exposure → Service + port-forward or Ingress belongs in the demo
-
-### 8.4 — Optional CI/CD workflow in every demo end/ state
-Every demo's `end/` directory includes `.github/workflows/terraform-ci.yml`
-implementing the standard CI pipeline (fmt check, init -backend=false, validate,
-plan with PR comment). Flagged as instructor-paced — shown if time permits, never
-required for exercises in the same session.
-
----
-
-## 9. Output File Structure
+## 4. Output File Structure
 
 ```
 session<N>/
@@ -564,77 +156,3 @@ session<N>/
     ├── Exercise_<N>_2.docx
     └── Exercise_<N>_3.docx   ← optional, e.g. EKS track
 ```
-
----
-
-## 10. Common Defects — check before presenting
-
-### Outline defects
-- **No concept thread**: outline starts with a topic list, not a unifying concept — add
-  the thread before the agenda table
-- **Blocks sized to fill time, not content**: a content block that is 30+ min when a
-  demo follows — shrink it, the demo carries the teaching
-- **Finality language**: "decision is final", "commit tonight", "no changes after" —
-  remove; reference the delivery deadline instead
-- **Optional extension embedded mid-session**: K8s/EKS segments must be a clean cutoff
-  block at the end, never inserted between core content and exercises
-
-### Demo defects
-- **Demo = Exercise**: verify different runtime and different resource type
-- **Bridging resource missing**: resource with no public interface lacks its access
-  layer — add it to the block and demo (see 8.3)
-- **CI workflow absent from end/**: every demo end/ must include terraform-ci.yml
-- **Demo zip name is generic**: use `demo-<N>-<topic>.zip`, never `example-<N>.zip`
-
-### Exercise defects
-- **Ordered by topic, not complexity**: simpler exercise must come first regardless of
-  demo order
-- **Multiple unrelated primitives in one exercise**: split into separate exercises
-- **No separation matrix in outline**: always produce the matrix before exercises are written
-- **Exercise has debrief or break block**: not permitted — remove
-- **Exercise references project**: exercises must be standalone
-- **Evidence not specified**: every exercise needs a verifiable artifact
-- **Submission instructions missing or paraphrased**: use verbatim wording from Section 6
-
-### Deck defects
-- **Code mirroring on companion slides**: `dSlide` with full HCL content, simulated
-  `terraform plan` output, or directory tree output in the demo sequence — replace
-  every instance with `stepSlide`. The terminal is the code; the slide is the guide
-- **stepSlide has more than three bullets**: each step slide gets exactly three bullets
-  (what / why / verify). A fourth bullet means the step is trying to teach two concepts
-  — split it into two `stepSlide` calls
-- **calloutSlide missing at end of demo**: every demo must close with a `calloutSlide`
-  (navy bg, dark box, label pill), not a plain `lSlide`
-- **demoSlide missing**: every demo must open with a `demoSlide` marker — both Classic
-  and Live-coding companion styles require it
-- **Before/after concept taught with only prose**: use a before/after slide pair with
-  `dSlide` code examples (see Section 7) — the one valid use of `dSlide` in a demo context
-
-### Style defects (Section 4b)
-- **Style not declared in outline**: every demo entry in the agenda table must name its
-  style (Classic or Live-coding companion) — absence means the deck builder has no spec
-  to follow
-- **Live-coding companion without `demoSlide` marker**: the marker is required even in
-  companion style — it signals the live segment boundary in the deck
-- **Two actions on one `stepSlide`**: one terminal action per slide is a hard rule;
-  split into separate `stepSlide` calls
-- **DEMO.md steps not numbered to match slides**: in companion mode, step N in DEMO.md
-  must correspond to slide N so the instructor can call out slide numbers live
-
-### Handover defects (Section 2a)
-- **Handover not produced after an approved step**: every approval gate must produce
-  a handover file before the next step begins — skipping it breaks agent relay
-- **Handover missing a required section**: all nine sections are mandatory; "None"
-  is a valid value but the section must still appear
-- **File inventory lists relative paths**: all paths in the inventory must be absolute
-- **Handover produced before approval**: the handover is a post-approval artifact;
-  producing it speculatively (before the user says Go) is incorrect
-- **Agent continued past the handover in the same turn**: after `present_files` is
-  called with the handover, the agent must stop — no further step content, no file
-  generation, no reading of the next skill. Producing handover + next step in one
-  turn silently skips an approval gate and leaves the handover describing a state
-  that is already stale before the user reads it
-- **Next step section missing build notes**: the "Next step" section must include the
-  skill to read first, the output path, the validation command, and the approval gate —
-  not just the step name. A bare "build the deck" entry gives the next agent nothing
-  to act on

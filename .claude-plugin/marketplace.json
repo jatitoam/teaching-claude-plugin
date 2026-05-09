@@ -31,7 +31,7 @@
       "name": "pdds-oyd",
       "source": "./plugins/pdds-oyd",
       "description": "Course-specific tools for PDDS OyD: delivery builder and session builder",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "category": "education"
     }
   ]
