@@ -23,6 +23,14 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
+try:
+    from pygments import lex
+    from pygments.lexers import get_lexer_by_name
+    from pygments.token import Token, Comment, Keyword, Name, Literal, Operator, Punctuation, Generic
+    PYGMENTS = True
+except ImportError:
+    PYGMENTS = False
+
 SCOPES = [
     "https://www.googleapis.com/auth/documents",
     "https://www.googleapis.com/auth/drive.file",
@@ -31,8 +39,53 @@ CREDS_PATH = os.path.expanduser("~/.config/teaching-claude-plugin/credentials.js
 TOKEN_PATH = os.path.expanduser("~/.config/teaching-claude-plugin/token.json")
 
 CODE_FONT = "Courier New"
-CODE_BG = {"red": 0.953, "green": 0.953, "blue": 0.953}  # #f3f3f3
 CODE_SIZE_PT = 9.5
+
+# ── Monokai palette ──────────────────────────────────────────────────────────
+
+def _rgb(h):
+    h = h.lstrip("#")
+    return {"red": int(h[0:2], 16) / 255, "green": int(h[2:4], 16) / 255, "blue": int(h[4:6], 16) / 255}
+
+CODE_BG  = _rgb("272822")  # Monokai background
+CODE_FG  = _rgb("F8F8F2")  # Monokai default text
+
+# Maps Pygments token types → Monokai RGB dicts (traversed bottom-up at runtime)
+MONOKAI = {}
+if PYGMENTS:
+    MONOKAI = {
+        Token:                   _rgb("F8F8F2"),  # default
+        Comment:                 _rgb("75715E"),  # gray
+        Keyword:                 _rgb("F92672"),  # pink
+        Keyword.Type:            _rgb("66D9EF"),  # cyan
+        Name.Function:           _rgb("A6E22E"),  # green
+        Name.Class:              _rgb("A6E22E"),
+        Name.Decorator:          _rgb("A6E22E"),
+        Name.Namespace:          _rgb("A6E22E"),
+        Name.Attribute:          _rgb("A6E22E"),
+        Name.Tag:                _rgb("F92672"),  # HTML/XML tags
+        Name.Builtin:            _rgb("66D9EF"),  # cyan
+        Name.Builtin.Pseudo:     _rgb("F8F8F2"),  # self, cls
+        Literal.String:          _rgb("E6DB74"),  # yellow
+        Literal.String.Doc:      _rgb("75715E"),  # docstrings → comment color
+        Literal.Number:          _rgb("AE81FF"),  # purple
+        Operator:                _rgb("F92672"),  # pink
+        Operator.Word:           _rgb("F92672"),
+        Punctuation:             _rgb("F8F8F2"),
+        Generic.Output:          _rgb("75715E"),
+        Generic.Prompt:          _rgb("F92672"),
+    }
+
+def _monokai_color(token_type):
+    """Walk the Pygments token hierarchy to find the closest Monokai match."""
+    t = token_type
+    while t is not None:
+        if t in MONOKAI:
+            return MONOKAI[t]
+        t = t.parent if hasattr(t, "parent") else None
+    return CODE_FG
+
+# ── Docs API helpers ─────────────────────────────────────────────────────────
 
 NAMED_STYLES = {
     "title": "TITLE",
@@ -62,6 +115,16 @@ def get_credentials():
 def pt(n):
     return {"magnitude": n, "unit": "PT"}
 
+
+def fg(color_dict):
+    return {"color": {"rgbColor": color_dict}}
+
+
+def bg(color_dict):
+    return {"color": {"rgbColor": color_dict}}
+
+
+# ── Builder ──────────────────────────────────────────────────────────────────
 
 class Builder:
     """Accumulates insertText and style requests; flushed in two batchUpdate calls."""
@@ -145,30 +208,68 @@ class Builder:
         }})
         return start, end
 
-    def code_block(self, text):
+    def code_block(self, text, language=None):
         lines = text.split("\n")
         while lines and lines[-1] == "":
             lines.pop()
-        for line in lines:
-            start, end = self._insert(line + "\n")
-            self.styles.append({"updateTextStyle": {
-                "range": {"startIndex": start, "endIndex": end},
-                "textStyle": {
-                    "weightedFontFamily": {"fontFamily": CODE_FONT},
-                    "fontSize": pt(CODE_SIZE_PT),
-                },
-                "fields": "weightedFontFamily,fontSize",
-            }})
-            self.styles.append({"updateParagraphStyle": {
-                "range": {"startIndex": start, "endIndex": end},
-                "paragraphStyle": {
-                    "shading": {"backgroundColor": {"color": {"rgbColor": CODE_BG}}},
-                    "spaceAbove": pt(0),
-                    "spaceBelow": pt(0),
-                    "lineSpacing": 100,
-                },
-                "fields": "shading,spaceAbove,spaceBelow,lineSpacing",
-            }})
+        if not lines:
+            return
+
+        full_text = "\n".join(lines) + "\n"
+        block_start = self.cursor
+        self._insert(full_text)
+        block_end = self.cursor
+
+        # Paragraph style: dark background + tight spacing (applies to all lines)
+        self.styles.append({"updateParagraphStyle": {
+            "range": {"startIndex": block_start, "endIndex": block_end},
+            "paragraphStyle": {
+                "shading": {"backgroundColor": bg(CODE_BG)},
+                "spaceAbove": pt(0),
+                "spaceBelow": pt(0),
+                "lineSpacing": 100,
+            },
+            "fields": "shading,spaceAbove,spaceBelow,lineSpacing",
+        }})
+
+        # Base text style: monospace font + default Monokai fg for the whole block
+        self.styles.append({"updateTextStyle": {
+            "range": {"startIndex": block_start, "endIndex": block_end},
+            "textStyle": {
+                "weightedFontFamily": {"fontFamily": CODE_FONT},
+                "fontSize": pt(CODE_SIZE_PT),
+                "foregroundColor": fg(CODE_FG),
+            },
+            "fields": "weightedFontFamily,fontSize,foregroundColor",
+        }})
+
+        # Syntax highlighting (token-level color overrides)
+        if language and PYGMENTS:
+            self._syntax_highlight(block_start, full_text, language)
+
+    def _syntax_highlight(self, block_start, text, language):
+        try:
+            lexer = get_lexer_by_name(language, stripnl=False, ensurenl=False)
+        except Exception:
+            return
+
+        default_color = MONOKAI.get(Token, CODE_FG)
+        char_pos = 0
+
+        for token_type, token_value in lex(text, lexer):
+            if not token_value:
+                continue
+            color = _monokai_color(token_type)
+            # Only emit a request when the color differs from the default
+            if color != default_color:
+                t_start = block_start + char_pos
+                t_end = t_start + len(token_value)
+                self.styles.append({"updateTextStyle": {
+                    "range": {"startIndex": t_start, "endIndex": t_end},
+                    "textStyle": {"foregroundColor": fg(color)},
+                    "fields": "foregroundColor",
+                }})
+            char_pos += len(token_value)
 
     def list_item(self, text_or_spans, preset):
         if isinstance(text_or_spans, list):
@@ -195,7 +296,7 @@ class Builder:
         sep = "  ".join("-" * w for w in widths)
         fmt = lambda row: "  ".join(str(row[i]).ljust(widths[i]) for i in range(len(row)))
         lines = [fmt(headers), sep] + [fmt(r) for r in rows]
-        self.code_block("\n".join(lines))
+        self.code_block("\n".join(lines))  # no language — plain Monokai text
 
 
 # ── element dispatcher ───────────────────────────────────────────────────────
@@ -211,7 +312,7 @@ def process_element(b: Builder, el: dict):
             b.paragraph(el.get("text", ""), style=style)
 
     elif etype == "code":
-        b.code_block(el.get("text", ""))
+        b.code_block(el.get("text", ""), language=el.get("language"))
 
     elif etype in ("bullet_list", "numbered_list"):
         preset = (

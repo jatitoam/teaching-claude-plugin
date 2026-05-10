@@ -28,16 +28,39 @@ named styles is exactly what the document will use.
 
 Applied to `type: "code"` elements and to tables (which are rendered as code).
 
-| Property         | Value                  |
-|------------------|------------------------|
-| Font             | Courier New            |
-| Size             | 9.5 pt                 |
-| Background       | #f3f3f3 (light gray)   |
-| Line spacing     | 100 % (no extra gaps)  |
-| Space above/below| 0 pt                   |
+| Property         | Value                        |
+|------------------|------------------------------|
+| Font             | Courier New                  |
+| Size             | 9.5 pt                       |
+| Background       | #272822 (Monokai dark)       |
+| Default text     | #F8F8F2 (Monokai light gray) |
+| Line spacing     | 100 % (no extra gaps)        |
+| Space above/below| 0 pt                         |
+
+When `"language"` is provided, Pygments tokenizes the code and applies Monokai
+syntax colors per token via individual `foregroundColor` requests. Without
+`"language"`, the block renders in the default `#F8F8F2` text on dark background.
+
+**Monokai token colors:**
+
+| Token category          | Color   | Hex       |
+|-------------------------|---------|-----------|
+| Default text            | white   | `#F8F8F2` |
+| Comments                | gray    | `#75715E` |
+| Keywords                | pink    | `#F92672` |
+| Strings                 | yellow  | `#E6DB74` |
+| Numbers                 | purple  | `#AE81FF` |
+| Functions / classes     | green   | `#A6E22E` |
+| Builtins / types        | cyan    | `#66D9EF` |
+| Operators               | pink    | `#F92672` |
+| Docstrings              | gray    | `#75715E` |
 
 Inline code spans (`"style": "code"` inside a `spans` array) get only the font
-and size — no background, since backgrounds apply per paragraph not per span.
+and size — they appear in normal paragraphs (light background) so no foreground
+color override is needed.
+
+**Dependencies:** `pip install pygments` — if not installed, code blocks render
+in default text color without syntax highlighting (no error).
 
 ---
 
@@ -118,11 +141,15 @@ Headings support `spans` too.
 **Code block** — for file contents, CLI commands, directory trees, shell output:
 
 ```json
-{ "type": "code", "text": "require 'socket'\nrequire 'json'\n\nPORT = 8080" }
+{ "type": "code", "language": "ruby", "text": "require 'socket'\nrequire 'json'\n\nPORT = 8080" }
 ```
 
-Preserve indentation exactly. The script splits on `\n` and styles each line
-with gray background and Courier New.
+`language` is optional. When present, Pygments tokenizes the code and applies
+Monokai syntax colors. Omit for shell output, directory trees, or any content
+that should not be syntax-highlighted (plain Monokai text on dark background).
+
+Common language identifiers: `python`, `ruby`, `javascript`, `typescript`,
+`terraform`, `yaml`, `bash`, `dockerfile`, `json`, `hcl`, `go`, `java`.
 
 **Lists**
 
@@ -170,5 +197,5 @@ List items may be span arrays for inline formatting:
 
 Required Python packages:
 ```
-pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib pygments
 ```

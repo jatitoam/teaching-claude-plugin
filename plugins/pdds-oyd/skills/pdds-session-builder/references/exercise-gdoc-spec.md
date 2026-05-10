@@ -60,7 +60,7 @@ Title and folder are CLI args — do not include them in the JSON file.
 |--------------|---------|
 | `title`      | `Exercise <N>.<n> — <Title>` |
 | `header`     | Course, Session, Time allowed, Submission (exactly as shown above) |
-| H1 Context   | Scenario description + starter code (`code` blocks) + reference scripts (`heading3` + `code`) |
+| H1 Context   | Scenario description + starter code (`code` blocks with `"language"` set) + reference scripts (`heading3` + `code`) |
 | H1 Setup     | H2 Prerequisites (bullet list) · H2 Architecture if multiple options (table) · H2 Repository structure (code block) |
 | H1 Tasks     | One H2 per task; use bullet/numbered lists and code blocks for sub-requirements |
 | H1 Acceptance Criteria | Single bullet list — one criterion per item |
