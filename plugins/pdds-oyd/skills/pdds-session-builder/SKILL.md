@@ -58,8 +58,11 @@ user provides explicit approval ("Go" or equivalent) in a new message.
    → Read `references/demo-spec.md` and `references/defect-checklist.md` first.
    → Produce and present handover. Stop. Wait for "Go".
 
-3. **Exercise specs** — exercises as DOCX files.
-   → Read `references/exercise-spec.md` and `references/defect-checklist.md` first.
+3. **Exercise specs** — exercises as Google Docs.
+   → Read `references/exercise-spec.md`, `references/exercise-gdoc-spec.md`, and
+     `references/defect-checklist.md` first.
+   → Generate the JSON spec for each exercise, run `scripts/create-exercise-gdoc.py`
+     for each, and present the resulting Google Doc URLs.
    → Produce and present handover. Stop. Wait for "Go".
 
 4. **Deck** — PowerPoint via pptxgenjs.
@@ -152,7 +155,9 @@ session<N>/
 │   │   └── end/         ← always includes optional terraform-ci.yml
 │   └── demo-<N>-<topic>.zip
 └── exercises/
-    ├── Exercise_<N>_1.docx
-    ├── Exercise_<N>_2.docx
-    └── Exercise_<N>_3.docx   ← optional, e.g. EKS track
+    ├── exercise-<N>-1.json          ← intermediate spec (kept for reference)
+    ├── Exercise_<N>_1 (Google Doc)  ← URL presented to user after script run
+    ├── exercise-<N>-2.json
+    ├── Exercise_<N>_2 (Google Doc)
+    └── Exercise_<N>_3 (Google Doc)  ← optional, e.g. EKS track
 ```

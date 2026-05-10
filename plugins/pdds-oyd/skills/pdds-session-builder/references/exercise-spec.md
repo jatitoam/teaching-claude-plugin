@@ -1,8 +1,8 @@
-# Exercise Specs — DOCX
+# Exercise Specs
 
-Read this file when building **exercise DOCX files** (Step 3).
+Read this file when building **exercise Google Docs** (Step 3).
 
-Also read `/mnt/skills/public/docx/SKILL.md` before writing any generation code.
+Also read `references/exercise-gdoc-spec.md` for the JSON schema, style mapping, and how to run the generation script.
 
 ---
 
@@ -68,20 +68,14 @@ everything into it. Submit the repository URL only.
 
 ---
 
-## DOCX section order
+## Section order
 
-1. **H1 title** — `Exercise <session>.<n> — <Title>`
+1. **Title** — `Exercise <session>.<n> — <Title>`
 2. **Header block** — Course name, Session date, Time allowed, Submission instructions
-   (plain paragraphs, bold labels)
-3. **H2 Context** — scenario / starter code; inline in Courier New if file is provided
-4. **H2 Setup** — prerequisites (CLI tools, credentials, starter file location)
-5. **H2 Tasks** — H3 per task, numbered sub-questions as a numbered list
-6. **H2 Acceptance Criteria** — bullet list of what a passing submission looks like
+   (bold labels)
+3. **H1 Context** — scenario / starter code; code blocks for any provided file content
+4. **H1 Setup** — H2 Prerequisites, H2 Architecture (if choices exist), H2 Repository structure
+5. **H1 Tasks** — H2 per task, bullet or numbered lists for sub-requirements
+6. **H1 Acceptance Criteria** — bullet list of what a passing submission looks like
 
----
-
-## DOCX formatting
-
-- Body: Calibri 12pt; code: Courier New — no color, bold and font size only
-- Produce as DOCX via the `docx` npm skill
-- Validate with `/mnt/skills/public/docx/scripts/office/validate.py`
+See `references/exercise-gdoc-spec.md` for the full JSON schema and formatting rules.
