@@ -215,7 +215,9 @@ class Builder:
         if not lines:
             return
 
-        full_text = "\n".join(lines) + "\n"
+        # Wrap content with one blank monospace line on each side
+        padded = [""] + lines + [""]
+        full_text = "\n".join(padded) + "\n"
         block_start = self.cursor
         self._insert(full_text)
         block_end = self.cursor
@@ -243,9 +245,13 @@ class Builder:
             "fields": "weightedFontFamily,fontSize,foregroundColor",
         }})
 
-        # Syntax highlighting (token-level color overrides)
+        # Syntax highlighting — offset by 1 to skip the leading blank padding line
         if language and PYGMENTS:
-            self._syntax_highlight(block_start, full_text, language)
+            content_text = "\n".join(lines) + "\n"
+            self._syntax_highlight(block_start + 1, content_text, language)
+
+        # One normal-text empty paragraph after the block for visual breathing room
+        self._insert("\n")
 
     def _syntax_highlight(self, block_start, text, language):
         try:
