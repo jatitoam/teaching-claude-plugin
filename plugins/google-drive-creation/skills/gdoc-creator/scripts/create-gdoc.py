@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 """
-create-exercise-gdoc.py — Creates a Google Doc exercise from a JSON spec.
+create-gdoc.py — Creates a styled Google Doc from a JSON spec.
 
 Usage:
-    python create-exercise-gdoc.py <json_file>
+    python create-gdoc.py <json_file> <folder_url_or_id> <doc_title>
+
+Arguments:
+    json_file        Path to the JSON body spec (see references/gdoc-style-spec.md)
+    folder_url_or_id Google Drive folder URL or bare folder ID
+    doc_title        Title for the Google Doc (used as both the Drive filename
+                     and the TITLE-styled first paragraph)
 
 Prints the Google Doc URL to stdout.
-JSON schema: see references/exercise-gdoc-spec.md
 """
 import json
 import os
+import re
 import sys
 
 from google.auth.transport.requests import Request
@@ -130,6 +136,7 @@ class Builder:
         return start, end
 
     def header_line(self, label, value):
+        """Bold-label line: 'Label: value'."""
         text = f"{label}: {value}\n"
         start, end = self._insert(text)
         self.styles.append({"updateTextStyle": {
@@ -224,33 +231,45 @@ def process_element(b: Builder, el: dict):
 
 # ── main ─────────────────────────────────────────────────────────────────────
 
+def parse_folder_id(value):
+    match = re.search(r"/folders/([a-zA-Z0-9_-]+)", value)
+    return match.group(1) if match else value
+
+
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python create-exercise-gdoc.py <json_file>", file=sys.stderr)
+    if len(sys.argv) != 4:
+        print(
+            "Usage: python create-gdoc.py <json_file> <folder_url_or_id> <doc_title>",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
-    with open(sys.argv[1]) as f:
+    json_file, folder_arg, doc_title = sys.argv[1], sys.argv[2], sys.argv[3]
+    folder_id = parse_folder_id(folder_arg)
+
+    with open(json_file) as f:
         spec = json.load(f)
 
     creds = get_credentials()
     docs_svc = build("docs", "v1", credentials=creds)
+    drive_svc = build("drive", "v3", credentials=creds)
 
-    doc = docs_svc.documents().create(body={"title": spec["title"]}).execute()
+    doc = docs_svc.documents().create(body={"title": doc_title}).execute()
     doc_id = doc["documentId"]
+
+    drive_svc.files().update(
+        fileId=doc_id,
+        addParents=folder_id,
+        removeParents="root",
+        fields="id,parents",
+    ).execute()
 
     b = Builder()
 
-    b.paragraph(spec["title"], style="title")
+    b.paragraph(doc_title, style="title")
 
-    header = spec.get("header", {})
-    for label, key in [
-        ("Course", "course"),
-        ("Session", "session"),
-        ("Time allowed", "time_allowed"),
-        ("Submission", "submission"),
-    ]:
-        if header.get(key):
-            b.header_line(label, header[key])
+    for entry in spec.get("header", []):
+        b.header_line(entry["label"], entry["value"])
 
     for el in spec.get("body", []):
         process_element(b, el)

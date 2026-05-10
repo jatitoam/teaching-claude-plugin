@@ -1,0 +1,14 @@
+name: google-drive-creation
+display_name: Google Drive Creation
+description: >
+  General-purpose tools for creating styled Google Docs via the Google Docs API.
+  Handles named paragraph styles (Title, Subtitle, Heading 1–4, Normal text),
+  code blocks with monospace font and gray background, bullet and numbered lists,
+  inline formatting spans, and tables rendered as monospace blocks.
+  Designed to be called by other skills that produce document content.
+version: 1.0.0
+skills:
+  - id: gdoc-creator
+    path: skills/gdoc-creator
+commands: []
+mcp_servers: []

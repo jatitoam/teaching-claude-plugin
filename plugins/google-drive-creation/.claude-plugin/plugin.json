@@ -1,0 +1,5 @@
+{
+  "name": "google-drive-creation",
+  "description": "General-purpose Google Doc creation with named styles, code blocks, and inline formatting",
+  "version": "1.0.0"
+}

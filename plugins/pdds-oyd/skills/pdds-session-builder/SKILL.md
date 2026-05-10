@@ -50,6 +50,10 @@ user provides explicit approval ("Go" or equivalent) in a new message.
 1. **Outline** — present full session structure in chat (time blocks, demo placement,
    exercise titles, K8s extension if applicable).
    → Read `references/session-structure.md` and `references/defect-checklist.md` first.
+   → Before presenting the outline, ask the user for the **Google Drive folder** where
+     exercise docs will be saved. Accept a folder URL or bare folder ID. Extract the
+     ID from the URL if needed (it is the path segment after `/folders/`). Store it
+     as `exercises_folder_id` in the handover under Session identity.
    → Produce and present handover. Stop. Wait for "Go".
 
 2. **Demo script(s) + code example zips** — one `DEMO.md` per demo (numbered steps +
@@ -59,9 +63,11 @@ user provides explicit approval ("Go" or equivalent) in a new message.
    → Produce and present handover. Stop. Wait for "Go".
 
 3. **Exercise specs** — exercises as Google Docs.
-   → Read `references/exercise-spec.md`, `references/exercise-gdoc-spec.md`, and
-     `references/defect-checklist.md` first.
-   → Generate the JSON spec for each exercise, run `scripts/create-exercise-gdoc.py`
+   → Read `references/exercise-spec.md`, `references/exercise-gdoc-spec.md`,
+     `plugins/google-drive-creation/skills/gdoc-creator/references/gdoc-style-spec.md`,
+     and `references/defect-checklist.md` first.
+   → Generate the JSON spec for each exercise, run the `gdoc-creator` script
+     (`plugins/google-drive-creation/skills/gdoc-creator/scripts/create-gdoc.py`)
      for each, and present the resulting Google Doc URLs.
    → Produce and present handover. Stop. Wait for "Go".
 
@@ -89,7 +95,7 @@ stop. Do not proceed to the next step in the same turn.
 ### Required sections
 
 1. **Session identity** — session number, date, topic, modality, K8s extension flag,
-   delivery milestone if relevant
+   delivery milestone if relevant, `exercises_folder_id` (Google Drive folder ID)
 2. **Completed steps** — table of all steps with ✅ / ⬜ status and a one-line note
    per completed step
 3. **Next step** — exact step name, what it produces, the reference files to read first,

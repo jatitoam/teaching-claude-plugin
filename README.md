@@ -26,6 +26,7 @@ index.yaml                   # Top-level registry of all plugins
 | [exam-creator](plugins/exam-creator) | Generate multiple-choice exams from course content | 1 | — | — |
 | [pdds](plugins/pdds) | Tools for the PDDS course: student guides and assignment reference solutions | 2 | — | — |
 | [pdds-oyd](plugins/pdds-oyd) | Course-specific tools for PDDS OyD: delivery builder and session builder | 2 | — | — |
+| [google-drive-creation](plugins/google-drive-creation) | General-purpose Google Doc creation with named styles, code blocks, and inline formatting | 1 | — | — |
 
 ## Plugin Concepts
 
