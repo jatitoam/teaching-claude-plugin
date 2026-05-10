@@ -77,6 +77,7 @@ def parse_folder_id(value):
 class Builder:
     def __init__(self):
         self.requests = []
+        self._slide_notes = []
 
     def _id(self):
         return "obj_" + uuid.uuid4().hex[:16]
@@ -376,32 +377,28 @@ class Builder:
         self.txt(sid, 0.5, 2.0, 9.0, 0.7, demo_label, 22, M, bold=True, align="CENTER")
         self.txt(sid, 0.5, 2.7, 9.0, 1.1, title, 28, W, bold=True, align="CENTER")
 
-    def step_slide(self, demo, step_n, total, title, what, why, verify):
+    def step_slide(self, demo, step_n, total, title, code, why, verify="", code_full=None):
         sid = self.slide()
         self.footer(sid)
         self.bg(sid, W)
         self.nav_bar(sid, f"{demo}  —  {title}", badge=f"{step_n} / {total}")
 
-        # WHAT card
-        self.rect(sid, 0.3, 0.78, 9.4, 1.65, B_LIGHT)
-        self.rect(sid, 0.3, 0.78, 0.12, 1.65, N)
-        pill_oid = self.pill(sid, 0.53, 0.87, 0.9, 0.28, N)
-        self._txt_on_shape(pill_oid, "▶ WHAT", 9, W, bold=True)
-        self.txt(sid, 0.55, 1.23, 9.0, 1.1, what, 16, D, bold=True)
+        # Code block (top ~60% of content area)
+        self.rect(sid, 0.2, 0.72, 9.6, 2.70, CB)
+        self.txt(sid, 0.45, 0.82, 9.1, 2.55, code, 10.5, CT, font="Courier New")
 
-        # WHY card
-        self.rect(sid, 0.3, 2.55, 4.55, 2.6, GO_LIGHT)
-        self.rect(sid, 0.3, 2.55, 0.12, 2.6, GO)
-        pill_oid = self.pill(sid, 0.53, 2.64, 0.75, 0.28, GO)
-        self._txt_on_shape(pill_oid, "WHY", 9, W, bold=True)
-        self.txt(sid, 0.55, 3.0, 4.15, 2.0, why, 13, D)
+        # WHY strip (bottom ~40% of content area)
+        self.rect(sid, 0, 3.48, 10, 1.94, GO)
+        self.txt(sid, 0.5, 3.48, 9.0, 1.94, why, 26, W, bold=True, align="CENTER", valign="MIDDLE")
 
-        # VERIFY card
-        self.rect(sid, 5.1, 2.55, 4.55, 2.6, GR_LIGHT)
-        self.rect(sid, 5.1, 2.55, 0.12, 2.6, GR)
-        pill_oid = self.pill(sid, 5.33, 2.64, 1.0, 0.28, GR)
-        self._txt_on_shape(pill_oid, "✓ VERIFY", 9, W, bold=True)
-        self.txt(sid, 5.35, 3.0, 4.15, 2.0, verify, 13, D)
+        # Collect speaker notes (not rendered on slide)
+        notes_parts = []
+        if verify:
+            notes_parts.append(f"VERIFY:\n{verify}")
+        if code_full:
+            notes_parts.append(f"FULL CODE:\n{code_full}")
+        if notes_parts:
+            self._slide_notes.append((sid, "\n\n".join(notes_parts)))
 
     def callout_slide(self, title, label, headline, detail):
         sid = self.slide()
@@ -468,9 +465,10 @@ def process_slide(b, slide_dict):
             slide_dict["step"],
             slide_dict["total"],
             slide_dict["title"],
-            slide_dict["what"],
+            slide_dict["code"],
             slide_dict["why"],
-            slide_dict["verify"],
+            slide_dict.get("verify", ""),
+            slide_dict.get("code_full"),
         )
     elif stype == "callout":
         b.callout_slide(slide_dict["title"], slide_dict["label"], slide_dict["headline"], slide_dict["detail"])
@@ -520,6 +518,34 @@ def main():
         presentationId=pres_id,
         body={"requests": [{"deleteObject": {"objectId": default_slide_id}}]},
     ).execute()
+
+    # Phase 2: write speaker notes to step slides
+    if b._slide_notes:
+        pres_data = slides_svc.presentations().get(presentationId=pres_id).execute()
+        slide_to_notes_oid = {}
+        for slide in pres_data.get("slides", []):
+            slide_oid = slide["objectId"]
+            notes_page = slide.get("slideProperties", {}).get("notesPage", {})
+            for el in notes_page.get("pageElements", []):
+                if el.get("shape", {}).get("placeholder", {}).get("type") == "BODY":
+                    slide_to_notes_oid[slide_oid] = el["objectId"]
+                    break
+        notes_requests = []
+        for slide_oid, notes_text in b._slide_notes:
+            notes_oid = slide_to_notes_oid.get(slide_oid)
+            if notes_oid:
+                notes_requests.append({
+                    "insertText": {
+                        "objectId": notes_oid,
+                        "insertionIndex": 0,
+                        "text": notes_text,
+                    }
+                })
+        if notes_requests:
+            slides_svc.presentations().batchUpdate(
+                presentationId=pres_id,
+                body={"requests": notes_requests},
+            ).execute()
 
     drive_svc.files().update(
         fileId=pres_id,

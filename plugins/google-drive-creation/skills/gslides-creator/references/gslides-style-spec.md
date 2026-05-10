@@ -188,32 +188,40 @@ each demo sequence.
 
 ### `step`
 
-Live-coding companion step slide. White background with nav bar showing a step
-badge and three visually distinct cards: WHAT (light blue), WHY (light amber),
-VERIFY (light emerald).
+Live-coding companion step slide. Two-zone layout: a dark code block (top ~60%)
+and a full-width amber WHY strip (bottom ~40%). Nav bar spans the top with the
+step badge and title.
+
+**Visual zones:**
+- **Nav bar** (navy, full width) — `"N / TOTAL"` badge on left, step title on right
+- **Code block** (CB background, Courier New 10.5pt) — the exact HCL or terminal command. Hard limit: 11 lines. Truncate with `[...]` when needed; supply full code in `code_full` for slide notes.
+- **WHY strip** (GO / amber, full width) — large white text, one sentence ≤ 10 words. Billboard cue only — the instructor talks around it.
+
+**Slide notes (not rendered on slide):**
+- `verify` is always written to notes
+- If `code_full` is provided, append it to notes below verify
 
 **Fields:**
-- `demo` (string) — demo label for the nav bar, e.g. `"Demo 1"`
+- `demo` (string) — demo label for the nav bar, e.g. `"Demo A"`
 - `step` (int or string) — current step number
 - `total` (int or string) — total steps in this demo
 - `title` (string) — short step title
-- `what` (string) — the imperative action the student executes
-- `why` (string) — the architectural or conceptual reason behind this step
-- `verify` (string) — what correct output looks like, or a common pitfall to watch for
-
-Note: `what`, `why`, and `verify` are **separate string fields**, not a bullets array.
+- `code` (string) — exact HCL block or terminal command (≤ 11 lines; use `[...]` for truncation)
+- `code_full` (string, optional) — full untruncated code; only when `code` is truncated; written to slide notes
+- `why` (string) — one punchy sentence, ≤ 10 words; architectural reason in plain language
+- `verify` (string) — expected output or pitfall; written to slide notes only
 
 **Example:**
 ```json
 {
   "type": "step",
-  "demo": "Demo 1",
+  "demo": "Demo A",
   "step": 2,
-  "total": 5,
+  "total": 10,
   "title": "Enable S3 Versioning",
-  "what": "Add an aws_s3_bucket_versioning resource referencing bucket.id and set status = \"Enabled\".",
-  "why": "Versioning lets Terraform recover a previous state file if a bad apply corrupts it — it's the safety net under your safety net.",
-  "verify": "After apply, aws s3api get-bucket-versioning --bucket <name> returns Status: Enabled."
+  "code": "resource \"aws_s3_bucket_versioning\" \"this\" {\n  bucket = aws_s3_bucket.this.id\n  versioning_configuration {\n    status = \"Enabled\"\n  }\n}",
+  "why": "Versioning = your state file's undo button.",
+  "verify": "After apply: aws s3api get-bucket-versioning --bucket <name> returns Status: Enabled."
 }
 ```
 

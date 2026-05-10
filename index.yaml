@@ -38,7 +38,7 @@ plugins:
       Automation" at FISICC, Universidad Galileo. Builds graded project delivery
       documents and rubrics (5-delivery arc), and generates full session instructional
       materials (demo scripts, exercise Google Docs, Google Slides decks, and code example zips).
-    version: 1.5.0
+    version: 1.6.0
     skills:
       - pdds-delivery-builder
       - pdds-session-builder
@@ -50,7 +50,7 @@ plugins:
       the Google Docs and Slides APIs. Handles named paragraph styles, code blocks,
       bullet and numbered lists, and inline formatting for Docs; and all PDDS slide
       types for Slides. Designed to be called by other skills.
-    version: 1.2.0
+    version: 1.3.0
     skills:
       - gdoc-creator
       - gslides-creator

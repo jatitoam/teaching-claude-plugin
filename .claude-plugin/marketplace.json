@@ -4,7 +4,7 @@
     "name": "jatitoam"
   },
   "description": "Claude plugins for teaching and academic workflows",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "plugins": [
     {
       "name": "evaluation-rubrics",
@@ -31,14 +31,14 @@
       "name": "pdds-oyd",
       "source": "./plugins/pdds-oyd",
       "description": "Course-specific tools for PDDS OyD: delivery builder and session builder",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "category": "education"
     },
     {
       "name": "google-drive-creation",
       "source": "./plugins/google-drive-creation",
       "description": "General-purpose Google Doc and Google Slides creation with named styles, code blocks, and PDDS slide types",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "category": "productivity"
     }
   ]

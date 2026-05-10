@@ -113,19 +113,24 @@ Overflow is invisible during generation but clipped in every render. Truncate wi
 Used for every step in a live-coding companion demo. The `"N / TOTAL"` badge in
 the nav bar gives the instructor instant location awareness mid-demo.
 
-**Three required fields — not bullets — separate strings:**
-- `what` — the imperative action (`"Write aws_s3_bucket_versioning referencing the bucket.id..."`)
-- `why` — the concept or architectural decision behind it
-- `verify` — what correct output looks like, or the common pitfall to name
-
 **Visual layout:**
 - Nav bar (navy) spans full width with the badge (`step / total`) on the left and title on the right
-- **WHAT card** (full width, light blue background, navy left bar, navy ▶ WHAT pill)
-- **WHY card** (left half, light amber background, amber left bar, amber WHY pill)
-- **VERIFY card** (right half, light emerald background, emerald left bar, emerald ✓ VERIFY pill)
+- **Code block (top ~60%)** — dark background (CB), Courier New, the exact HCL or command to type. Hard limit: 11 lines. If the full code exceeds 11 lines, show the key sections with `[...]` to indicate omissions and supply the full version in `code_full` (written to slide notes).
+- **WHY strip (bottom ~40%)** — full-width amber panel, large white text. One punchy sentence. **≤ 10 words target.** The instructor will elaborate verbally — the strip is a billboard cue, not a paragraph.
 
-Inline code references in prose are acceptable. Full resource blocks or command
-output belong on a `code` slide, not in a step field.
+**Slide notes (not visible on slide):**
+- Always include `verify` in the notes so the instructor has the expected output / pitfall cue
+- If `code_full` is provided, append it to the notes below the verify line
+
+**Fields:**
+- `demo` — demo label for the nav bar
+- `step` — current step number
+- `total` — total steps in this demo
+- `title` — short step title
+- `code` — the exact HCL block or terminal command to show (≤ 11 lines; truncate with `[...]` if needed)
+- `code_full` (optional) — full untruncated code; only include when `code` is truncated; written to slide notes
+- `why` — one punchy sentence, ≤ 10 words; the architectural reason in plain language
+- `verify` — expected output or pitfall; written to slide notes only, never rendered on the slide
 
 **Example:**
 ```json
@@ -135,9 +140,9 @@ output belong on a `code` slide, not in a step field.
   "step": 2,
   "total": 5,
   "title": "Enable S3 Versioning",
-  "what": "Add an aws_s3_bucket_versioning resource referencing bucket.id and set status = \"Enabled\".",
-  "why": "Versioning lets Terraform recover a previous state file if a bad apply corrupts it — the safety net under your safety net.",
-  "verify": "After apply, aws s3api get-bucket-versioning --bucket <name> returns Status: Enabled."
+  "code": "resource \"aws_s3_bucket_versioning\" \"this\" {\n  bucket = aws_s3_bucket.this.id\n  versioning_configuration {\n    status = \"Enabled\"\n  }\n}",
+  "why": "Versioning = your state file's undo button.",
+  "verify": "After apply: aws s3api get-bucket-versioning --bucket <name> returns Status: Enabled."
 }
 ```
 
