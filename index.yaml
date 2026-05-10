@@ -37,8 +37,8 @@ plugins:
       Course-specific tools for PDDS "Optimizaciones y Desempeño / Cloud Deployment
       Automation" at FISICC, Universidad Galileo. Builds graded project delivery
       documents and rubrics (5-delivery arc), and generates full session instructional
-      materials (demo scripts, exercise Google Docs, PPTX decks, and code example zips).
-    version: 1.4.0
+      materials (demo scripts, exercise Google Docs, Google Slides decks, and code example zips).
+    version: 1.5.0
     skills:
       - pdds-delivery-builder
       - pdds-session-builder
@@ -46,9 +46,11 @@ plugins:
     path: plugins/google-drive-creation
     display_name: Google Drive Creation
     description: >
-      General-purpose tools for creating styled Google Docs via the Google Docs API.
-      Handles named paragraph styles, code blocks, bullet and numbered lists,
-      inline formatting spans, and tables. Designed to be called by other skills.
-    version: 1.1.0
+      General-purpose tools for creating styled Google Docs and Google Slides via
+      the Google Docs and Slides APIs. Handles named paragraph styles, code blocks,
+      bullet and numbered lists, and inline formatting for Docs; and all PDDS slide
+      types for Slides. Designed to be called by other skills.
+    version: 1.2.0
     skills:
       - gdoc-creator
+      - gslides-creator

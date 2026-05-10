@@ -7,7 +7,7 @@ description: >
   explicit phrases like "build session N", "prepare session N", "let's do session N",
   "work on session N", or "next session" in the context of this specific course.
   Produces session deliverables in this fixed order: demo script(s) → exercise specs
-  (DOCX) → deck (PPTX via pptxgenjs) → code examples (zip). Each step is
+  (Google Docs) → deck (Google Slides) → code examples (zip). Each step is
   approval-gated. Do NOT trigger for project deliveries (use pdds-delivery-builder),
   generic PPTX creation, or sessions from other courses.
 ---
@@ -15,7 +15,7 @@ description: >
 # PDDS Cloud Deployment Automation — Session Builder
 
 Produces the complete set of instructional materials for one session: demo scripts,
-exercise DOCX files, a PowerPoint deck, and zipped code examples.
+exercise Google Docs, a Google Slides deck, and zipped code examples.
 
 ---
 
@@ -29,7 +29,7 @@ This skill applies when ALL of the following are true:
 
 Do NOT use this skill for:
 - Project deliveries — use `pdds-delivery-builder` instead
-- Generic PowerPoint, DOCX, or exercise creation for any other course
+- Generic PowerPoint, Google Docs, DOCX, or exercise creation for any other course
 - Grading or evaluating student work
 
 ---
@@ -71,9 +71,12 @@ user provides explicit approval ("Go" or equivalent) in a new message.
      for each, and present the resulting Google Doc URLs.
    → Produce and present handover. Stop. Wait for "Go".
 
-4. **Deck** — PowerPoint via pptxgenjs.
-   → Read `references/deck-spec.md`, `scripts/pptx-code-box.js`,
-     `scripts/pptx-step-slide.js`, and `scripts/pptx-callout-slide.js` first.
+4. **Deck** — Google Slides via gslides-creator.
+   → Read `references/deck-spec.md` and
+     `plugins/google-drive-creation/skills/gslides-creator/references/gslides-style-spec.md` first.
+   → Generate the JSON spec, write it to `/mnt/user-data/outputs/session<N>-deck.json`,
+     run `plugins/google-drive-creation/skills/gslides-creator/scripts/create-gslides.py`,
+     and present the resulting Google Slides URL to the user.
    → Session complete. No further handover required.
 
 Structural corrections to outlines (e.g., repositioning exercises, removing blocks,
