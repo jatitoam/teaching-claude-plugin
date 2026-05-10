@@ -66,8 +66,10 @@ in default text color without syntax highlighting (no error).
 
 ## Header block
 
-`header` is an array of `{label, value}` pairs rendered as bold-label lines
-before the body. Any number of pairs, in the order given.
+`header` is an array of `{label, value}` pairs rendered as a **single paragraph**
+before the body. Each entry appears on its own line using a soft return (Shift+Enter,
+U+000B) between entries — so all lines share one paragraph rather than creating
+separate paragraphs. Labels are bold; values are normal weight.
 
 ```json
 "header": [

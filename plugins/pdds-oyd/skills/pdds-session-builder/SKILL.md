@@ -7,7 +7,7 @@ description: >
   explicit phrases like "build session N", "prepare session N", "let's do session N",
   "work on session N", or "next session" in the context of this specific course.
   Produces session deliverables in this fixed order: demo script(s) → exercise specs
-  (DOCX) → deck (PPTX via pptxgenjs) → code examples (zip). Each step is
+  (Google Docs) → deck (PPTX via pptxgenjs) → code examples (zip). Each step is
   approval-gated. Do NOT trigger for project deliveries (use pdds-delivery-builder),
   generic PPTX creation, or sessions from other courses.
 ---
@@ -15,7 +15,7 @@ description: >
 # PDDS Cloud Deployment Automation — Session Builder
 
 Produces the complete set of instructional materials for one session: demo scripts,
-exercise DOCX files, a PowerPoint deck, and zipped code examples.
+exercise Google Docs, a PowerPoint deck, and zipped code examples.
 
 ---
 
@@ -29,7 +29,7 @@ This skill applies when ALL of the following are true:
 
 Do NOT use this skill for:
 - Project deliveries — use `pdds-delivery-builder` instead
-- Generic PowerPoint, DOCX, or exercise creation for any other course
+- Generic PowerPoint, Google Docs, DOCX, or exercise creation for any other course
 - Grading or evaluating student work
 
 ---

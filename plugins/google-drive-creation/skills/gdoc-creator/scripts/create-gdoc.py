@@ -198,15 +198,20 @@ class Builder:
             cursor = span_end
         return start, end
 
-    def header_line(self, label, value):
-        """Bold-label line: 'Label: value'."""
-        text = f"{label}: {value}\n"
-        start, end = self._insert(text)
-        self.styles.append({"updateTextStyle": {
-            "range": {"startIndex": start, "endIndex": start + len(label) + 1},
-            "textStyle": {"bold": True}, "fields": "bold",
-        }})
-        return start, end
+    def header_block(self, entries):
+        """All header entries in one paragraph; bold labels, soft returns between lines."""
+        for i, entry in enumerate(entries):
+            label = entry["label"]
+            value = entry["value"]
+            label_start = self.cursor
+            self._insert(f"{label}:")
+            label_end = self.cursor
+            self.styles.append({"updateTextStyle": {
+                "range": {"startIndex": label_start, "endIndex": label_end},
+                "textStyle": {"bold": True}, "fields": "bold",
+            }})
+            sep = "\n" if i == len(entries) - 1 else "\v"
+            self._insert(f" {value}{sep}")
 
     def code_block(self, text, language=None):
         lines = text.split("\n")
@@ -375,8 +380,7 @@ def main():
 
     b.paragraph(doc_title, style="title")
 
-    for entry in spec.get("header", []):
-        b.header_line(entry["label"], entry["value"])
+    b.header_block(spec.get("header", []))
 
     for el in spec.get("body", []):
         process_element(b, el)
