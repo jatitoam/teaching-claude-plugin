@@ -89,6 +89,114 @@ color:#000000; font-weight:400; font-size:10pt; font-family:"Inter"; font-style:
 
 ---
 
+## Part II — Open-Ended Questions Format
+
+Part II begins on a new page and each question starts on its own page.
+
+### Page break (before Part II and before each individual question)
+```html
+<hr style="page-break-before:always;display:none;">
+```
+
+### Empty spacer H2 (appears once, before the Part II header)
+```html
+<h2 style="padding-top:10pt;margin:0;color:#1836b2;border-bottom-color:#1836b2;
+           padding-left:0;font-size:16pt;padding-bottom:2pt;line-height:1.0;
+           page-break-after:avoid;border-bottom-width:1pt;
+           font-family:&quot;League Spartan&quot;;border-bottom-style:solid;
+           orphans:2;widows:2;height:16pt;text-align:left;padding-right:0">
+  <span style="color:#1836b2;font-weight:400;font-size:16pt;
+               font-family:&quot;League Spartan&quot;;font-style:normal"></span>
+</h2>
+```
+
+### Part II section header H2
+Differs from Part I: `padding-top:10pt` (not 0pt), `line-height:1.0` (not 1.15).
+```html
+<h2 style="padding-top:10pt;margin:0;color:#1836b2;border-bottom-color:#1836b2;
+           padding-left:0;font-size:16pt;padding-bottom:2pt;line-height:1.0;
+           page-break-after:avoid;border-bottom-width:1pt;
+           font-family:&quot;League Spartan&quot;;border-bottom-style:solid;
+           orphans:2;widows:2;text-align:left;padding-right:0">
+  <span style="color:#1836b2;font-weight:400;font-size:16pt;
+               font-family:&quot;League Spartan&quot;;font-style:normal">
+    PART II — Open-Ended Questions - 10 pts each (20 total)
+  </span>
+</h2>
+```
+
+### Part II instructions paragraph
+Uses **11pt spans** (not 10pt like Part I).
+```html
+<p style="padding-top:0pt;margin:0;color:#000000;padding-left:0;font-size:11pt;
+          padding-bottom:10pt;font-family:&quot;Inter&quot;;line-height:1.15;
+          orphans:2;widows:2;text-align:left;padding-right:0">
+  <span style="color:#000000;font-weight:400;font-size:11pt;
+               font-family:&quot;Inter&quot;;font-style:normal">
+    Answer the following questions in the space provided. Responses should be
+    thorough and well-structured, demonstrating understanding of course concepts.
+  </span>
+</p>
+```
+
+### Each open-ended question (on its own page)
+Each question is preceded by a page break. The question uses 10pt bold (same as Part I MCQ text). After the question text, include 18 empty paragraphs to provide writing space on the printed exam.
+
+```html
+<!-- page break before each question -->
+<hr style="page-break-before:always;display:none;">
+
+<!-- question number + text (bold 10pt) -->
+<p style="padding-top:0pt;margin:0;color:#000000;padding-left:0;font-size:11pt;
+          padding-bottom:10pt;font-family:&quot;Inter&quot;;line-height:1.15;
+          orphans:2;widows:2;text-align:left;padding-right:0">
+  <span style="color:#000000;font-weight:700;font-size:10pt;
+               font-family:&quot;Inter&quot;;font-style:normal">
+    16. Question text here.
+  </span>
+</p>
+
+<!-- 18 blank answer-space paragraphs -->
+<p style="padding-top:0pt;margin:0;color:#000000;padding-left:0;font-size:11pt;
+          padding-bottom:10pt;line-height:1.15;font-family:&quot;Inter&quot;;
+          orphans:2;widows:2;height:11pt;text-align:left;padding-right:0">
+  <span style="color:#000000;font-weight:400;font-size:11pt;
+               font-family:&quot;Inter&quot;;font-style:normal"></span>
+</p>
+<!-- repeat 17 more times -->
+```
+
+**Question numbering**: open-ended questions are numbered sequentially continuing from Part I. If Part I has 15 questions, Part II starts at 16, 17, etc.
+
+---
+
+## Open-Ended Question JSON Format
+
+The exam version JSON produced by `shuffle_exam.js` may optionally include an `open_ended` array:
+
+```json
+{
+  "version": "A",
+  "questions": [...],
+  "open_ended": [
+    {
+      "n": 16,
+      "session": 1,
+      "question": "Full question text here. Must be a single paragraph. Requires 2-3 paragraphs to answer."
+    },
+    {
+      "n": 17,
+      "session": 2,
+      "question": "Full question text here..."
+    }
+  ]
+}
+```
+
+Open-ended questions are **not shuffled** — they are always included in the order provided. The `session` field is metadata only (for the scoring guide).
+
+---
+
 ## Step 1 — Build Exam HTML Files
 
 Run `scripts/build_exam_html.js` for each version:

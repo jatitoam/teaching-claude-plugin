@@ -46,6 +46,13 @@ A skill is activated when Claude recognizes the user's intent matches the skill'
 
 ## Versioning
 
+Follow [semver](https://semver.org/): `MAJOR.MINOR.PATCH`.
+- **PATCH** — bug fixes, copy edits, non-functional changes
+- **MINOR** — new backwards-compatible features (new skill parameters, new sections, new scripts)
+- **MAJOR** — breaking changes (removed parameters, incompatible JSON shape changes)
+
+Do **not** roll over to the next major version just because the minor or patch number reaches 9 or 10. `1.9.0 → 1.10.0` is correct semver.
+
 When modifying a plugin, bump its `version` in all five of these files:
 
 1. `plugins/<plugin-id>/.claude-plugin/plugin.json` — version the CLI reads for update detection

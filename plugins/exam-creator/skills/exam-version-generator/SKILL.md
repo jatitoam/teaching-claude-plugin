@@ -52,6 +52,16 @@ Before doing anything, collect from the user:
 | `pts_per_question` | `4` | Points each question is worth |
 | `total_pts` | `60` | Total exam points (shown in section header) |
 | `gdrive_folder_id` | `1nUY8k7...` | Google Drive folder ID where docs will be created |
+| `open_ended` | *(optional)* | Array of 2+ open-ended questions for Part II — see format below |
+
+#### Open-ended question format
+
+Each item must have three fields:
+- `n` — sequential question number continuing from Part I (e.g. 16, 17)
+- `session` — source session number (metadata only; used in scoring guide)
+- `question` — single paragraph, self-contained question requiring 2–3 paragraphs to answer; **no sub-parts, no enumerated (1)(2)(3) structure**
+
+Exactly **2** open-ended questions are assigned to each exam version. A pool of questions is provided by the user or generated; 2 are assigned per version and the extras are presented in the chat for instructor review.
 
 Ask for all of these if not provided. The folder ID can be extracted from a
 Google Drive URL: `https://drive.google.com/drive/folders/{FOLDER_ID}`.

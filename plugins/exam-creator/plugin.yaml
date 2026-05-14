@@ -3,7 +3,7 @@ display_name: Exam Creator
 description: >
   Tools for generating multiple-choice exams from course content. Produces
   structured JSON exam files ready to be imported into any exam delivery system.
-version: 1.1.0
+version: 1.2.0
 skills:
   - id: mcq-generator
     path: skills/mcq-generator
