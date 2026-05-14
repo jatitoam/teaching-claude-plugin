@@ -16,9 +16,11 @@ plugins:
       Tools for generating multiple-choice exams from course content.
       Produces structured JSON exam files ready to be imported into any
       exam delivery system.
-    version: 1.0.0
+    version: 1.1.0
     skills:
       - mcq-generator
+      - exam-version-generator
+      - gdocs-exam-exporter
   - id: pdds-oyd
     path: plugins/pdds-oyd
     display_name: PDDS — OyD (Optimizaciones y Desempeño)
