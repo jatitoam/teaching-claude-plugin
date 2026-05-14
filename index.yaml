@@ -19,29 +19,22 @@ plugins:
     version: 1.0.0
     skills:
       - mcq-generator
-  - id: pdds
-    path: plugins/pdds
-    display_name: PDDS
-    description: >
-      Tools for the PDDS (Optimizaciones y Desempeño) course. Converts teacher
-      demo guides into student-facing READMEs, and builds step-by-step reference
-      solution repositories for student assignments.
-    version: 1.0.0
-    skills:
-      - pdds-student-guide
-      - pdds-assignment-solutioner
   - id: pdds-oyd
     path: plugins/pdds-oyd
-    display_name: PDDS — Optimizaciones y Desempeño
+    display_name: PDDS — OyD (Optimizaciones y Desempeño)
     description: >
-      Course-specific tools for PDDS "Optimizaciones y Desempeño / Cloud Deployment
-      Automation" at FISICC, Universidad Galileo. Builds graded project delivery
-      documents and rubrics (5-delivery arc), and generates full session instructional
-      materials (demo scripts, exercise Google Docs, Google Slides decks, and code example zips).
-    version: 1.6.0
+      Tools for the OyD (Optimizaciones y Desempeño / Cloud Deployment Automation) course
+      in the PDDS program at FISICC, Universidad Galileo. Builds graded project delivery
+      documents and rubrics (5-delivery arc), generates full session instructional materials
+      (demo scripts, exercise Google Docs, Google Slides decks, and code example zips),
+      converts teacher demo guides into student-facing READMEs, and builds step-by-step
+      reference solution repositories for student assignments.
+    version: 2.0.0
     skills:
-      - pdds-delivery-builder
-      - pdds-session-builder
+      - pdds-oyd-delivery-builder
+      - pdds-oyd-session-builder
+      - pdds-oyd-student-guide
+      - pdds-oyd-assignment-solutioner
   - id: google-drive-creation
     path: plugins/google-drive-creation
     display_name: Google Drive Creation

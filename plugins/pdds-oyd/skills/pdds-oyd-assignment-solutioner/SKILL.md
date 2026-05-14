@@ -1,6 +1,10 @@
 ---
-name: pdds-assignment-solutioner
-description: Use when a teacher of the PDDS (Optimizaciones y Desempeño) course asks to solve, demonstrate, or set up a step-by-step reference solution for a student assignment in a git repository
+name: pdds-oyd-assignment-solutioner
+description: >
+  Use when a teacher of the OyD (Optimizaciones y Desempeño) course in the PDDS program at
+  FISICC, Universidad Galileo asks to solve, demonstrate, or set up a step-by-step reference
+  solution for a student assignment in a git repository. Do NOT trigger for assignments from
+  other courses.
 ---
 
 # PDDS Assignment Solutioner

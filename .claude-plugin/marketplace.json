@@ -4,7 +4,7 @@
     "name": "jatitoam"
   },
   "description": "Claude plugins for teaching and academic workflows",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "plugins": [
     {
       "name": "evaluation-rubrics",
@@ -21,17 +21,10 @@
       "category": "education"
     },
     {
-      "name": "pdds",
-      "source": "./plugins/pdds",
-      "description": "Tools for the PDDS course: student guides and assignment reference solutions",
-      "version": "1.0.0",
-      "category": "education"
-    },
-    {
       "name": "pdds-oyd",
       "source": "./plugins/pdds-oyd",
-      "description": "Course-specific tools for PDDS OyD: delivery builder and session builder",
-      "version": "1.6.0",
+      "description": "Tools for the OyD (Optimizaciones y Desempeño) course in the PDDS program: delivery builder, session builder, student guide, and assignment solutioner",
+      "version": "2.0.0",
       "category": "education"
     },
     {

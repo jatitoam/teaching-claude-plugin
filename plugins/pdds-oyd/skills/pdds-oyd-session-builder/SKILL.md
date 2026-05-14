@@ -1,18 +1,18 @@
 ---
-name: pdds-session-builder
+name: pdds-oyd-session-builder
 description: >
-  Use this skill ONLY when building instructional session materials for the course
-  "Optimizaciones y Desempeño / Cloud Deployment Automation" (PDDS, FISICC,
-  Universidad Galileo), taught by Tito Alvarez with TA Abner Pérez. Triggers on
+  Use this skill ONLY when building instructional session materials for the OyD
+  (Optimizaciones y Desempeño / Cloud Deployment Automation) course in the PDDS program
+  at FISICC, Universidad Galileo, taught by Tito Alvarez with TA Abner Pérez. Triggers on
   explicit phrases like "build session N", "prepare session N", "let's do session N",
   "work on session N", or "next session" in the context of this specific course.
   Produces session deliverables in this fixed order: demo script(s) → exercise specs
   (Google Docs) → deck (Google Slides) → code examples (zip). Each step is
-  approval-gated. Do NOT trigger for project deliveries (use pdds-delivery-builder),
+  approval-gated. Do NOT trigger for project deliveries (use pdds-oyd-delivery-builder),
   generic PPTX creation, or sessions from other courses.
 ---
 
-# PDDS Cloud Deployment Automation — Session Builder
+# OyD (Optimizaciones y Desempeño) — Session Builder
 
 Produces the complete set of instructional materials for one session: demo scripts,
 exercise Google Docs, a Google Slides deck, and zipped code examples.
@@ -23,7 +23,7 @@ exercise Google Docs, a Google Slides deck, and zipped code examples.
 
 This skill applies when ALL of the following are true:
 
-- The conversation is about the PDDS course at FISICC / Universidad Galileo
+- The conversation is about the OyD course in the PDDS program at FISICC / Universidad Galileo
 - The user says "build", "prepare", "work on", or "let's do" + "session N" (N = 1–10)
   OR refers to "the next session" with enough context to infer N
 

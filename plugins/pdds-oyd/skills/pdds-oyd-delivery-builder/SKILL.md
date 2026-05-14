@@ -1,9 +1,9 @@
 ---
-name: pdds-delivery-builder
+name: pdds-oyd-delivery-builder
 description: >
-  Use this skill ONLY when building a graded project delivery document for the
-  course "Optimizaciones y Desempeño / Cloud Deployment Automation" (PDDS, FISICC,
-  Universidad Galileo), taught by Tito Alvarez, with TA Abner Pérez, graders
+  Use this skill ONLY when building a graded project delivery document for the OyD
+  (Optimizaciones y Desempeño / Cloud Deployment Automation) course in the PDDS program
+  at FISICC, Universidad Galileo, taught by Tito Alvarez, with TA Abner Pérez, graders
   jatitoam and abner-perez. Triggers on explicit phrases like "prepare delivery N",
   "build delivery N", "create delivery N", or "let's do delivery N" where N is a
   delivery number (1–5) in the context of this specific course. Each delivery
@@ -11,7 +11,7 @@ description: >
   Do NOT trigger for other courses, generic rubric creation, or generic Word documents.
 ---
 
-# PDDS Cloud Deployment Automation — Project Delivery Builder
+# OyD (Optimizaciones y Desempeño) — Project Delivery Builder
 
 Produces the two graded-delivery artefacts for the 5-delivery course project:
 a **DOCX** assignment document and an **XLSX** grading rubric.
@@ -22,7 +22,7 @@ a **DOCX** assignment document and an **XLSX** grading rubric.
 
 This skill applies when ALL of the following are true:
 
-- The conversation is about the PDDS course at FISICC / Universidad Galileo
+- The conversation is about the OyD course in the PDDS program at FISICC / Universidad Galileo
 - The user says "prepare", "build", "create", or "let's do" + "delivery N" (N = 1–5)
 - No prior deliverable of the same number has been produced in this conversation
 

@@ -1,6 +1,14 @@
 ---
-name: pdds-student-guide
-description: Transforms a teacher/instructor guide into a clean student-facing README. Use this skill whenever the user wants to convert a teacher guide into a student guide, adapt instructor notes for students, produce a student README from a demo guide, or strip timing and pause points to create a student-facing document. Trigger on phrases like "convert this to a student guide", "make a student README", "adapt this for students", "turn the teacher guide into something students can follow", or "create the student version of this guide".
+name: pdds-oyd-student-guide
+description: >
+  Transforms a teacher/instructor guide into a clean student-facing README for the
+  OyD (Optimizaciones y Desempeño) course in the PDDS program at FISICC, Universidad Galileo.
+  Use this skill whenever the user wants to convert a teacher guide into a student guide,
+  adapt instructor notes for students, produce a student README from a demo guide, or
+  strip timing and pause points to create a student-facing document. Trigger on phrases
+  like "convert this to a student guide", "make a student README", "adapt this for students",
+  "turn the teacher guide into something students can follow", or "create the student version
+  of this guide". Do NOT trigger for student guides from other courses.
 ---
 
 # PDDS Student Guide Generator
