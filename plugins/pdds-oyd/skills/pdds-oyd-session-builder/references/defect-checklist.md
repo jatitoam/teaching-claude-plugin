@@ -19,7 +19,9 @@
 - **Bridging resource missing**: resource with no public interface lacks its access
   layer — add it to the block and demo (see demo-spec.md §8.3)
 - **CI workflow absent from end/**: every demo end/ must include terraform-ci.yml
-- **Demo zip name is generic**: use `demo-<N>-<topic>.zip`, never `example-<N>.zip`
+- **Demo folder misnamed**: use `session-<N>-demo-<X>-<topic>/`, never `demo-<N>-<topic>/`
+  or `example-<N>/`
+- **Demo folder was zipped**: deliver demos as plain directories — do not produce `.zip` files
 
 ---
 

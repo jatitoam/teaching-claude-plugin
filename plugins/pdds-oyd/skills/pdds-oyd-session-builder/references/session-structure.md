@@ -14,30 +14,34 @@ Read this file when building the **outline** (Step 1).
   end of the session — never embedded mid-session; always carry their own demo and
   optional exercise
 
-### Preferred flow pattern — interleaved learn → demo → exercise
+### Default flow pattern — show-n-tell: cold open → demo → exercise → demo → exercise
 
-When a session covers multiple parallel primitives of equal weight (e.g., three compute
-targets, two storage backends), prefer this interleaved pattern over batching all content
-then all exercises:
+For any session where students are ready to follow along live (typically once Terraform
+fundamentals are established — Sessions 3+), this is the default structure. There are **no
+standalone theory blocks**: the lean theory a block would have carried (primitive recap,
+key trade-offs, the module interface) moves into the demo's opening context slide (the
+first slide after the `demoSlide` marker in Live-coding companion style). The demo carries
+the teaching; a separate preceding block only duplicates it.
 
 ```
-Block N (lean theory for primitive N) → Demo N → Exercise N → Block N+1 → ...
+Cold open → Demo 1 → Exercise 1 → Demo 2 → Exercise 2 → [optional extension demo + exercise]
 ```
 
 This keeps cognitive load bounded: students practice each primitive before seeing the next.
-Content blocks in this pattern should be short (10–15 min) — the demo carries the teaching.
-
-When a session covers a single coherent topic, the classic arrangement is still appropriate:
 
 | Slot | Block | Duration |
 |------|-------|----------|
 | Opening | Cold open + context setting | 10–15 min |
-| Content | Block 1 (lean theory) | 20–30 min |
-| Content | Block 2 + live demo | 30–40 min |
+| Content | Demo 1 (theory folded into context slide) | 30–40 min |
 | Pacing | Exercise 1 | 30 min |
-| Content | Block 3 + live demo | 25–35 min |
+| Content | Demo 2 (theory folded into context slide) | 30–40 min |
 | Pacing | Exercise 2 | 30 min |
-| Optional | Extension block + demo + exercise | 20–30 min |
+| Optional | Extension demo + exercise | 20–30 min |
+
+Reserve standalone content blocks only for concepts that genuinely cannot be grasped from
+code in motion (e.g., distributed-locking theory, IAM trust-policy structure). When in
+doubt, fold it into the demo. For those exception cases, use the classic arrangement:
+a short lean-theory block (20–30 min) preceding the demo that needs it.
 
 ---
 
@@ -48,25 +52,7 @@ per demo in the outline** and apply it consistently through demo scripts and dec
 
 ---
 
-### Style 1 — Classic (default)
-
-Content slides precede the demo. A `demoSlide` marker separates theory from live coding.
-Students read the theory, then watch the demo with no concurrent slides.
-
-```
-[Theory slides — prose + diagrams] → [demoSlide marker] → [live demo, terminal only]
-```
-
-**Use when:** the topic requires conceptual grounding before code is shown — state
-management models, distributed locking theory, IAM trust policy structure. The concept
-is harder to grasp from code alone.
-
-**Deck implication:** one or more `cSlide` / `lSlide` theory slides followed by a single
-`demoSlide`. No slides during the live coding segment.
-
----
-
-### Style 2 — Live-coding companion
+### Style 1 — Live-coding companion (default)
 
 Slides advance in sync with the terminal. No separate theory block precedes the demo.
 Each slide guides one step of the demo — but it is a **teaching guide, not a code mirror**.
@@ -97,6 +83,25 @@ without mental translation.
 
 ---
 
+### Style 2 — Classic (exception)
+
+Content slides precede the demo. A `demoSlide` marker separates theory from live coding.
+Students read the theory, then watch the demo with no concurrent slides.
+
+```
+[Theory slides — prose + diagrams] → [demoSlide marker] → [live demo, terminal only]
+```
+
+**Use when (the exception, not the default):** the topic requires conceptual grounding
+that genuinely cannot be grasped from code in motion — state management models,
+distributed-locking theory, IAM trust-policy structure. For everything else, prefer the
+Live-coding companion default and fold the lean theory into the demo's context slide.
+
+**Deck implication:** one or more `cSlide` / `lSlide` theory slides followed by a single
+`demoSlide`. No slides during the live coding segment.
+
+---
+
 ## Outline Design Principles
 
 Apply these when constructing the outline (Step 1). Check before presenting to the user.
@@ -119,3 +124,9 @@ Do not use language like "decision is final", "you must commit tonight", or "no 
 after this session" for architectural or tooling choices students are still exploring.
 State that students will have the full picture after the relevant content, and that
 decisions have a deadline in the delivery document — not in the session.
+
+### 5.4 — Default to show-n-tell structure
+The default session structure is **cold open → demo → exercise → demo → exercise** with no
+standalone theory blocks (see "Default flow pattern" above). Standalone content blocks are
+the exception, reserved for concepts that cannot be grasped from code in motion. When in
+doubt, fold the lean theory into the demo's context slide.

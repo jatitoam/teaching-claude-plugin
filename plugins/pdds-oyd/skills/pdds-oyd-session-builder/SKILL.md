@@ -6,8 +6,8 @@ description: >
   at FISICC, Universidad Galileo, taught by Tito Alvarez with TA Abner Pérez. Triggers on
   explicit phrases like "build session N", "prepare session N", "let's do session N",
   "work on session N", or "next session" in the context of this specific course.
-  Produces session deliverables in this fixed order: demo script(s) → exercise specs
-  (Google Docs) → deck (Google Slides) → code examples (zip). Each step is
+  Produces session deliverables in this fixed order: demo script(s) + code example
+  folders → exercise specs (Google Docs) → deck (Google Slides). Each step is
   approval-gated. Do NOT trigger for project deliveries (use pdds-oyd-delivery-builder),
   generic PPTX creation, or sessions from other courses.
 ---
@@ -15,7 +15,7 @@ description: >
 # OyD (Optimizaciones y Desempeño) — Session Builder
 
 Produces the complete set of instructional materials for one session: demo scripts,
-exercise Google Docs, a Google Slides deck, and zipped code examples.
+code example folders, exercise Google Docs, and a Google Slides deck.
 
 ---
 
@@ -54,11 +54,20 @@ user provides explicit approval ("Go" or equivalent) in a new message.
      exercise docs will be saved. Accept a folder URL or bare folder ID. Extract the
      ID from the URL if needed (it is the path segment after `/folders/`). Store it
      as `exercises_folder_id` in the handover under Session identity.
+   → **Cover the tied project delivery.** Identify the project delivery this session
+     feeds (sessions are scheduled to precede or support a delivery). Read that delivery
+     document, run a deliverable-by-deliverable gap analysis against the planned demos
+     and exercises, and ensure every graded requirement of that delivery is taught
+     somewhere in the session — including alternate student tracks (e.g. a VPC track vs.
+     a serverless track), each of which should get equivalent coverage rather than a
+     single track being relegated to a verbal aside. If the delivery document is not
+     provided, ask for it before finalizing the outline.
    → Produce and present handover. Stop. Wait for "Go".
 
-2. **Demo script(s) + code example zips** — one `DEMO.md` per demo (numbered steps +
-   talking points) **and** the full zip for each demo (`start/` + `end/` + DEMO.md),
-   produced together in the same step.
+2. **Demo script(s) + code example folders** — one `DEMO.md` per demo (numbered steps +
+   talking points) **and** the full code folder for each demo (`start/` + `end/` + DEMO.md),
+   produced together in the same step. Do **not** zip the folders — deliver them as plain
+   directories.
    → Read `references/demo-spec.md` and `references/defect-checklist.md` first.
    → Produce and present handover. Stop. Wait for "Go".
 
@@ -158,11 +167,10 @@ Sessions 5 and 10 are on-site exam/presentation sessions — no session material
 session<N>/
 ├── Session<N>_<Topic>.pptx
 ├── demos/
-│   ├── demo-<N>-<topic>/
-│   │   ├── DEMO.md
-│   │   ├── start/
-│   │   └── end/         ← always includes optional terraform-ci.yml
-│   └── demo-<N>-<topic>.zip
+│   └── session-<N>-demo-<X>-<topic>/
+│       ├── DEMO.md
+│       ├── start/
+│       └── end/         ← always includes optional terraform-ci.yml
 └── exercises/
     ├── exercise-<N>-1.json          ← intermediate spec (kept for reference)
     ├── Exercise_<N>_1 (Google Doc)  ← URL presented to user after script run
