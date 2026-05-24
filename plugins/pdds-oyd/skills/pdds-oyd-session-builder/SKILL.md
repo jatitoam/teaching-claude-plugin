@@ -69,6 +69,9 @@ user provides explicit approval ("Go" or equivalent) in a new message.
    produced together in the same step. Do **not** zip the folders — deliver them as plain
    directories.
    → Read `references/demo-spec.md` and `references/defect-checklist.md` first.
+   → For fork-based demos: `start/` contains **only** new or modified files relative to
+     the source repo; `DEMO.md` opens with a `## Fork & Clone` section. See §8.6 in
+     `demo-spec.md` for the exact rules and template.
    → Produce and present handover. Stop. Wait for "Go".
 
 3. **Exercise specs** — exercises as Google Docs.

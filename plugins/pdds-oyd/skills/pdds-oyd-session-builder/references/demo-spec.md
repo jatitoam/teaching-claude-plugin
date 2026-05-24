@@ -7,10 +7,25 @@ Read this file when building **demo scripts and code example folders** (Step 2).
 ## Structure
 
 Each demo:
-- Has a `start/` state (instructor opens this) and `end/` state (target)
+- Has a `start/` state and `end/` state (target)
 - `DEMO.md` contains: numbered steps, verbatim bash commands, pause points with
   talking-point annotations, key conceptual callouts, timing guide
 - Delivered as a plain directory — **do not zip**
+
+### start/ contents depend on whether the demo is fork-based
+
+**Fork-based demos** (the demo builds on a prior-session repo — see §8.6):
+- `start/` contains **only new or modified files** relative to the fork — i.e., files
+  the instructor must copy into the clone after forking. Files that come from the fork
+  unchanged must not be duplicated here.
+- If the fork is already the correct start state with no changes, `start/` is empty.
+- `DEMO.md` must include a `## Fork & Clone` section (before `## Before You Start`)
+  with: the source repo name + GitHub URL, the `git clone` command, and a list of
+  files to copy from `start/` (or "no files needed" if start/ is empty).
+
+**Self-contained demos** (no fork — all code written from scratch):
+- `start/` contains the full starting codebase as usual.
+- No `## Fork & Clone` section in `DEMO.md`.
 
 Demo folders are named `session-<N>-demo-<X>-<topic>` where N is the session number and
 X is the demo's position within the session (e.g., `session-6-demo-1-network-foundation/`,
@@ -76,3 +91,31 @@ repos actually look like at that point in the course.
 If the prior-session repos or their locations (GitHub org, local paths) are not provided,
 **ask for them before building** — do not invent a `start/` state from scratch when a
 forkable predecessor exists.
+
+### Fork workflow for the instructor
+
+The `DEMO.md` must open with a `## Fork & Clone` section that guides the instructor
+through the exact setup steps before the demo begins:
+
+```markdown
+## Fork & Clone
+
+This demo starts from **`<org>/<source-repo>`** — <one-line description of the before state>.
+
+1. Fork [`<org>/<source-repo>`](https://github.com/<org>/<source-repo>) on GitHub
+2. Clone your fork: `git clone <your-fork-url> && cd <source-repo>`
+3. Copy the modified file(s) from `start/` into your clone:
+   - `<path/to/file>` — <why it was modified>
+   *(or: "No files from `start/` need to be copied — the fork is already the correct start state.")*
+```
+
+### What belongs in start/ for fork-based demos
+
+Only place a file in `start/` if it differs from the source repo:
+
+| Scenario | Action |
+|----------|--------|
+| File is identical to the fork | Do not include — instructor gets it from the clone |
+| File is modified (e.g. added an annotation to `dev.tfvars`) | Include — instructor copies it over after cloning |
+| File is brand new (not in the fork at all) | Include — instructor copies it into the clone |
+| Fork is already the correct start state, zero changes | Leave `start/` empty; say so in `## Fork & Clone` |
