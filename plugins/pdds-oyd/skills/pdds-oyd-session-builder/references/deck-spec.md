@@ -71,13 +71,28 @@ The JSON `type` field determines which slide method is called.
 2. **Tonight's Plan** (`agenda`) — agenda table with times; exercise rows highlighted in green
 3. **Section divider** (`section_divider`) per content block
 4. **Content slides** (`content`) per block (as many as the topic needs)
-5. **Live demo marker** (`demo_marker`) immediately before each demo
-6. **Step slides** (`step`) for each step in a demo sequence
-7. **Callout slide** (`callout`) as the closing slide of every demo
-8. **Exercise card** (`exercise`) at each exercise slot
+5. **Concept-explainer slides** (`content`) + **connection map** (`content`) immediately before each demo marker — see "Pre-demo concept slides" section below
+6. **Live demo marker** (`demo_marker`) immediately before each demo
+7. **Step slides** (`step`) for each step in a demo sequence
+8. **Callout slide** (`callout`) as the closing slide of every demo
+9. **Exercise card** (`exercise`) at each exercise slot
 
 Course admin slides — include for Session 1 and any session with a significant
 announcement; omit otherwise.
+
+---
+
+## Pre-demo concept slides
+
+**Rule:** Every demo block is preceded by 1+ concept-explainer `content` slides followed by exactly one connection-map `content` slide. These appear between the section divider (or previous block) and the `demo_marker`. The `demo_marker` is never the first slide a student sees for a demo.
+
+**Concept-explainer slides** — introduce *only* the new AWS/cloud primitives that demo adds. Do not re-explain primitives already covered in a prior session or earlier in this session. One primitive per slide is ideal; group tightly related sub-concepts (e.g. route table + route table association) on one slide.
+
+**Connection map slide** — the final slide before `demo_marker`. Shows how the new primitives wire to existing ones. Use a simple text or ASCII-art diagram rendered as a `content` slide body. The title should be `"How It Fits Together"` or `"<Demo N> — Architecture"`. The diagram must reflect the module-output contract described in the session concept thread (e.g. `module.network` outputs consumed by compute, database, and ingress modules).
+
+**Order:** concept slide(s) → connection map → `demo_marker` → step slides → callout
+
+**Scope:** only the *delta* for this demo. Demo 1 introduces VPC primitives; Demo 2 introduces ALB + WAF (VPC is assumed known). Never re-introduce a primitive that a prior demo already covered.
 
 ---
 

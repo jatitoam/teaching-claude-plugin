@@ -1,5 +1,5 @@
 {
   "name": "pdds-oyd",
   "description": "Tools for the OyD (Optimizaciones y Desempeño) course in the PDDS program: delivery builder, session builder, student guide, and assignment solutioner",
-  "version": "2.2.0"
+  "version": "2.2.1"
 }

@@ -7,7 +7,7 @@ description: >
   (demo scripts, exercise Google Docs, Google Slides decks, and code example zips),
   converts teacher demo guides into student-facing READMEs, and builds step-by-step
   reference solution repositories for student assignments.
-version: 2.2.0
+version: 2.2.1
 skills:
   - id: pdds-oyd-delivery-builder
     path: skills/pdds-oyd-delivery-builder

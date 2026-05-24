@@ -86,6 +86,9 @@ user provides explicit approval ("Go" or equivalent) in a new message.
 4. **Deck** — Google Slides via gslides-creator.
    → Read `references/deck-spec.md` and
      `plugins/google-drive-creation/skills/gslides-creator/references/gslides-style-spec.md` first.
+   → Every demo block must be preceded by concept-explainer `content` slides (introducing
+     only the new building blocks that demo adds) + a connection-map `content` slide, then
+     the `demo_marker`. See "Pre-demo concept slides" in `deck-spec.md`.
    → Generate the JSON spec, write it to `/mnt/user-data/outputs/session<N>-deck.json`,
      run `plugins/google-drive-creation/skills/gslides-creator/scripts/create-gslides.py`,
      and present the resulting Google Slides URL to the user.

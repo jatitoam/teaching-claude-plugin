@@ -50,6 +50,10 @@
   and Live-coding companion styles require it
 - **Before/after concept taught with only prose**: use a before/after slide pair with
   `dSlide` code examples — the one valid use of `dSlide` in a demo context
+- **Concept-explainer slides missing before demo marker**: every `demo_marker` must be
+  preceded by at least one `content` slide introducing the new building blocks that demo
+  adds, ending with a connection-map `content` slide — jumping straight to `demo_marker`
+  without the concept preamble skips the concept-before-code requirement
 
 ---
 
