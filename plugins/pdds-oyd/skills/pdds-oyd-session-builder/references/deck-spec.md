@@ -56,6 +56,8 @@ The JSON `type` field determines which slide method is called.
 | JSON type | When to use |
 |-----------|-------------|
 | `content` | Standard content, light indigo (LB) or white background — context slides, cold open, wrap-up |
+| `concept` | Concept-explainer slide — nav bar + navy definition banner + 1–2 column layout with purple accent bars. Use for every new AWS primitive introduced before a demo. |
+| `diagram` | Visual block-diagram slide — colored labeled boxes per layer, ▼ arrows between layers. Use as the first pre-demo slide to show what will be built. |
 | `code` | Dark code-heavy slide (CB background, purple nav bar) — reserved for before/after anti-pattern pairs where the code itself is the concept |
 | `section_divider` | Section divider — full navy, purple vertical bar, large type |
 | `exercise` | Exercise card — purple left panel, navy right |
@@ -71,7 +73,7 @@ The JSON `type` field determines which slide method is called.
 2. **Tonight's Plan** (`agenda`) — agenda table with times; exercise rows highlighted in green
 3. **Section divider** (`section_divider`) per content block
 4. **Content slides** (`content`) per block (as many as the topic needs)
-5. **Concept-explainer slides** (`content`) + **connection map** (`content`) immediately before each demo marker — see "Pre-demo concept slides" section below
+5. **Block diagram** (`diagram`) + **concept-explainer slides** (`concept`) immediately before each demo marker — see "Pre-demo concept slides" section below
 6. **Live demo marker** (`demo_marker`) immediately before each demo
 7. **Step slides** (`step`) for each step in a demo sequence
 8. **Callout slide** (`callout`) as the closing slide of every demo
@@ -84,15 +86,92 @@ announcement; omit otherwise.
 
 ## Pre-demo concept slides
 
-**Rule:** Every demo block is preceded by 1+ concept-explainer `content` slides followed by exactly one connection-map `content` slide. These appear between the section divider (or previous block) and the `demo_marker`. The `demo_marker` is never the first slide a student sees for a demo.
+**Rule:** Every demo block is preceded by a `diagram` slide followed by one `concept` slide per new primitive. These appear between the section divider (or previous block) and the `demo_marker`. The `demo_marker` is never the first slide a student sees for a demo.
 
-**Concept-explainer slides** — introduce *only* the new AWS/cloud primitives that demo adds. Do not re-explain primitives already covered in a prior session or earlier in this session. One primitive per slide is ideal; group tightly related sub-concepts (e.g. route table + route table association) on one slide.
-
-**Connection map slide** — the final slide before `demo_marker`. Shows how the new primitives wire to existing ones. Use a simple text or ASCII-art diagram rendered as a `content` slide body. The title should be `"How It Fits Together"` or `"<Demo N> — Architecture"`. The diagram must reflect the module-output contract described in the session concept thread (e.g. `module.network` outputs consumed by compute, database, and ingress modules).
-
-**Order:** concept slide(s) → connection map → `demo_marker` → step slides → callout
+**Order:** `diagram` → `concept` slide(s) → `demo_marker` → step slides → callout
 
 **Scope:** only the *delta* for this demo. Demo 1 introduces VPC primitives; Demo 2 introduces ALB + WAF (VPC is assumed known). Never re-introduce a primitive that a prior demo already covered.
+
+---
+
+### `diagram` slide — visual block diagram
+
+The first pre-demo slide. Shows every service being built in this demo as a layered stack of colored boxes, with the request/dependency flow running top-to-bottom. This is also the connection map — there is no separate connection-map `content` slide.
+
+**`layers`** — ordered list (top = internet/external, bottom = data layer). Each layer:
+- `label` — short text shown to the left of the row (e.g. `"Public subnets\n10.0.1–2.0/24"`)
+- `boxes` — list of `{ "text", "color", "sub" }` boxes drawn evenly across the row
+- `muted: true` — for pre-existing or external resources (rendered grey); use for resources the demo *consumes* but does not build
+
+**Box colors** (use named tokens — they resolve via the color map):
+- `"P"` (purple) — primary new resources being built in this demo
+- `"B"` (royal blue) — supporting/routing resources in the same demo
+- `"GR"` (emerald) — DNS/TLS resources
+- `"M"` (muted grey) — external (internet) or pre-existing resources; also set `muted: true` on the layer
+
+**`caption`** — one line of muted text at the bottom summarizing the module-output contract.
+
+**Example:**
+```json
+{
+  "type": "diagram",
+  "title": "Demo 2 — What We're Building",
+  "layers": [
+    { "label": "Internet", "muted": true, "boxes": [{ "text": "0.0.0.0 / 0", "color": "M" }] },
+    { "label": "WAF (REGIONAL)", "boxes": [{ "text": "WAF Web ACL", "color": "B", "sub": "rate-limit: 2000 req / 5 min / IP" }] },
+    { "label": "modules/ingress/", "boxes": [
+        { "text": "ALB SG", "color": "P", "sub": "ingress 80/443" },
+        { "text": "aws_lb (ALB)", "color": "P", "sub": "application · internet-facing" }
+    ]},
+    { "label": "Compute\n(pre-existing)", "muted": true, "boxes": [{ "text": "ECS Fargate Tasks", "color": "M" }] }
+  ],
+  "caption": "modules/ingress/ outputs target_group_arn — compute_ecs receives a plain string and knows nothing about the ALB"
+}
+```
+
+---
+
+### `concept` slide — one per new primitive
+
+One slide per new AWS primitive (or tightly related pair, e.g. IGW + route table). Uses a full-width navy definition banner immediately below the nav bar, then a two-column layout with purple accent bars for sub-headings.
+
+**Fields:**
+- `title` — matches the nav bar; format `"aws_resource_name — Short Description"`
+- `definition` — 1–2 sentences in plain English: what is this thing and why does it exist. This is the banner text. Required on every concept slide.
+- `columns` — list of 1 or 2 column objects, each with `heading` (string) and `bullets` (array of strings or `{ "type": "heading", "text": "..." }` for inline sub-headings)
+
+**Column guidelines:**
+- 2 columns preferred when there are two distinct aspects (e.g. "Core settings" + "Design rule", "Public path" + "Private path")
+- 1 column for simple primitives with fewer than 5 bullets
+- No ASCII trees, no code-formatted strings — prose bullets only
+- Each bullet ≤ one line; aim for 3–4 bullets per column
+
+**Example:**
+```json
+{
+  "type": "concept",
+  "title": "aws_vpc — The Private Network Boundary",
+  "definition": "A Virtual Private Cloud is your own isolated section of the AWS network — a logically separate environment where you declare the IP address space, subnets, routing rules, and security controls.",
+  "columns": [
+    {
+      "heading": "Core settings",
+      "bullets": [
+        "cidr_block = \"10.0.0.0/16\" — 65 536 private IP addresses",
+        "enable_dns_hostnames = true — required for RDS endpoint resolution",
+        "enable_dns_support   = true — Route 53 resolves names inside the VPC"
+      ]
+    },
+    {
+      "heading": "Design rule",
+      "bullets": [
+        "One VPC per environment (dev, staging, prod each get their own)",
+        "No shared network boundaries between environments",
+        "All subnets, route tables, and SGs are scoped to this single VPC"
+      ]
+    }
+  ]
+}
+```
 
 ---
 

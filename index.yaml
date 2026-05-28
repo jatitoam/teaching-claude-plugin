@@ -31,7 +31,7 @@ plugins:
       (demo scripts, exercise Google Docs, Google Slides decks, and code example zips),
       converts teacher demo guides into student-facing READMEs, and builds step-by-step
       reference solution repositories for student assignments.
-    version: 2.2.1
+    version: 2.3.0
     skills:
       - pdds-oyd-delivery-builder
       - pdds-oyd-session-builder
