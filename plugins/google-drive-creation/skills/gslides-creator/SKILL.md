@@ -3,9 +3,9 @@ name: gslides-creator
 description: >
   General-purpose Google Slides creation skill. Creates a styled Google Slides
   presentation from a JSON spec via the Google Slides API. Supports all PDDS slide
-  types (title_slide, agenda, section_divider, content, demo_marker, step, callout,
-  exercise, code). Not triggered directly by the user — invoked by other skills
-  (e.g., pdds-session-builder) as the final creation step.
+  types (title_slide, agenda, section_divider, content, concept, diagram, demo_marker,
+  step, callout, exercise, code). Not triggered directly by the user — invoked by other
+  skills (e.g., pdds-session-builder) as the final creation step.
 ---
 
 # Google Slides Creator

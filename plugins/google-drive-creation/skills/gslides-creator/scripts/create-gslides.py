@@ -368,6 +368,92 @@ class Builder:
                 self.txt(sid, 0.45, y, 9.1, 0.45, f"•  {text}", 13, D)
                 y += 0.48
 
+    def concept_slide(self, title, definition, columns):
+        sid = self.slide()
+        self.footer(sid)
+        self.bg(sid, LB)
+        self.nav_bar(sid, title)
+        # Full-width navy definition banner immediately below the nav bar
+        self.rect(sid, 0, 0.65, 10, 1.15, N)
+        self.txt(sid, 0.45, 0.72, 9.1, 1.0, definition, 13, W, valign="MIDDLE")
+        # Column layout — 2 columns preferred, 1 column for simple primitives
+        n_cols = len(columns)
+        col_configs = [(0.45, 4.4), (5.15, 4.4)] if n_cols >= 2 else [(0.45, 9.1)]
+        y_start = 2.05
+        for i, col in enumerate(columns[:2]):
+            col_x, col_w = col_configs[i]
+            y = y_start
+            heading = col.get("heading", "")
+            # Purple accent bar + bold-navy heading
+            self.rect(sid, col_x, y, 0.08, 0.32, P)
+            self.txt(sid, col_x + 0.18, y, col_w - 0.18, 0.32,
+                     heading, 12, N, bold=True, valign="MIDDLE")
+            y += 0.44
+            for bullet in col.get("bullets", []):
+                if isinstance(bullet, dict) and bullet.get("type") == "heading":
+                    self.txt(sid, col_x + 0.10, y, col_w - 0.10, 0.38,
+                             bullet.get("text", ""), 11, N, bold=True)
+                else:
+                    text = bullet if isinstance(bullet, str) else bullet.get("text", "")
+                    self.txt(sid, col_x + 0.10, y, col_w - 0.10, 0.38, f"•  {text}", 11, D)
+                y += 0.41
+
+    def diagram_slide(self, title, layers, caption=None):
+        sid = self.slide()
+        self.footer(sid)
+        self.bg(sid, LB)
+        self.nav_bar(sid, title)
+        color_map = {"P": P, "B": B, "GR": GR, "M": M}
+        n = len(layers)
+        if n == 0:
+            return
+        # Layout: content band y=0.85→4.65, caption at y=4.72
+        band_top = 0.85
+        band_bot = 4.65
+        arrow_h = 0.22
+        total_row = (band_bot - band_top) - (n - 1) * arrow_h
+        row_h = total_row / n
+        label_x, label_w = 0.20, 1.85
+        box_band_x, box_band_w = 2.10, 7.70
+        box_gap = 0.12
+        y = band_top
+        for idx, layer in enumerate(layers):
+            is_muted = layer.get("muted", False)
+            label_color = M if is_muted else N
+            label = layer.get("label", "")
+            self.txt(sid, label_x, y, label_w, row_h,
+                     label, 10, label_color, valign="MIDDLE")
+            boxes = layer.get("boxes", [])
+            nb = len(boxes) if boxes else 1
+            box_w = (box_band_w - (nb - 1) * box_gap) / nb
+            for bi, box in enumerate(boxes):
+                bx = box_band_x + bi * (box_w + box_gap)
+                fill = color_map.get(box.get("color", "M"), M)
+                sub = box.get("sub", "")
+                self.rect(sid, bx, y, box_w, row_h, fill)
+                if sub:
+                    # Main text upper ~55%, sub-label lower ~38%
+                    self.txt(sid, bx + 0.08, y + row_h * 0.05,
+                             box_w - 0.16, row_h * 0.55,
+                             box.get("text", ""), 11, W, bold=True,
+                             align="CENTER", valign="MIDDLE")
+                    self.txt(sid, bx + 0.08, y + row_h * 0.60,
+                             box_w - 0.16, row_h * 0.38,
+                             sub, 9, W, align="CENTER", valign="TOP")
+                else:
+                    self.txt(sid, bx + 0.08, y, box_w - 0.16, row_h,
+                             box.get("text", ""), 11, W, bold=True,
+                             align="CENTER", valign="MIDDLE")
+            y += row_h
+            if idx < n - 1:
+                # Down-arrow connector between layers
+                self.txt(sid, 0, y, 10, arrow_h, "▼", 10, M,
+                         align="CENTER", valign="MIDDLE")
+                y += arrow_h
+        if caption:
+            self.txt(sid, 0.3, 4.72, 9.4, 0.28, caption, 9, M,
+                     italic=True, align="CENTER")
+
     def demo_marker(self, demo_label, title):
         sid = self.slide()
         self.footer(sid)
@@ -457,6 +543,10 @@ def process_slide(b, slide_dict):
         b.section_divider(slide_dict["title"], slide_dict.get("subtitle"))
     elif stype == "content":
         b.content_slide(slide_dict["title"], slide_dict.get("bullets", []), slide_dict.get("background", "light"))
+    elif stype == "concept":
+        b.concept_slide(slide_dict["title"], slide_dict["definition"], slide_dict.get("columns", []))
+    elif stype == "diagram":
+        b.diagram_slide(slide_dict["title"], slide_dict.get("layers", []), slide_dict.get("caption"))
     elif stype == "demo_marker":
         b.demo_marker(slide_dict["demo"], slide_dict["title"])
     elif stype == "step":

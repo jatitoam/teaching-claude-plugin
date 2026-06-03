@@ -7,7 +7,7 @@ description: >
   Docs; and all PDDS slide types (title, agenda, section divider, content, demo
   marker, step, callout, exercise, code) for Slides.
   Designed to be called by other skills that produce document or presentation content.
-version: 1.3.0
+version: 1.4.0
 skills:
   - id: gdoc-creator
     path: skills/gdoc-creator

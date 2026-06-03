@@ -166,6 +166,103 @@ Standard content slide with nav bar and bullet list.
 
 ---
 
+### `concept`
+
+Concept-explainer slide. Light indigo background, nav bar, full-width navy definition
+banner below the nav bar, then a 1–2 column layout with purple accent bars for headings.
+Use for every new AWS primitive introduced before a demo.
+
+**Fields:**
+- `title` (string) — shown in the nav bar; format `"aws_resource_name — Short Description"`
+- `definition` (string) — 1–2 sentences in plain English: what this thing is and why it
+  exists. Rendered as white text in the navy banner. Required on every concept slide.
+- `columns` (array) — 1 or 2 column objects, each with:
+  - `heading` (string) — column heading shown with a purple accent bar
+  - `bullets` (array) — each item is either:
+    - a plain string (rendered as `•  text`)
+    - `{ "type": "heading", "text": "..." }` (rendered bold-navy, no bullet — inline sub-heading)
+
+**Column guidelines:**
+- 2 columns preferred for two distinct aspects (e.g. "Core settings" + "Design rule")
+- 1 column for simple primitives with fewer than 5 bullets
+- Each bullet ≤ one line; aim for 3–4 bullets per column
+
+**Example:**
+```json
+{
+  "type": "concept",
+  "title": "aws_vpc — The Private Network Boundary",
+  "definition": "A Virtual Private Cloud is your own isolated section of the AWS network — a logically separate environment where you declare the IP address space, subnets, routing rules, and security controls.",
+  "columns": [
+    {
+      "heading": "Core settings",
+      "bullets": [
+        "cidr_block = \"10.0.0.0/16\" — 65 536 private IP addresses",
+        "enable_dns_hostnames = true — required for RDS endpoint resolution",
+        "enable_dns_support   = true — Route 53 resolves names inside the VPC"
+      ]
+    },
+    {
+      "heading": "Design rule",
+      "bullets": [
+        "One VPC per environment (dev, staging, prod each get their own)",
+        "No shared network boundaries between environments",
+        "All subnets, route tables, and SGs are scoped to this single VPC"
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### `diagram`
+
+Visual block-diagram slide. Light indigo background, nav bar, then a layered stack of
+colored boxes (top = internet/external, bottom = data layer) with `▼` arrows between
+layers. Used as the first pre-demo slide to show what will be built.
+
+**Fields:**
+- `title` (string) — shown in the nav bar
+- `layers` (array) — ordered list of layer objects (top → bottom):
+  - `label` (string) — short text shown to the left of the row; supports `\n` for two lines
+  - `boxes` (array) — list of `{ "text", "color", "sub" }` box objects drawn evenly across the row
+  - `muted` (boolean, optional) — `true` renders the layer label in muted grey; use for
+    pre-existing or external resources the demo *consumes* but does not build
+- `caption` (string, optional) — one line of muted italic text at the bottom summarizing
+  the module-output contract
+
+**Box `color` tokens:**
+| Token | Color | Use |
+|-------|-------|-----|
+| `"P"` | Purple (`6540A8`) | Primary new resources being built in this demo |
+| `"B"` | Royal blue (`2563EB`) | Supporting/routing resources in the same demo |
+| `"GR"` | Emerald (`10B981`) | DNS / TLS resources |
+| `"M"` | Muted grey (`9CA3AF`) | External (internet) or pre-existing resources |
+
+Each box `"sub"` field (optional string) renders as a smaller label below the main text
+inside the box — useful for CIDR ranges, rate-limit specs, or resource sub-type notes.
+
+**Example:**
+```json
+{
+  "type": "diagram",
+  "title": "Demo 2 — What We're Building",
+  "layers": [
+    { "label": "Internet", "muted": true, "boxes": [{ "text": "0.0.0.0 / 0", "color": "M" }] },
+    { "label": "WAF (REGIONAL)", "boxes": [{ "text": "WAF Web ACL", "color": "B", "sub": "rate-limit: 2000 req / 5 min / IP" }] },
+    { "label": "modules/ingress/", "boxes": [
+        { "text": "ALB SG", "color": "P", "sub": "ingress 80/443" },
+        { "text": "aws_lb (ALB)", "color": "P", "sub": "application · internet-facing" }
+    ]},
+    { "label": "Compute\n(pre-existing)", "muted": true, "boxes": [{ "text": "ECS Fargate Tasks", "color": "M" }] }
+  ],
+  "caption": "modules/ingress/ outputs target_group_arn — compute_ecs receives a plain string and knows nothing about the ALB"
+}
+```
+
+---
+
 ### `demo_marker`
 
 Very dark navy background with sky-blue LIVE DEMO pill. Placed immediately before
