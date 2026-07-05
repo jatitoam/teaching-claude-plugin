@@ -97,6 +97,35 @@ python scripts/generate_rubric.py <output_dir>/rubrica_<slug>.json <output_dir>/
 
 This ensures the JSON and xlsx are always written to the same folder.
 
+### Optional: negatively-scored penalties block
+
+Some assignments carry deductions that sit **outside** the 100-point additive total —
+elements that only ever subtract points when a submission fails them (e.g. "no cover
+page → −15", "cloud link instead of an attached file → invalid"). Add an **optional**
+`penalties` array to the JSON and the script renders them as a labelled block below the
+additive table. Penalties do **not** count toward the sum-to-100 check.
+
+```json
+{
+  "language": "es",
+  "criteria": [ … ],
+  "penalties": [
+    {
+      "name": "Buena presentación",
+      "cumple": "Profesional, con portada, en PDF.",
+      "parcial": "Sin portada.",
+      "no_cumple": "Escueta o formato ≠ PDF.",
+      "penalty": "-15"
+    }
+  ],
+  "penalties_title": "…"      // optional heading override
+}
+```
+
+- `penalty` is free text (`"-15"`, `"-100%"`, …); the key may also be `penalizacion`.
+- `parcial` is optional in a penalty row (defaults to `N/A`).
+- Omit `penalties` entirely to get the original additive-only output (backward compatible).
+
 See `references/column-layout.md` for column definitions and formatting rules.
 
 ## Step 5 — Deliver
