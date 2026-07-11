@@ -1,0 +1,53 @@
+name: course-factory
+display_name: Course Factory
+description: >
+  Course-agnostic harness for producing university course material with Claude Code.
+  A bootstrap skill interviews the instructor and scaffolds a per-course harness
+  (course.yaml config, PROTOCOL/START contracts, shared context, handover templates,
+  folder scaffold), and a set of generalized artifact skills produce the material one
+  session, one artifact at a time: session plans, instructor example packs, class
+  exercises, slides (local HTML build + PDF), labs, exams, homework, readings, project
+  deliveries, presentation guides, Miro boards, and Google Doc publishing. Each course's
+  specifics (language, schedule, evaluation model, tool stack, enabled artifacts) live in
+  the course folder's course.yaml; the skills read it at runtime. Rubric-bearing skills
+  require the evaluation-rubrics plugin; multi-version MCQ exams hand off to exam-creator.
+version: 1.0.0
+skills:
+  - id: course-bootstrap
+    path: skills/course-bootstrap
+  - id: session-planning
+    path: skills/session-planning
+  - id: examples
+    path: skills/examples
+  - id: class-exercises
+    path: skills/class-exercises
+  - id: slides
+    path: skills/slides
+  - id: publish-google-doc
+    path: skills/publish-google-doc
+  - id: lab
+    path: skills/lab
+  - id: exam
+    path: skills/exam
+  - id: practical-exam
+    path: skills/practical-exam
+  - id: homework
+    path: skills/homework
+  - id: readings
+    path: skills/readings
+  - id: project-delivery
+    path: skills/project-delivery
+  - id: presentation-guide
+    path: skills/presentation-guide
+  - id: recap-signup
+    path: skills/recap-signup
+  - id: publish-course-docs
+    path: skills/publish-course-docs
+  - id: miro-boards
+    path: skills/miro-boards
+  - id: student-guide
+    path: skills/student-guide
+  - id: assignment-solutioner
+    path: skills/assignment-solutioner
+commands: []
+mcp_servers: []
