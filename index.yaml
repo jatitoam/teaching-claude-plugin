@@ -42,6 +42,7 @@ plugins:
     skills:
       - rubric-creator
       - assignment-evaluator
+      - build-grades
   - id: exam-creator
     path: plugins/exam-creator
     display_name: Exam Creator
