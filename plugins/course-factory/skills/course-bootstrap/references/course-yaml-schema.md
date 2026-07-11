@@ -89,7 +89,8 @@ publishing:
 naming:
   session_prefix: "S"                # S01, S02, … (two digits)
   folders:                           # canonical English names; a course may override values
-    sources: Syllabus                # (keys are fixed — skills look up by key)
+    sources: Syllabus                # (keys are fixed — skills look up by key; keys whose
+                                     # artifact is disabled may be omitted)
     planning: planning
     examples: examples
     exercises: exercises

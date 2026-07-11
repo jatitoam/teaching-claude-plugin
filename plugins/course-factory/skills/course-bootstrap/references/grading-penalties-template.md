@@ -74,5 +74,8 @@
   `class-exercises` always adds it — using the **exercise adaptation** above — **plus** the exercise
   **lateness row** (in class = full · <24h = half · >24h = 0, PROTOCOL §9) in the same penalties
   block.
+<!-- bootstrap: INCLUDE-IF homework enabled. -->
+- Applies to **homework/take-home assignments** — skill `homework` always adds it, adapted to the
+  homework submission channel ({{homework_submission_short}}) and the course's late-submission rule.
 - Reusable by other graded artifacts submitted with a cover in PDF, if the conductor decides.
   Editing here = changes everywhere.

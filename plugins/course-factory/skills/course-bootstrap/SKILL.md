@@ -80,17 +80,26 @@ Ask the conductor, in order — batch related questions, confirm before generati
    (multiples of 5, any sacred empty opening block, min exercise duration, any content-minute
    ceiling).
 4. **Evaluation model.** The activity names and their **weights (must sum to 100)**, plus how each
-   weight derives into point values, and any delivery→presentation map.
+   weight derives into point values, and any delivery→presentation map. **Cross-check on the spot:**
+   every weight key must have a producing artifact in `artifacts.enabled` (step 5) — if a weight has
+   no producer (e.g. a `project` weight with `project-delivery` disabled), ask the conductor who/what
+   produces it before generating.
 5. **Artifact set to enable.** Walk the conductor through the available slugs and confirm
    `artifacts.enabled`: `session-planning` (always), `examples`, `class-exercises`, `readings`,
    `homework`, `slides`, `lab`, `exam`, `practical-exam`, `project-delivery`, `presentation-guide`,
    `recap-signup`, `publish-google-doc`, `publish-course-docs`, `miro-boards`, `student-guide`,
-   `assignment-solutioner`. Only enabled skills appear in PROTOCOL/START and get folders.
+   `assignment-solutioner`. Only enabled skills appear in PROTOCOL/START and get folders. For
+   `homework`, also settle its **cadence** (per-session vs. occasional) and its position in the
+   session's artifact sequence.
 6. **Tool stack.** Slides engine (`local-html`), the **student tool stack** (in adoption order),
-   whether **Miro** is used (→ `team_id`, `board_prefix`, `spaces`), and whether
-   **forced-failure/ollama** demos are wanted (`ollama_forced_failure`).
-7. **Publishing targets.** Drive `course_folder_id` (if known) + any per-type subfolder IDs; the
-   student-submission **portal** name (or none).
+   whether **Miro** is used (→ `team_id`, `board_prefix`, `spaces`, and the **canvas-count rule per
+   board** — e.g. a fixed number or a multiple of enrollment), and whether **forced-failure/ollama**
+   demos are wanted (`ollama_forced_failure`).
+7. **Publishing targets & submission channels.** Drive `course_folder_id` (if known) + any per-type
+   subfolder IDs; the student-submission **portal** name (or none); and the **concrete submission
+   mechanism per graded artifact type** (e.g. exercises = one PDF per exercise uploaded to the
+   portal before end of class, with any attendance linkage; homework = channel + deadline rule) —
+   the protocol's exercise/homework conventions and the penalties wording need these.
 8. **Sources of truth.** Which of syllabus / session briefs / glossary / decisions the conductor
    **already has** (record filenames in `sources:`) vs. which must be **authored later** (flag in
    the report; never fabricate their contents).
@@ -110,7 +119,12 @@ drop `INCLUDE-IF <slug>` sections whose slug isn't enabled and renumber.
 - **`course.yaml`** — fill the schema. **Validate before writing:** (a) `evaluation.weights` sum to
   **exactly 100**; (b) every session number appears in **exactly one** `session_types` list and the
   union covers `1..sessions`; (c) `session_types` names match the timeline shapes you write in
-  PROTOCOL §8; (d) `artifacts.enabled` uses only real slugs; (e) no secrets anywhere.
+  PROTOCOL §8; (d) `artifacts.enabled` uses only real slugs; (e) no secrets anywhere; (f) **every
+  `evaluation.weights` key has a producing artifact in `artifacts.enabled`** (or an explicit
+  conductor-confirmed note in PROTOCOL §5 about who produces it); (g) every timeline shape sums to
+  `schedule.session_length_min` in multiples of 5 — if the interview's shape doesn't, resolve it
+  with the conductor (or fix minimally and flag the fix as an unconfirmed decision in PROTOCOL §8,
+  START.md, and shared-context.md).
 - **`PROTOCOL.md`** — instantiate `protocol-template.md`: settled facts (§5), session shapes (§8),
   the tier map (§6, one row per enabled skill), the artifact sequences (§10, enabled skills only),
   and the §2 bootstrap contract pointing to `.claude/refs/course.yaml` as the root marker and to
@@ -193,7 +207,8 @@ Before reporting done, verify:
 
 - [ ] `course.yaml` validates: weights **sum to 100**; every session in **exactly one**
   `session_types` list; union covers all sessions; `session_types` names match PROTOCOL §8 shapes;
-  `artifacts.enabled` are real slugs; **no secrets** anywhere.
+  `artifacts.enabled` are real slugs; **every weight key has an enabled producing artifact** (or a
+  conductor-confirmed note); every shape sums to the session length; **no secrets** anywhere.
 - [ ] Every generated file has **zero `{{placeholders}}`** and **zero `<!-- bootstrap: ... -->`
   comments** left.
 - [ ] PROTOCOL/START/handover checklists/folders list **only enabled** artifacts; include-if
