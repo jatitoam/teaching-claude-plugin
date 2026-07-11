@@ -22,10 +22,10 @@ index.yaml                   # Top-level registry of all plugins
 
 | Plugin | Description | Skills | Commands | MCP Servers |
 |--------|-------------|--------|----------|-------------|
-| [evaluation-rubrics](plugins/evaluation-rubrics) | Create grading rubrics and evaluate student submissions | 2 | — | — |
-| [exam-creator](plugins/exam-creator) | Generate multiple-choice exams from course content | 1 | — | — |
-| [pdds-oyd](plugins/pdds-oyd) | Tools for the OyD (Optimizaciones y Desempeño) course in the PDDS program: delivery builder, session builder, student guide, assignment solutioner | 4 | — | — |
-| [google-drive-creation](plugins/google-drive-creation) | General-purpose Google Doc creation with named styles, code blocks, and inline formatting | 2 | — | — |
+| [course-factory](plugins/course-factory) | Course-agnostic harness: bootstrap a per-course harness and produce session plans, examples, exercises, slides, labs, exams, homework, readings, project deliveries, presentation guides, Miro boards, and Google Doc publications | 18 | — | — |
+| [evaluation-rubrics](plugins/evaluation-rubrics) | Create grading rubrics, evaluate student submissions, and rebuild cumulative grade files | 3 | — | — |
+| [exam-creator](plugins/exam-creator) | Generate multiple-choice exams from course content, shuffle N versions with answer keys, and export to Google Docs | 3 | — | — |
+| [google-drive-creation](plugins/google-drive-creation) | General-purpose Google Doc and Google Slides creation with named styles, code blocks, and inline formatting | 2 | — | — |
 
 ## Plugin Concepts
 
@@ -37,13 +37,15 @@ index.yaml                   # Top-level registry of all plugins
 
 ## Bumping a Plugin Version
 
-Three files must be updated in sync — the CLI reads each one for a different purpose:
+Five places must be updated in sync — the CLI reads each one for a different purpose:
 
 | File | Why it must be updated |
 |------|------------------------|
 | `plugins/<plugin-id>/.claude-plugin/plugin.json` | Version authority for `claude plugin update` — **this is what the CLI checks** |
 | `plugins/<plugin-id>/plugin.yaml` | Canonical plugin definition |
-| `.claude-plugin/marketplace.json` | Repo registry used by `claude plugin install` |
+| `.claude-plugin/marketplace.json` (plugin entry) | Repo registry used by `claude plugin install` |
+| `.claude-plugin/marketplace.json` (top-level `version`) | Controls whether `claude plugin marketplace update` fetches fresh data at all |
+| `index.yaml` | Top-level registry entry for the plugin |
 
 ## Updating the plugin locally
 

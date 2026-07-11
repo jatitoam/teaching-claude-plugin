@@ -1,4 +1,37 @@
 plugins:
+  - id: course-factory
+    path: plugins/course-factory
+    display_name: Course Factory
+    description: >
+      Course-agnostic harness for producing university course material with
+      Claude Code. A bootstrap skill interviews the instructor and scaffolds a
+      per-course harness (course.yaml config, protocol, conductor guide, shared
+      context, handover templates, folder scaffold); generalized artifact skills
+      then produce the material one session, one artifact at a time — session
+      plans, instructor example packs, class exercises, slides (local HTML build
+      + PDF), labs, exams, homework, readings, project deliveries, presentation
+      guides, Miro boards, and Google Doc publishing. Course specifics live in
+      the course folder's course.yaml, read at runtime.
+    version: 1.0.0
+    skills:
+      - course-bootstrap
+      - session-planning
+      - examples
+      - class-exercises
+      - slides
+      - publish-google-doc
+      - lab
+      - exam
+      - practical-exam
+      - homework
+      - readings
+      - project-delivery
+      - presentation-guide
+      - recap-signup
+      - publish-course-docs
+      - miro-boards
+      - student-guide
+      - assignment-solutioner
   - id: evaluation-rubrics
     path: plugins/evaluation-rubrics
     display_name: Evaluation Rubrics
@@ -9,6 +42,7 @@ plugins:
     skills:
       - rubric-creator
       - assignment-evaluator
+      - build-grades
   - id: exam-creator
     path: plugins/exam-creator
     display_name: Exam Creator
@@ -21,22 +55,6 @@ plugins:
       - mcq-generator
       - exam-version-generator
       - gdocs-exam-exporter
-  - id: pdds-oyd
-    path: plugins/pdds-oyd
-    display_name: PDDS — OyD (Optimizaciones y Desempeño)
-    description: >
-      Tools for the OyD (Optimizaciones y Desempeño / Cloud Deployment Automation) course
-      in the PDDS program at FISICC, Universidad Galileo. Builds graded project delivery
-      documents and rubrics (5-delivery arc), generates full session instructional materials
-      (demo scripts, exercise Google Docs, Google Slides decks, and code example zips),
-      converts teacher demo guides into student-facing READMEs, and builds step-by-step
-      reference solution repositories for student assignments.
-    version: 2.3.0
-    skills:
-      - pdds-oyd-delivery-builder
-      - pdds-oyd-session-builder
-      - pdds-oyd-student-guide
-      - pdds-oyd-assignment-solutioner
   - id: google-drive-creation
     path: plugins/google-drive-creation
     display_name: Google Drive Creation
