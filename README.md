@@ -25,7 +25,6 @@ index.yaml                   # Top-level registry of all plugins
 | [course-factory](plugins/course-factory) | Course-agnostic harness: bootstrap a per-course harness and produce session plans, examples, exercises, slides, labs, exams, homework, readings, project deliveries, presentation guides, Miro boards, and Google Doc publications | 18 | — | — |
 | [evaluation-rubrics](plugins/evaluation-rubrics) | Create grading rubrics and evaluate student submissions | 2 | — | — |
 | [exam-creator](plugins/exam-creator) | Generate multiple-choice exams from course content | 1 | — | — |
-| [pdds-oyd](plugins/pdds-oyd) | Tools for the OyD (Optimizaciones y Desempeño) course in the PDDS program: delivery builder, session builder, student guide, assignment solutioner | 4 | — | — |
 | [google-drive-creation](plugins/google-drive-creation) | General-purpose Google Doc creation with named styles, code blocks, and inline formatting | 2 | — | — |
 
 ## Plugin Concepts

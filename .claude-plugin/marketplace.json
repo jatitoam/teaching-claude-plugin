@@ -4,7 +4,7 @@
     "name": "jatitoam"
   },
   "description": "Claude plugins for teaching and academic workflows",
-  "version": "1.12.4",
+  "version": "1.13.0",
   "plugins": [
     {
       "name": "course-factory",
@@ -25,13 +25,6 @@
       "source": "./plugins/exam-creator",
       "description": "Generate multiple-choice exams from course content",
       "version": "1.2.0",
-      "category": "education"
-    },
-    {
-      "name": "pdds-oyd",
-      "source": "./plugins/pdds-oyd",
-      "description": "Tools for the OyD (Optimizaciones y Desempeño) course in the PDDS program: delivery builder, session builder, student guide, and assignment solutioner",
-      "version": "2.3.0",
       "category": "education"
     },
     {
