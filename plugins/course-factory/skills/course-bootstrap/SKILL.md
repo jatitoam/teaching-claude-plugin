@@ -103,6 +103,15 @@ Ask the conductor, in order — batch related questions, confirm before generati
 8. **Sources of truth.** Which of syllabus / session briefs / glossary / decisions the conductor
    **already has** (record filenames in `sources:`) vs. which must be **authored later** (flag in
    the report; never fabricate their contents).
+   **8b. Prior-offering material.** Ask whether material from a **previous offering** of the
+   course exists to use as reference (docs folders, Canva designs, LMS exports, slide decks,
+   repos, readings embedded in per-class docs…). For each source capture: the **kind**, its
+   **exact location** (path, Canva team/search terms, URL), any **reading constraints** (e.g.
+   big files → offset/limit reads only), and whether the sessions **drifted in order or title**
+   between offerings. If any source exists: include the **prior-offering review block** in the
+   generated PROTOCOL §4 (include-if, with the mandatory **confirm-with-conductor** rule — see
+   the template), and recommend seeding a **catalog/index file** in `<folders.sources>/` (one
+   table per source kind, IDs/paths verified once) so agents never re-search.
 9. **Penalties.** Which standard penalty rows apply (good-presentation deduction; accessible-
    submission validity; AI-declared-&-explainable integrity), their magnitudes, and the real
    submission channel/wording — for `grading-penalties.md`.
@@ -132,7 +141,8 @@ drop `INCLUDE-IF <slug>` sections whose slug isn't enabled and renumber.
   Keep ALL mechanics verbatim in spirit (roles, artifact cycle, single-source-of-truth/no-
   redundancy, md-first→same-skill-publishes with the Drive-MCP/Docs-API limitation text, mandatory
   artifact close). §9 exercise convention, §9b Miro model, and §12 examples convention are
-  include-if their slug is enabled.
+  include-if their slug is enabled; the §4 **prior-offering review block** is include-if the
+  interview (8b) captured prior-year sources.
 - **`START.md`** — instantiate `start-template.md`: the 3-line idea, the first-agent launch prompt
   (in `course.language`), per-session-type flows (enabled skills only), the conductor's
   prerequisites (`.pptx` per session, Drive IDs, portal assignments, `MIRO_TOKEN` if Miro), and the
@@ -213,6 +223,9 @@ Before reporting done, verify:
   comments** left.
 - [ ] PROTOCOL/START/handover checklists/folders list **only enabled** artifacts; include-if
   sections for disabled slugs are gone and sections renumbered.
+- [ ] Prior-offering review block present in PROTOCOL §4 **iff** interview 8b captured prior-year
+  sources — always carrying the **confirm-with-conductor** rule (offerings drift in order/title);
+  absent otherwise.
 - [ ] PROTOCOL §2 points to `.claude/refs/course.yaml` as the root marker and to **plugin** skills
   (`/<slug>`), not `.claude/skills/`.
 - [ ] The Drive-MCP/Docs-API limitation text, the md-first→same-skill-publishes doctrine, the tier

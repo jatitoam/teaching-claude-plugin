@@ -46,6 +46,11 @@ If the course protocol defines a mandatory review of prior-year/prior-offering m
 planning (some courses require this — check PROTOCOL.md §2/§4), follow it: for each element decide
 explicitly reuse / adapt / reconstruct / new, and record the verdict in the plan's notes, with an
 exact pointer (path or design ID) per source in the handover so downstream skills don't re-search.
+Match prior-offering sources by **topic/title, never by session number alone** (offerings drift:
+sessions get reordered, titles reworded), and treat every match as **PROPOSED until the conductor
+confirms it**: mark it "proposed/unconfirmed" in the plan and the handover's sources table, and
+surface it prominently in your closing summary so the conductor confirms or corrects it at the
+md-first gate. Downstream agents use only conductor-confirmed pointers.
 
 ## Process
 
