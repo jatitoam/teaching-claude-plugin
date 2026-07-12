@@ -115,6 +115,26 @@ Read from here; **do not rewrite** what already lives in these files. Only **ref
 
 <!-- bootstrap: if the course has extra sources of truth from the interview, add rows. -->
 
+<!-- bootstrap: INCLUDE-IF the interview (8b) captured prior-offering material — else drop this
+     whole block. {{prior_year_sources}} = one bullet per source: kind (docs folder / Canva
+     designs / LMS export / repo / readings embedded in per-class docs), exact location (path,
+     Canva search terms, URL), and reading constraints (e.g. big files → offset/limit reads
+     only). If a catalog/index file was seeded in {{sources_folder}}/ (recommended), its bullet
+     points there FIRST. The confirm-with-conductor bullet below is MANDATORY whenever this
+     block is included — never drop it. -->
+**Prior-offering material (mandatory review before producing):** when planning and when
+producing content, **review the previous offering's material first** and use it as the base:
+for each element decide **reuse / adapt / rebuild / new** and record the verdict in the plan.
+Write from scratch only when nothing exists or the approach changed completely.
+{{prior_year_sources}}
+- **⚠️ Every match must be CONFIRMED by the conductor before it counts as the base.** Courses
+  drift between offerings — sessions get reordered and titles reworded — so a match by number
+  or title can be the wrong source. Match by **topic/title, never by session number alone**.
+  The planning agent records each matched source as **proposed** (in the plan and the
+  handover's per-artifact sources table), surfaces it prominently in the conductor-facing
+  closing summary, and only after the conductor validates it at the md-first gate do
+  downstream agents use it. Unconfirmed pointers are marked as such and never silently adopted.
+
 ## 5. Settled facts (do NOT re-litigate)
 
 <!-- bootstrap: {{settled_facts}} = a compact prose block of the course's fixed facts, drawn from

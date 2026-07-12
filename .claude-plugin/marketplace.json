@@ -4,13 +4,13 @@
     "name": "jatitoam"
   },
   "description": "Claude plugins for teaching and academic workflows",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "plugins": [
     {
       "name": "course-factory",
       "source": "./plugins/course-factory",
       "description": "Course-agnostic harness for building university course material: bootstrap a per-course harness (config, protocol, conductor guide, templates) and produce session plans, examples, exercises, slides, labs, exams, homework, readings, project deliveries, presentation guides, Miro boards, and Google Doc publications — one session, one artifact at a time",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "category": "education"
     },
     {
