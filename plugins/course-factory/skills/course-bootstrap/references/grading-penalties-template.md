@@ -5,7 +5,7 @@
   standard penalty rows apply and adapts their wording to the course (submission channel, grouping,
   integrity rule) and to course.language. DELETE every <!-- bootstrap: ... --> comment from the
   generated file. This is the SINGLE SOURCE for penalties: rubric-bearing skills inject it as the
-  JSON `penalties` array (evaluation-rubrics:rubric-creator ≥1.2.0), OUTSIDE the additive 100.
+  JSON `penalties` array (evaluation-rubrics:rubric-creator), OUTSIDE the additive 100.
 -->
 # Standard penalties ({{penalty_scope_list}}) — scored negatively
 
@@ -15,8 +15,7 @@
 > additive 100 (the plugin's `generate_rubric.py` requires the weights to sum to 100); they render
 > as a **separate table** in the brief/guide and as a **labeled block** below the rubric in the
 > `.xlsx`. When invoking `evaluation-rubrics:rubric-creator`, **say so explicitly**: these rows are
-> **penalties**, not additive criteria (pass them in the JSON `penalties` field; requires the
-> plugin ≥ 1.2.0).
+> **penalties**, not additive criteria (pass them in the JSON `penalties` field).
 
 <!-- bootstrap: {{penalty_scope_list}} / {{penalty_skill_list}} = the graded-artifact types + the
      enabled rubric-bearing skill slugs for this course (e.g. project deliveries, labs, in-class

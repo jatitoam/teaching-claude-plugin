@@ -152,7 +152,7 @@ drop `INCLUDE-IF <slug>` sections whose slug isn't enabled and renumber.
   Drive-MCP limitation to re-verify.
 - **`grading-penalties.md`** — from `grading-penalties-template.md`: the rows the interview picked,
   adapted to the course's channel and language, as the JSON `penalties`-array pattern for
-  `evaluation-rubrics:rubric-creator` (≥1.2.0).
+  `evaluation-rubrics:rubric-creator`.
 - **`templates/handover-session.md`, `templates/next-agent-prompt.md`** — copy, localizing
   content-facing headers to `course.language`; keep the checklist-generation guidance.
 - **Material folders** — per `folder-scaffold.md`: always-created (`.claude/refs/templates`,
@@ -200,7 +200,7 @@ Write a minimal allowlist that lets the harness run without repeated prompts. Ba
 
 - **`evaluation-rubrics` (required)** for any rubric-bearing artifact enabled (`class-exercises`,
   `lab`, `homework`, `project-delivery`, `presentation-guide`): rubrics are built with
-  `evaluation-rubrics:rubric-creator` and need **≥ 1.2.0** for the `penalties` array. `openpyxl`
+  `evaluation-rubrics:rubric-creator`, which renders the `penalties` array. `openpyxl`
   required.
 - **`exam-creator` (optional)** if the course wants **multi-version shuffled MCQ** exams
   (`exam-version-generator` + `gdocs-exam-exporter`); the base `exam` slug alone produces a single
@@ -257,7 +257,7 @@ Manual prerequisites (yours):
   - Portal assignments: <portal> has no API — create each assignment by hand
   - MIRO_TOKEN env var (only if Miro enabled) — set in your environment, never in a file
   - Sources of truth to author (if any): <syllabus / session briefs / glossary / decisions still missing>
-  - Cross-plugin prerequisites: evaluation-rubrics (≥1.2.0) for rubrics; exam-creator (optional) for multi-version MCQs
+  - Cross-plugin prerequisites: evaluation-rubrics for rubrics; exam-creator (optional) for multi-version MCQs
 
 Next: launch the first real agent —
 ```
