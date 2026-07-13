@@ -72,7 +72,10 @@ For **each** exercise, delegate to **Sonnet** the writing of a guide with:
   (or the Miro-variant equivalent, see below) and any attendance-linkage the course defines;
 - a **"Done" criterion** (how the student knows the exercise is complete);
 - scoped to fit the time block the plan assigned it, placed right after the teaching block that
-  enables it;
+  enables it — but **do NOT print per-step time budgets in the guide**: the plan's minute
+  allotments are a *pacing aid for you and the instructor*, never student-facing; no "(5 min)" on
+  the steps. State the exercise's overall duration at most once (e.g. a one-line header), if the
+  course shows it — never a stopwatch per step;
 - when the submission is an assembled report (e.g. one PDF of the steps' results), an early tip
   telling students to **keep one working document open from step 1 and paste each step's result
   as they go** — so exporting/submitting at the end takes a minute instead of a scramble.
@@ -149,6 +152,8 @@ Do not re-upload local files that already sync to Drive — use the MCP only to 
 - [ ] One exercise guide per exercise spec'd in the session plan, correctly labeled
       `<session>.<slot>`.
 - [ ] Each is grounded in the session's key topic and fits its planned time block.
+- [ ] **No per-step time budgets printed on the steps** — step-level timing stays in planning, not
+      the student-facing guide (an overall duration label is fine).
 - [ ] Each has **numbered steps that each yield a submittable result**, a **"What to submit"**
       section naming the actual submission mechanism (`publishing.portal` or the Miro variant),
       and a **"Done"** criterion.
