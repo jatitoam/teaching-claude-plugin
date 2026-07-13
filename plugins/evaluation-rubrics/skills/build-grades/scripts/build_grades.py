@@ -38,10 +38,13 @@ string or an object {"level": ..., "note": ...}. Accepted levels (case-insensiti
 Penalty magnitudes are read from the rubric (column E of the penalties block): a plain number
 (e.g. "-15") deducts points; a percentage (e.g. "-100%") removes that share of the running total,
 so "-100%" not-met zeroes the grade (invalid work). Point penalties apply first, then percentages.
+The amount is extracted as the first signed number (plus an optional trailing "%"), so a decorated
+cell like "**−100 %** · invalid if not met" is read the same as a clean "-100%".
 This mirrors assignment-evaluator's append_grade.py so both skills score identically.
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 from openpyxl import Workbook, load_workbook
@@ -61,6 +64,9 @@ PENALTY_LEVEL_FACTOR = {
     "partial": 0.4, "parcial": 0.4,
     "not_met": 1.0, "no_cumple": 1.0, "not met": 1.0,
 }
+
+# First signed number in a penalty amount, e.g. the "-15" in "**−15** · scored negatively".
+_PENALTY_AMOUNT_RE = re.compile(r"[-+]?\d+(?:\.\d+)?")
 
 
 def _fmt(n):
@@ -114,25 +120,24 @@ def read_rubric(rubric_path):
 
 
 def parse_penalty_amount(text):
-    """Parse a penalty amount into (kind, magnitude), or None if unparseable.
+    """Parse a penalty amount into (kind, magnitude), or None if no number is present.
+
+    Extracts the first signed number (and an optional trailing '%') from the text, so a clean
+    magnitude ("-15", "-100%") and a decorated cell copied straight from grading-penalties.md
+    ("**−100 %** · invalid if not met") parse identically. The unicode minus is normalised first.
 
     kind == "percent" -> magnitude is a fraction (0..1+), e.g. "-100%" -> ("percent", 1.0)
     kind == "points"  -> magnitude is a point amount,   e.g. "-15"    -> ("points", 15.0)
     """
     if text is None:
         return None
-    s = str(text).strip().replace("−", "-").replace(" ", "")  # normalise unicode minus
-    if not s:
+    s = str(text).replace("−", "-")  # normalise unicode minus (U+2212)
+    m = _PENALTY_AMOUNT_RE.search(s)
+    if m is None:
         return None
-    is_pct = s.endswith("%")
-    if is_pct:
-        s = s[:-1]
-    s = s.lstrip("+-")
-    try:
-        val = float(s)
-    except ValueError:
-        return None
-    return ("percent", val / 100.0) if is_pct else ("points", val)
+    magnitude = abs(float(m.group()))
+    is_pct = s[m.end():].lstrip().startswith("%")  # a '%' after the number -> percentage
+    return ("percent", magnitude / 100.0) if is_pct else ("points", magnitude)
 
 
 def apply_penalties(base_total, rubric_penalties, row_penalties):
