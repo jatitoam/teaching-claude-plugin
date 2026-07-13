@@ -167,9 +167,10 @@ Invariants — respect these exactly:
      non-Enterprise limits) → `authored_by_self = true` but **flag** `authorship_unverifiable`.
      Never punish a student for an API gap; the instructor can spot-check the flag.
 
-   Also raise a `content_by_shared_account` flag when **one** Miro account authored/modified content
-   across **many different students'** frames (`author_frame_counts`) — the proxy signal, even if
-   that account also includes the student. NOTE the frame TITLE itself is not attributable (it was
+   Also raise a `content_by_shared_account` flag when **one** Miro account authored content in
+   **many different students'** frames (`author_frame_counts`) or was the last modifier of many of
+   them (`modifier_frame_counts`) — the proxy signal, even if that account also includes the
+   student. NOTE the frame TITLE itself is not attributable (it was
    created by the instructor's build script); authorship is judged from `modified_by` + the
    student-created content, matched on **names** (email is Enterprise-gated).
 
@@ -188,7 +189,7 @@ section (Ⓐ→`Ad`, Ⓑ→`Mk`).
    `python3 "${CLAUDE_PLUGIN_ROOT}/skills/attendance/scripts/leer_tablero.py" <board_id> --out <scratch>/S<NN>-<section>-frames.json`
    (reads `MIRO_TOKEN` from env; if unset/401 → stop, alert the conductor). Output = per-frame
    title + student-created children + author info + `modified_by`/`modified_by_name` +
-   `service_account_id` + `author_frame_counts`.
+   `service_account_id` + `author_frame_counts` + `modifier_frame_counts`.
 3. **Match** (Sonnet): parse each frame title → carné/name, fuzzy-match to roster. An
    unmatched-but-parseable carné → auto-append to roster (`status:"active"`,
    `joined_session:"S<NN>"`) AND record in meeting `flags.new_students`. A title with no
@@ -204,27 +205,45 @@ section (Ⓐ→`Ad`, Ⓑ→`Mk`).
 7. **Report to the instructor**: new students auto-added, the flag/manual-review queue, and any
    absence-alert students (≥75% of max).
 
-### (b) Review a lab meeting — NEW (source: lab)
+### (b) Review a lab meeting — (source: lab)
 
-Fills the **`lab`** meeting of a `virtual` session's week. Read the section's lab submissions with
-the new reader (Haiku/Bash):
+Fills the **`lab`** meeting of a `virtual` session's week from the section's lab submissions.
 
+**Prerequisite / data source — the plugin does NOT create this.** Lab-mode auto-fill needs, per
+submitting group, its **members with carnés**. The reader looks for
+`<folders.labs>/submissions/S<NN>/<section>/evaluations/row_*.json` files carrying a `members`
+array of `"Nombre (carné)"` strings. Both that folder layout and the `members` field are a
+**course convention the conductor arranges**: the base `evaluation-rubrics:assignment-evaluator`
+skill writes `row_<slug>.json` as `{name, scores, observations, penalties}` with **no `members`**
+and defaults its output to the submission's own folder — so it does not, by itself, populate this.
+Before relying on auto-fill, confirm the course actually drops member-bearing group JSONs under
+`submissions/S<NN>/<section>/`.
+
+Run the reader (Haiku/Bash):
 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/attendance/scripts/leer_lab.py" <folders.labs>/submissions/S<NN>/<Ad|Mk>`
+→ returns `groups` + `present_members` + `present_carnes` (folders are session-numbered, so the
+folder matches the session directly).
 
-→ returns `present_carnes` + `groups` + `present_members`. Lab submission folders are
-**session-numbered** (`submissions/S<NN>/<section>`), so the folder matches the session directly.
-
-Match each submitter to the roster in this order (so a typo'd carné doesn't become a phantom
-student):
+**If `present_carnes` is non-empty** (member-bearing JSONs found), match each submitter to the
+roster in this order (so a typo'd carné doesn't become a phantom student):
 1. **Carné match** → that roster student is `present:true`; record `group` and `source`
    (`"S<NN>/<section>"`).
-2. **No carné match, but NAME matches a roster student** (the lab JSON has a typo'd carné — e.g.
-   `25005453` where the roster has `24005453`) → map to that roster student, mark `present:true`
-   **under the roster's carné** (the roster carné is authoritative), and **flag** `carne_typo` with
-   the submitted vs roster carné. This is NOT a new student.
-3. **Neither carné nor name matches any roster student** → genuinely new: auto-append
-   (`status:"active"`, `joined_session:"S<NN>"`) AND record in meeting `flags.new_students`.
+2. **No carné match, but NAME matches a roster student** (typo'd carné — e.g. `25005453` where the
+   roster has `24005453`) → map to that roster student, mark `present:true` **under the roster's
+   carné** (authoritative), and **flag** `carne_typo` with the submitted vs roster carné. NOT a new
+   student.
+3. **Neither carné nor name matches** → genuinely new: auto-append (`status:"active"`,
+   `joined_session:"S<NN>"`) AND record in `flags.new_students`.
 4. An enrolled roster member in NO submitting group → `present:false` (absent for the lab).
+
+**Fallback — if `present_carnes` is empty** (the reader returned only group PDFs, or JSONs without
+a `members` field — the common case for a fresh course): **do NOT mark the whole section absent.**
+Membership isn't machine-readable, so obtain it another way and fill the meeting like a manual one
+— the instructor provides the group→members mapping or a lab present-list, or you read membership
+from the `groups`/PDF names the reader surfaced. Record `source` accordingly (e.g.
+`"S<NN>/<section> (manual)"`) and **report to the instructor** that lab membership was resolved
+manually.
+
 5. Write into `sessions[S<NN>].meetings.lab`.
 
 ### (c) Manual meeting — (source: manual) for taller/exam/project/final

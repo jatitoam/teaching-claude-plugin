@@ -12,7 +12,7 @@ CLI
     python3 leer_lab.py <lab_section_dir>
 
     <lab_section_dir>   Path to one lab's section folder, e.g.
-                         labs/submissions/lab01/Ad
+                         labs/submissions/S01/Ad
 
 Behavior
 --------
@@ -131,7 +131,7 @@ def build_result(lab_dir, rows):
 
     present_carnes = sorted(seen_carnes)
 
-    return {
+    result = {
         "lab_dir": lab_dir,
         "groups": groups,
         "present_members": present_members,
@@ -143,6 +143,14 @@ def build_result(lab_dir, rows):
             "without_carne": without_carne,
         },
     }
+    if not present_carnes:
+        # JSONs existen pero sin carnés utilizables (p.ej. sin campo `members`):
+        # el modo lab NO puede auto-llenar; hay que resolver la membresía manualmente.
+        result["note"] = (
+            f"{len(groups)} grupo(s) encontrados pero sin carnés en 'members' — "
+            "membresía no legible por máquina; resolver manualmente (ver modo lab, fallback)."
+        )
+    return result
 
 
 def build_fallback_result(lab_dir):

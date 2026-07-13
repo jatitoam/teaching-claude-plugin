@@ -52,10 +52,10 @@ one independent attendance unit — a column of its own.
               "flags": {"new_students": [], "unmatched_frames": []}
             },
             "lab": {
-              "source": "lab", "lab_id": "lab01", "reviewed_at": "...",
+              "source": "lab", "lab_id": "S01", "reviewed_at": "...",
               "records": {
                 "24001301": {"present": true, "group": "Grupo 1",
-                             "source": "lab01/Ad", "flags": [], "notes": ""}
+                             "source": "S01/Ad", "flags": [], "notes": ""}
               },
               "flags": {"new_students": []}
             }

@@ -48,7 +48,8 @@ Forma exacta del JSON de salida:
       ]
     }
   ],
-  "author_frame_counts": {"<author_id>": <int>},
+  "author_frame_counts": {"<author_id>": <int>},      // frames donde la cuenta creó contenido de alumno
+  "modifier_frame_counts": {"<account_id>": <int>},   // frames que la cuenta modificó por última vez (≠ servicio)
   "members": {"<id>": "<nombre o null>"},
   "summary": {"frames_total": N, "frames_renamed": N, "frames_default": N, "children_total": N}
 }
@@ -194,6 +195,15 @@ def leer(board_id):
                     author_frame_sets.setdefault(cb, set()).add(fid)
     author_frame_counts = {k: len(v) for k, v in author_frame_sets.items()}
 
+    # modifier_frame_counts: por cuenta, nº de frames DISTINTOS que esa cuenta modificó por última
+    # vez (excluye la cuenta de servicio). Señal de proxy complementaria a author_frame_counts:
+    # una cuenta que editó/renombró muchos frames ajenos.
+    modifier_frame_counts = {}
+    for f in frames.values():
+        mb = f.get("modified_by")
+        if mb and mb != service_account_id:
+            modifier_frame_counts[mb] = modifier_frame_counts.get(mb, 0) + 1
+
     frame_list = list(frames.values())
     frames_total = len(frame_list)
     frames_default = sum(1 for f in frame_list if f["is_default_title"])
@@ -207,6 +217,7 @@ def leer(board_id):
         "service_account_id": service_account_id,
         "frames": frame_list,
         "author_frame_counts": author_frame_counts,
+        "modifier_frame_counts": modifier_frame_counts,
         "members": members,
         "summary": {
             "frames_total": frames_total,
