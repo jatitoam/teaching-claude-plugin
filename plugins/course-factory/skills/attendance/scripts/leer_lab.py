@@ -175,7 +175,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Read-only reader for a lab-submissions section folder (group members + carnés).",
     )
-    parser.add_argument("lab_section_dir", help="Path to a lab's section folder, e.g. labs/submissions/lab01/Ad")
+    parser.add_argument("lab_section_dir", help="Path to a lab's section folder, e.g. labs/submissions/S01/Ad")
     args = parser.parse_args(argv)
 
     lab_dir = args.lab_section_dir
