@@ -31,10 +31,10 @@ extraction and the viewer assembly itself, because they are mechanical and cheap
 - `<folders.slides>/S<NN>-slides-spec.md` — a **slide-spec** clean and complete enough that the
   Build phase can author each slide's HTML **without re-thinking content or layout**. One entry
   per slide. Because Slides are authored **last**, the deck is the **visual guide of the whole
-  session**, in **timeline order**: opening/agenda → each teaching block (with its demo/example
-  highlights, when `examples` is enabled) → an exercise-launch slide per exercise (when
-  `class-exercises` is enabled) → wrap-up (previewing any due delivery). A student-led recap that
-  opens a session, if the course has one, is NOT authored here.
+  session**, in **timeline order**: a title slide on the sacred join/setup slot → opening/agenda →
+  each teaching block (with its demo/example highlights, when `examples` is enabled) → a single
+  exercise-launch slide per exercise (when `class-exercises` is enabled) → wrap-up (previewing any due
+  delivery). A student-led recap that opens a session, if the course has one, is NOT authored here.
 - The **built deck**, fully local: `<folders.slides>/S<NN>-build/` (one build folder per session,
   with one subfolder per deck if the course produces more than one per session — e.g. an
   intro-and-logistics deck plus a content deck) with one self-contained HTML file per slide + a
@@ -51,11 +51,13 @@ extraction and the viewer assembly itself, because they are mechanical and cheap
   see pack B1`) instead of re-authoring what the pack already owns. The pack is instructor-only —
   don't copy its bulk onto slides.
 - `<folders.exercises>/S<NN>-ex*.md` (only if `class-exercises` is enabled) → the finalized
-  exercise guides. Build **one exercise-launch slide (or a small light group) per exercise**,
+  exercise guides. Build **exactly ONE condensed exercise-launch slide per exercise**,
   placed right after the block that enables it (per the plan's timeline): the one-line objective,
   what the student does, what to submit, the time box, and the submission-mechanism pointer
-  (per `publishing.portal` or the Miro-variant equivalent). Keep it light — the full numbered steps
-  live in the guide; the slide launches and frames the exercise.
+  (per `publishing.portal` or the Miro-variant equivalent). **This single slide MAY exceed the ≤6×6
+  guideline** — condense as much as possible, but keep it to one slide, not a group. The full numbered
+  steps live in the guide; the slide launches and frames the exercise. Its note header is
+  `Exercise <N.x> · <hh:mm–hh:mm> · 1/1`.
 - The current delivery/project brief, if the course tracks project deliveries and one is due this
   session, so the **wrap-up** slide previews it accurately. Reference it; don't reproduce it.
 - `<folders.sources>/<sources.glossary>` → consistent, non-technical terms.
@@ -68,8 +70,21 @@ extraction and the viewer assembly itself, because they are mechanical and cheap
 - **Light slides:** something visual, guideline ≤6 lines / ≤6 words per line (not a hard rule).
 - **"Long block" = several light slides.** Prefer many small, low-content slides over few dense
   ones.
-- The spec follows the **plan's timeline**: opening/agenda → each teaching block, split into its
-  sub-blocks, each ending with an exercise-launch slide where the plan places one → wrap-up.
+- **Opening title slide on the sacred join/setup slot:** the deck **always opens with a title/cover
+  slide** placed on the session's first (sacred) window — the empty Zoom-join block for a virtual
+  session (e.g. 6:00–6:05), or the setup block otherwise — so something identifies the session on
+  screen while students connect. **Title only — no agenda, no teaching content** (the sacred slot
+  stays empty of *content*; a bare session title is not content). Note header
+  `<join-block label> (sacred) · <hh:mm–hh:mm> · 1/1`. The agenda lives in its own opening/agenda
+  window, after any student-led recap.
+- **Break slides show the DURATION only, never a resume clock time:** on-screen content is the break
+  length ("Break · 15 minutes"), **not** an absolute resume time ("Back at 8:20") — the class drifts
+  and a printed clock time goes stale. The instructor reads the real resume time off the presenter
+  clock; the note-header time range stays as the planning aid.
+- **Each exercise launch = ONE condensed slide** (not a group) — see §Inputs.
+- The spec follows the **plan's timeline**: title (sacred slot) → opening/agenda → each teaching
+  block, split into its sub-blocks, each followed by a single exercise-launch slide where the plan
+  places one → wrap-up.
 - **Speaker note — per-slide format:** a **header** built by Opus + a **body** built by Sonnet.
 
 ```
@@ -301,7 +316,14 @@ sips -s format png /tmp/p.pdf --out /tmp/p.png    # open /tmp/p.png and confirm 
 
 ## Acceptance criteria
 
-- [ ] Each slide: ≤6 lines / ≤6 words per line, with a suggested visual.
+- [ ] Each slide: ≤6 lines / ≤6 words per line, with a suggested visual. *(Exception: an
+      exercise-launch slide may exceed 6×6 — condensed, one slide per exercise.)*
+- [ ] The deck **opens with a title slide on the sacred join/setup slot** (title only — no agenda, no
+      content); note header `<join-block> (sacred) · <hh:mm–hh:mm> · 1/1`.
+- [ ] Break slides show the **duration only** ("Break · 15 minutes") — **no absolute resume clock
+      time** on screen.
+- [ ] **Exactly one** condensed exercise-launch slide per exercise (not a group), placed after the
+      block that enables it; note header `Exercise <N.x> · <hh:mm–hh:mm> · 1/1`.
 - [ ] Speaker notes carry the correct header: teaching-block marker + time range(s) + `k/K`
       **scoped to the time window**. Slides that share a time range share the identical range and
       are counted `1/K … K/K`; the counter resets the moment the range changes (no moving target).
@@ -314,9 +336,9 @@ sips -s format png /tmp/p.pdf --out /tmp/p.png    # open /tmp/p.png and confirm 
 - [ ] Key points are brief (not paragraphs); humor kept within the course's per-session cap, if
       defined.
 - [ ] Consistent language and terms; defined per the glossary.
-- [ ] Slide-spec covers the **whole session** in timeline order: opening/agenda, every teaching
-      block, an exercise-launch slide per exercise (when `class-exercises` is enabled), and a
-      wrap-up that previews any due delivery.
+- [ ] Slide-spec covers the **whole session** in timeline order: a title slide (sacred slot),
+      opening/agenda, every teaching block, one exercise-launch slide per exercise (when
+      `class-exercises` is enabled), and a wrap-up that previews any due delivery.
 - [ ] Built deck: `<folders.slides>/S<NN>-build/` (session-numbered, never generic `build/`) with
       one self-contained HTML file per slide + `index.html` and `presenter.html` generated by
       `build-presenter.py`, everything working from `file://` with no network — verified in a real
