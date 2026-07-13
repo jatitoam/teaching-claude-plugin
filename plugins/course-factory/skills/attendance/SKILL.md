@@ -95,8 +95,8 @@ Optionally, a per-section **%-attendance Google Sheet** built from the exported 
           "flags": { "new_students": [], "unmatched_frames": [] }
         },
         "lab": {
-          "source": "lab", "lab_id": "lab01", "reviewed_at": "…",
-          "records": { "24001301": { "present": true, "group": "Grupo 1", "source": "lab01/Ad",
+          "source": "lab", "lab_id": "S01", "reviewed_at": "…",
+          "records": { "24001301": { "present": true, "group": "Grupo 1", "source": "S01/Ad",
                                      "flags": [], "notes": "" } },
           "flags": { "new_students": [] }
         }
@@ -114,23 +114,27 @@ Optionally, a per-section **%-attendance Google Sheet** built from the exported 
 Invariants — respect these exactly:
 
 - **present/absent is ALWAYS deterministic, now PER MEETING.** There is **no third status**.
-  - `miro` meeting: per exercise, `participated = located AND relevant`; the meeting's
-    `present = participation_rate ≥ policy.class_present_threshold` (≥50% of that meeting's
-    exercises).
+  - `miro` meeting: per exercise, `participated = located AND relevant AND authored_by_self`
+    (control #3 is a GATE — a `located` frame whose work is verifiably done by someone else is
+    NOT participation); the meeting's `present = participation_rate ≥
+    policy.class_present_threshold` (≥50% of that meeting's exercises).
   - `lab` meeting: `present = the student is a member of a submitting group` for that lab.
   - `manual` meeting: `present = the carné is in the acta present-list` for that meeting.
-- **"Fishy" findings are FLAGS, never a status.** They alert the instructor for manual review and
-  **never**, by themselves, flip present↔absent (the instructor may manually override a record and
-  re-export). Flags live in the per-record `flags[]` and the meeting-level `flags` block.
-- **Denominator = attendance units (meetings), not weeks.** Max 8 absences over ~41 units (see
-  above), not over 22 weeks.
+- **The controls DETERMINE present/absent; flags ride alongside for review.** A `located` frame
+  that is irrelevant, or verifiably authored entirely by another student, is **absent** — and
+  carries a **flag** (`name_only`, `authored_by_other`, `content_by_shared_account`,
+  `authorship_unverifiable`, carné-typo) so the instructor can review and **manually override** the
+  computed value if warranted. There is still **no third status**: the stored value is always
+  present or absent; flags live in the per-record `flags[]` and the meeting-level `flags` block.
+- **Denominator = attendance units (meetings), not weeks.** Max 8 absences over ~41 units, not
+  over 22 weeks.
 
 ## Inputs
 
 - The session's Miro board IDs, from `.claude/refs/handovers/handover-S<NN>.md` (read ONLY for
   this — see Guard above).
 - The exercise slots/consignas, from `<folders.exercises>/S<NN>-*.md`.
-- The lab submissions folder, from `<folders.labs>/submissions/<lab_id>/<Ad|Mk>`.
+- The lab submissions folder, from `<folders.labs>/submissions/S<NN>/<Ad|Mk>` (session-numbered).
 - The acta present-list supplied by the conductor, for manual meetings.
 - The section roster + policy, from `<folders.students>/attendance-<section>.json` itself.
 - Environment: `MIRO_TOKEN` (never written to any file), read by `leer_tablero.py`.
@@ -144,17 +148,30 @@ Invariants — respect these exactly:
    `created_by_id` ≠ the board's `service_account_id` (i.e. not the seeded scaffolding),
    representing a real attempt, not an empty/name-only frame. Sonnet drafts the verdict, Opus
    confirms.
-3. **`authored_by_self` (FLAG layer only)** — from the student-created items' authorship, PLUS the
-   frame's **last-modified-by** signal the reader exposes: `modified_by` / `modified_by_name` (the
-   last account to touch the frame, e.g. who renamed the title). Use it as **corroborating
-   evidence**: if the frame's `modified_by_name` AND the content `created_by_name`(s) both match
-   the student named in the title → strong `authored_by_self:true`. **Flag** when (a) the frame's
-   last modifier or the content authors are a DIFFERENT account than the claimed student, (b) one
-   Miro account authored content/modified frames across many different students (see
-   `author_frame_counts`) — the proxy/impersonation signal. IMPORTANT: the frame TITLE itself is
-   **not** attributable to the student (it was created by the instructor's build script); `modified_by`
-   is the best available proof that the claiming student actually edited their own frame, but it is
-   still corroborating evidence, not a status — mismatches are flags, never auto-absent.
+3. **`authored_by_self` — a GATE against a friend covering for the student.** The spirit: make sure
+   the frame's work is really the claimed student's, not another student doing it in their place.
+   Gather **every authorship signal** the reader exposes for that frame and resolve each to a person
+   via board members:
+   - the frame's **`modified_by_name`** — the last account to edit/rename the frame (the best proof
+     the claiming student actually touched it), and
+   - the **`created_by_name`** of each **student-created** content item in the frame.
+
+   Then decide:
+   - **≥1 signal resolves to the claimed student** → `authored_by_self = true` (present, if also
+     relevant). One genuine trace is enough — the student did participate.
+   - **Signals exist and resolve, but NONE is the claimed student** (every editor/author is a
+     different identified person) → `authored_by_self = false` → the exercise is **NOT
+     participation → ABSENT + flag** `authored_by_other` with the offending name(s). This is the
+     "someone covered for me" case — do **not** award it.
+   - **No signal is verifiable** (Miro returned no author ids, or none resolve to a name — e.g.
+     non-Enterprise limits) → `authored_by_self = true` but **flag** `authorship_unverifiable`.
+     Never punish a student for an API gap; the instructor can spot-check the flag.
+
+   Also raise a `content_by_shared_account` flag when **one** Miro account authored/modified content
+   across **many different students'** frames (`author_frame_counts`) — the proxy signal, even if
+   that account also includes the student. NOTE the frame TITLE itself is not attributable (it was
+   created by the instructor's build script); authorship is judged from `modified_by` + the
+   student-created content, matched on **names** (email is Enterprise-gated).
 
 ## Modes & Process
 
@@ -177,9 +194,11 @@ section (Ⓐ→`Ad`, Ⓑ→`Mk`).
    `joined_session:"S<NN>"`) AND record in meeting `flags.new_students`. A title with no
    parseable carné → meeting `flags.unmatched_frames`.
 4. **Assess** the three controls per matched student/exercise; set `located`/`relevant`/
-   `authored_by_self`, `participated = located AND relevant`, store evidence (`frame_id`,
-   `frame_title`, `content_authors`, `modified_by_name`). Attach `flags[]` for fishy cases
-   (`name_only`, `authored_by_other`, `content_by_shared_account`).
+   `authored_by_self`, then `participated = located AND relevant AND authored_by_self` (control #3
+   is a GATE — a located+relevant frame authored entirely by someone else is NOT participation →
+   absent). Store evidence (`frame_id`, `frame_title`, `content_authors`, `modified_by_name`).
+   Attach `flags[]` for every non-obvious case (`name_only`, `authored_by_other`,
+   `content_by_shared_account`, `authorship_unverifiable`).
 5. Roll up per student: `exercises` map, `participation_rate`, deterministic meeting `present`.
 6. Write into `sessions[S<NN>].meetings.ejercicios`; run the export script to refresh `summary`.
 7. **Report to the instructor**: new students auto-added, the flag/manual-review queue, and any
@@ -190,21 +209,22 @@ section (Ⓐ→`Ad`, Ⓑ→`Mk`).
 Fills the **`lab`** meeting of a `virtual` session's week. Read the section's lab submissions with
 the new reader (Haiku/Bash):
 
-`python3 "${CLAUDE_PLUGIN_ROOT}/skills/attendance/scripts/leer_lab.py" <folders.labs>/submissions/<lab_id>/<Ad|Mk>`
+`python3 "${CLAUDE_PLUGIN_ROOT}/skills/attendance/scripts/leer_lab.py" <folders.labs>/submissions/S<NN>/<Ad|Mk>`
 
-→ returns `present_carnes` + `groups` + `present_members`.
+→ returns `present_carnes` + `groups` + `present_members`. Lab submission folders are
+**session-numbered** (`submissions/S<NN>/<section>`), so the folder matches the session directly.
 
-1. A roster student who is a member of ANY submitting group → `present:true`, record `group` and
-   `source` (`"<lab_id>/<section>"`). An enrolled roster member in NO group → `present:false`.
-2. **Fuzzy-match carné AND name** — lab JSONs can have typo'd carnés (e.g. `25005453` vs roster
-   `24005453`), so cross-check by name too, and **flag** the mismatch (do not silently correct
-   present/absent from a fuzzy match without a flag trail).
-3. Any submitter carné not in the roster → auto-append (`status:"active"`, `joined_session`) AND
-   record in meeting `flags.new_students`.
-4. **Lab folder ≠ session number.** Lab folders are numbered by sequence (`lab01`, `lab02`, …),
-   which maps to the ordered `schedule.session_types.virtual` weeks (`lab01`=S01, `lab02`=S03,
-   …), NOT to the session number directly. Confirm the `lab_id` for the session with the
-   conductor before running the reader.
+Match each submitter to the roster in this order (so a typo'd carné doesn't become a phantom
+student):
+1. **Carné match** → that roster student is `present:true`; record `group` and `source`
+   (`"S<NN>/<section>"`).
+2. **No carné match, but NAME matches a roster student** (the lab JSON has a typo'd carné — e.g.
+   `25005453` where the roster has `24005453`) → map to that roster student, mark `present:true`
+   **under the roster's carné** (the roster carné is authoritative), and **flag** `carne_typo` with
+   the submitted vs roster carné. This is NOT a new student.
+3. **Neither carné nor name matches any roster student** → genuinely new: auto-append
+   (`status:"active"`, `joined_session:"S<NN>"`) AND record in meeting `flags.new_students`.
+4. An enrolled roster member in NO submitting group → `present:false` (absent for the lab).
 5. Write into `sessions[S<NN>].meetings.lab`.
 
 ### (c) Manual meeting — (source: manual) for taller/exam/project/final
@@ -235,12 +255,17 @@ subfolder; **VERIFY** it converted to a real Sheet; record the link. One Sheet p
 
 - [ ] Every enrolled roster student has a record for EACH meeting reviewed.
 - [ ] Present/absent is deterministic **per meeting**: `miro` →
-      `participated = located AND relevant`, `present = participation_rate ≥
+      `participated = located AND relevant AND authored_by_self`, `present = participation_rate ≥
       policy.class_present_threshold`; `lab` → present iff member of a submitting group; `manual`
       → present iff carné is in the acta list.
-- [ ] Lab-mode matching tolerates carné typos by cross-checking name, and flags any mismatch it
-      resolves.
-- [ ] Fishy cases are **flags**, never silently resolved and never a third status.
+- [ ] **Authorship gate applied:** a located+relevant frame whose authorship signals
+      (`modified_by` + student-created content) resolve but include **none** of the claimed student
+      is **absent + `authored_by_other`**; ≥1 matching signal → present; no verifiable signal →
+      present + `authorship_unverifiable` (never punished for an API gap).
+- [ ] Lab-mode matching tolerates carné typos by cross-checking name (mapping to the roster carné,
+      flagging `carne_typo`, NOT creating a phantom student).
+- [ ] Fishy cases carry **flags** for manual override; the stored value is always present/absent,
+      never a third status.
 - [ ] New students are auto-appended with `joined_session` AND reported to the instructor.
 - [ ] The denominator used for alerts/summary is attendance units (meetings), not weeks.
 - [ ] Absence alerts (≥ ceil(0.75 × max_absences)) are surfaced.
