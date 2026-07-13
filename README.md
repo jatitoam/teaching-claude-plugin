@@ -22,7 +22,7 @@ index.yaml                   # Top-level registry of all plugins
 
 | Plugin | Description | Skills | Commands | MCP Servers |
 |--------|-------------|--------|----------|-------------|
-| [course-factory](plugins/course-factory) | Course-agnostic harness: bootstrap a per-course harness and produce session plans, examples, exercises, slides, labs, exams, homework, readings, project deliveries, presentation guides, Miro boards, and Google Doc publications | 18 | — | — |
+| [course-factory](plugins/course-factory) | Course-agnostic harness: bootstrap a per-course harness and produce session plans, examples, exercises, slides, labs, exams, homework, readings, project deliveries, presentation guides, Miro boards, attendance sheets, and Google Doc publications | 19 | — | — |
 | [evaluation-rubrics](plugins/evaluation-rubrics) | Create grading rubrics, evaluate student submissions, and rebuild cumulative grade files | 3 | — | — |
 | [exam-creator](plugins/exam-creator) | Generate multiple-choice exams from course content, shuffle N versions with answer keys, and export to Google Docs | 3 | — | — |
 | [google-drive-creation](plugins/google-drive-creation) | General-purpose Google Doc and Google Slides creation with named styles, code blocks, and inline formatting | 2 | — | — |
