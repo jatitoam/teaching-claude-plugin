@@ -106,7 +106,6 @@
   only. `copy_from`/`clone` creates **empty** boards → clone to sections by re-`build` per section.
   The conductor manually moves each board to its Space (the API doesn't place it).
 - **Rubric plugin:** rubrics use the plugin `evaluation-rubrics:rubric-creator` (`generate_rubric.py`,
-  produces xlsx+json). Locate the script scoped to `~/.claude*/plugins` (never `find /`); if
-  multiple versions exist, use the highest (penalties support requires ≥1.2.0). It accepts a
+  produces xlsx+json). Locate the script scoped to `~/.claude*/plugins` (never `find /`). It accepts a
   `penalties` field (standard block from `.claude/refs/grading-penalties.md`) rendered outside the
   additive 100. `openpyxl` required.

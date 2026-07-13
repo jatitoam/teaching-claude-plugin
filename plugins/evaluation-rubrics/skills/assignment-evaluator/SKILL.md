@@ -45,6 +45,12 @@ Derived automatically:
 Parse the rubric xlsx to extract criteria names and weights (column A and column E, rows 2+).
 This determines the column structure of the grades file.
 
+Rubrics may also carry an **optional penalties block** below the additive table (a bold heading
+row whose text starts with "Penal…", a header row, then one row per penalty with a free-text
+amount like `-15` or `-100%` in column E). `append_grade.py` parses this block separately — note
+which penalties exist so you can assess them in Step 3. Rubrics with no penalties block behave
+exactly as before.
+
 ## Step 3 — Evaluate the Submission
 
 For each criterion in the rubric, read the submission and assign one of three labels.
@@ -59,6 +65,19 @@ For every criterion scored as **Partially Meets** or **Does Not Meet**, write a 
 observation explaining why. Be specific — reference actual content (or absence of it) from
 the submission. Example: "only 2 of the 10 required items were completed."
 
+**Penalties (only if the rubric has a penalties block).** Assess each penalty row and pick a
+level:
+- `met` / `cumple` — the requirement is satisfied → no deduction.
+- `partial` / `parcial` — partially satisfied → 40% of the penalty magnitude is deducted
+  (the mirror of the 60% partial credit on the additive side). Use only if the penalty defines
+  a real partial level; many (e.g. a `-100%` penalty) have no partial and are met-or-not.
+- `not_met` / `no_cumple` — the requirement is violated → the full penalty applies.
+
+The deduction amounts come from the rubric itself: a numeric amount (`-15`) subtracts points; a
+percentage (`-100%`) removes that share of the total, so a `-100%` penalty scored `not_met`
+zeroes the grade (invalid work). Add a short `note` on each penalty you score as partial or
+not-met — it is surfaced in the observations cell alongside the deduction.
+
 **Language rule**: write observations in the language of the assignment brief. If the
 assignment brief language cannot be determined, fall back to the rubric language.
 
@@ -66,6 +85,10 @@ assignment brief language cannot be determined, fall back to the rubric language
 
 `observations` is an object with one key per criterion. Set the value to an empty string
 for criteria that meet expectations; write the reason for those that don't.
+
+Add a `penalties` object **only if the rubric has a penalties block**. Each key is a penalty
+name from the rubric; the value is either a bare level string or `{"level": ..., "note": ...}`.
+Omit `penalties` entirely for penalty-free rubrics (backward compatible).
 
 ```json
 {
@@ -79,6 +102,11 @@ for criteria that meet expectations; write the reason for those that don't.
     "Hardware Empresarial (Servidores)": "",
     "Hardware Personal (PCs)": "specs documented for only 1 of 3 group members.",
     "Software Empresarial (Sistemas Críticos)": "no software investigated."
+  },
+  "penalties": {
+    "Buena presentación": "met",
+    "Archivo adjunto": "met",
+    "Marco de IA": {"level": "not_met", "note": "used AI but never declared it"}
   }
 }
 ```
@@ -100,6 +128,9 @@ python scripts/append_grade.py <rubric_xlsx> <grades_xlsx> <output_dir>/evaluati
 The script:
 - Creates the grades file with the correct header if it doesn't exist yet.
 - Appends the row and calculates the total automatically from rubric weights.
+- Applies any `penalties` from the row JSON against the rubric's penalties block (point
+  deductions first, then percentage deductions, clamped at 0), and appends a short
+  `PENALTY — …` note to the observations cell for each deduction.
 - Compiles the `observations` dict into a single string for the xlsx cell.
 - See `references/column-layout.md` for output file structure and formatting rules.
 
