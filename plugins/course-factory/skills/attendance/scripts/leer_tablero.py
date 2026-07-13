@@ -38,6 +38,9 @@ Forma exacta del JSON de salida:
       "title": "24001301 - Fabricio Galvez",
       "is_default_title": false,
       "created_by": "<id o null>",
+      "created_by_name": "<nombre o null>",
+      "modified_by": "<id o null>",          // última cuenta que modificó el frame (renombró el título) — prueba de autoría
+      "modified_by_name": "<nombre o null>",
       "children": [
         {"item_id": "...", "type": "sticky_note", "content": "WhatsApp",
          "created_by_id": "<id o null>", "created_by_name": "<nombre o null>",
@@ -146,8 +149,10 @@ def leer(board_id):
                 "title": title,
                 "is_default_title": title in DEFAULT_TITLES,
                 "created_by": created_by,
+                "created_by_name": members.get(created_by),
+                "modified_by": modified_by,           # última cuenta que modificó el frame (p.ej. renombró el título)
+                "modified_by_name": members.get(modified_by),
                 "children": [],
-                "_modified_by": modified_by,
             }
         else:
             content = data.get("content") if "content" in data else data.get("title")
@@ -176,7 +181,6 @@ def leer(board_id):
             cb = k["created_by_id"]
             k["is_student_created"] = cb is not None and cb != service_account_id
         f["children"] = kids
-        f.pop("_modified_by", None)
 
     # author_frame_counts: por autor, cantidad de frames DISTINTOS donde creó >=1 ítem de alumno
     author_frame_sets = {}
