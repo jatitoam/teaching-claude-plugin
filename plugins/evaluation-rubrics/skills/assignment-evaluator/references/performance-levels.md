@@ -25,4 +25,24 @@ Do not apply judgment that goes beyond what the rubric describes. If the rubric 
 For each criterion:
 - `criterion_score = criterion_weight × level_multiplier`
 
-Row total = sum of all criterion scores.
+Additive subtotal = sum of all criterion scores.
+
+## Penalties (optional block)
+
+If the rubric has a penalties block, each penalty is assessed at one of three levels, and a
+fraction of its magnitude is deducted:
+
+| Level | Factor |
+|-------|--------|
+| Met / Cumple | 0.0 (no deduction) |
+| Partial / Parcial | 0.4 × penalty magnitude |
+| Not Met / No Cumple | 1.0 × penalty magnitude |
+
+The partial factor (0.4) mirrors the 60% partial credit on the additive side. Magnitudes come
+from the rubric's penalty column:
+- A **point** amount (`-15`) subtracts points from the subtotal.
+- A **percentage** (`-100%`) removes that share of the running total — so a `-100%` penalty at
+  Not Met zeroes the grade (invalid work).
+
+**Row total** = additive subtotal − point penalties, then × (1 − each percentage penalty),
+clamped at 0.

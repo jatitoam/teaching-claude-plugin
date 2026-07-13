@@ -45,6 +45,10 @@ The script:
 - Reads all `row_*.json` files in `<evaluations_dir>/`, sorted alphabetically.
 - Recreates the grades xlsx from scratch with the correct header.
 - Appends one row per JSON, recalculating totals from rubric weights.
+- Applies any `penalties` from each row JSON against the rubric's penalties block (point
+  deductions first, then percentage deductions, clamped at 0), identically to
+  assignment-evaluator, and appends a `PENALTY — …` note to that row's observations.
+  Rows/rubrics without penalties are unaffected.
 - Compiles each `observations` dict into a single string for the xlsx cell.
 
 ## Step 3 — Deliver

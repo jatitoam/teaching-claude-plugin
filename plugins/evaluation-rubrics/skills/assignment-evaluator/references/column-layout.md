@@ -35,8 +35,11 @@ One row per student/group submission. Fields:
 
 - **Name / Group**: extracted from submission cover page, or provided by user.
 - **Criterion columns**: one of `Meets Expectations`, `Partially Meets`, or `Does Not Meet`.
-- **Total**: integer or float — sum of `criterion_weight × multiplier` across all criteria.
+- **Total**: integer or float — the additive `sum(criterion_weight × multiplier)`, then reduced by
+  any penalties from the row JSON (point deductions first, then percentage deductions, clamped at
+  0). With no penalties block this is just the additive sum.
 - **Observations**: single string, no line breaks. Format:
   `Criterion Name: <reason>. Criterion Name: <reason>.`
   Only include criteria scored as Partially Meets or Does Not Meet.
-  If all criteria meet expectations, leave blank.
+  Each penalty that deducts points appends a `PENALTY — <name>: -<amount> [<level>]` note here.
+  If all criteria meet expectations and no penalty applies, leave blank.
