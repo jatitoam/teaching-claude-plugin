@@ -167,6 +167,15 @@ Either way the demo minutes are **explicit in the note time ranges**, and the bl
 its planned duration (demos are *part of* the block, not extra). Reference the demo — don't
 re-author its content on the slide; it lives in the examples pack.
 
+**⚠️ The exact pack reference is presenter-only — never on the visible slide.** The examples pack is
+instructor-only (never published), so a pack label means nothing to students and leaks internal
+material. The slide's **visible content may carry a demo/example MARKER** (a `LIVE DEMO` /
+`WORKED EXAMPLE` badge) but **must not print the pack label in any form** — no on-screen `run pack
+<label>`, no `→ pack <label>`. This covers **every** label format the pack uses (`B1`, `03`,
+`02-carga-diferida`), not just numeric ones. The `🔴 DEMO: run pack <label> here (~<m> min)` line and
+any `Worked example: pack <label>` reference live **only in the speaker notes**. This applies to the
+Build phase too: do not render a "run pack"/"pack `<label>`" chip in the slide HTML.
+
 ## Process
 
 1. From `planning/S<NN>-plan.md`, build the **outline** in **timeline order**: opening/agenda → one
@@ -324,6 +333,9 @@ sips -s format png /tmp/p.pdf --out /tmp/p.png    # open /tmp/p.png and confirm 
       time** on screen.
 - [ ] **Exactly one** condensed exercise-launch slide per exercise (not a group), placed after the
       block that enables it; note header `Exercise <N.x> · <hh:mm–hh:mm> · 1/1`.
+- [ ] **No examples-pack label, in any format, on any visible slide** (no `run pack <label>`, no
+      `→ pack <label>`) — only a `LIVE DEMO` / `WORKED EXAMPLE` marker; the pack reference stays in
+      the speaker notes.
 - [ ] Speaker notes carry the correct header: teaching-block marker + time range(s) + `k/K`
       **scoped to the time window**. Slides that share a time range share the identical range and
       are counted `1/K … K/K`; the counter resets the moment the range changes (no moving target).
