@@ -209,8 +209,9 @@ There are four modes; (a)–(c) each fill one or two meetings of a session, (d) 
 
 ### (a) Review a virtual session's Miro meeting — default for "Review attendance for S<NN>"
 
-Fills the **`ejercicios`** meeting (source: miro) of a `virtual` session, covering every enabled
-section (Ⓐ→`Ad`, Ⓑ→`Mk`).
+Fills the **`ejercicios`** meeting (source: miro) of a `virtual` session, covering **every** enabled
+section in `schedule.sections` — however many the course has, not just two — each mapped to its
+board space per `tool_stack.miro.spaces` (e.g. Ⓐ→`Ad`, Ⓑ→`Mk`, Ⓒ→…).
 
 1. Get each section's board id(s) from `handover-S<NN>.md`; get the exercise slots + consignas
    from `<folders.exercises>/S<NN>-*.md`.

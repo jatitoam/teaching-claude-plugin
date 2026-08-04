@@ -63,8 +63,8 @@ md-first gate. Downstream agents use only conductor-confirmed pointers.
    section (§8 in the ET/TIC harnesses; the shapes — block names, minutes, sacred/empty blocks,
    break placement — are course-specific, not hardcoded here) and lay it out in blocks (minutes in
    **multiples of 5**, per the course's timeline rules). If `schedule.sections` is non-empty, the
-   timeline table carries one start–end column per section (dual-schedule), each derived from its
-   section's start time. Respect any "sacred" block the protocol defines (e.g. an empty join/setup
+   timeline table carries one start–end column per section — **one per configured entry, however
+   many there are** — each derived from its section's start time. Respect any "sacred" block the protocol defines (e.g. an empty join/setup
    block at the very start) and the mandated break.
 3. **Choose the AI tool(s) featured this session** with a one-line reason, per `tool_stack` and any
    per-session tool-adoption sequence the course defines (e.g. "tool X enters from session N").
@@ -115,7 +115,7 @@ md-first gate. Downstream agents use only conductor-confirmed pointers.
 - **Header/ID** — session, date, modality, type, AI tool(s), special case.
 - **Objectives** — from the brief.
 - **Timeline** — table: `Block | Activity | Min | Start–End` (one Start–End column per
-  `schedule.sections` entry when dual-schedule applies).
+  `schedule.sections` entry — all of them — when the course has multiple sections).
 - **Teaching-block breakdown** — per sub-block: name · min · points-to-cover (the `slides` skill's
   input).
 - **Examples manifest** (when `examples` is enabled) — per sub-block, the demo/example the

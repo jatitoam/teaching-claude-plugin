@@ -72,7 +72,8 @@ Ask the conductor, in order — batch related questions, confirm before generati
    language** (`en`/`es` — every generated artifact is written in it).
 2. **Schedule & sections.** Total session count, session length, meeting day/time, timezone, dates.
    Does the course run **multiple sections with different times**? If so capture them as
-   `schedule.sections` (`[{id, time}]`) → the slides get dual-schedule Ⓐ/Ⓑ speaker-note headers.
+   `schedule.sections` (`[{id, time}]`, any number of entries) → the slides get multi-section
+   speaker-note headers, one circled letter per configured section (Ⓐ, Ⓑ, Ⓒ, Ⓓ, …).
 3. **Session types & timeline shapes.** The set of session-type names (common: `virtual`/`onsite`/
    `final`; or `class`/`workshop`/`exam`/`project`) and **which session numbers** fall in each
    (every session in exactly one list). For each type, the **minute-by-minute timeline shape**
