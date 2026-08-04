@@ -32,7 +32,7 @@ description: >
 | Layer | Who | Does |
 |---|---|---|
 | Orchestration + judgment | **Opus (you)** | Orchestrates the whole run; JUDGES relevance and authorship flags; decides the deterministic present/absent computation per meeting; writes the ledger; reports to the instructor. |
-| Matching + drafting | **Sonnet** (delegate) | Fuzzy-matches frame titles → roster entries; drafts relevance verdicts from each frame's student-created content against the exercise consigna. |
+| Matching + drafting | **Sonnet** (delegate) | Fuzzy-matches frame titles → roster entries; drafts relevance verdicts from each frame's student content (`is_student_content` — created items **and** seeded zones written into) against the exercise consigna. |
 | Mechanical execution | **Haiku / Opus-via-Bash** | Runs the reader scripts `leer_tablero.py` and `leer_lab.py`; publishes the export Sheet via the Drive MCP. |
 
 ## Gate: config
@@ -144,10 +144,39 @@ Invariants — respect these exactly:
 1. **`located`** — the frame TITLE parses to a carné/name that fuzzy-matches the roster. Titles
    are messy (`24001301 - Fabricio`, `Germayoni Murillos - 24005311`, `Maria Soto-24001216`) —
    match on the **carné digits primarily**, name secondarily.
-2. **`relevant`** — the frame contains **student-created** content: child items whose
-   `created_by_id` ≠ the board's `service_account_id` (i.e. not the seeded scaffolding),
-   representing a real attempt, not an empty/name-only frame. Sonnet drafts the verdict, Opus
-   confirms.
+2. **`relevant`** — the frame contains **student content**, representing a real attempt rather than
+   an empty/name-only frame. Sonnet drafts the verdict, Opus confirms.
+
+   **⚠️ Student content arrives by TWO routes — judging only the first marks present students
+   absent.** Use the reader's **`is_student_content`** field, which is the union of both:
+   - **`is_student_created`** — the student CREATED the item (`created_by_id` ≠ `service_account_id`).
+   - **`is_student_edited`** — the student WROTE INSIDE a seeded shape (a colored zone of the
+     scaffolding) instead of creating a new sticky. That item keeps the instructor script's
+     `created_by_id`, so route 1 cannot see it; the reader detects it because its **text differs
+     from the factory text** (baseline = the children of the frames nobody claimed on that same
+     board, reported under `baseline`).
+
+   Never judge on the raw count of *created* items alone: on a zone-based canvas, a fully answered
+   frame can legitimately have **zero** created items. Give the judge the item text, and tell it
+   that each `is_student_edited` item starts with the factory instruction and the student's answer
+   follows it.
+
+   **Known blind spot — very short answers.** The baseline is a board-wide *set* of factory texts,
+   not one scoped per zone. A genuine one-word answer that happens to match *some other* zone's
+   placeholder verbatim (`Sí`, `No`, `1`) reads as unedited, so a present student can come back
+   `is_student_edited: false`. The error only ever runs in the safe direction (undercount, never a
+   false present), but when a frame looks empty and the exercise invites terse answers, **open that
+   frame in Miro before recording an absence**.
+
+   **The signal is the TEXT, not `modified_by_id`.** Dragging a seeded sticky — which several
+   exercises explicitly ask for — changes `modified_by_id` without adding a single word; counting
+   that credits students who wrote nothing.
+
+   **Sanity check before writing the ledger:** if an exercise yields many renamed-but-empty frames,
+   suspect the reader, not the class. Check `summary.frames_with_student_content` and
+   `baseline.reliable` — if `reliable` is `false` the board had too few unclaimed frames to derive
+   the factory text, in-place edits are undetectable, and you must **stop and tell the conductor**
+   instead of recording absences.
 3. **`authored_by_self` — a GATE against a friend covering for the student.** The spirit: make sure
    the frame's work is really the claimed student's, not another student doing it in their place.
    Gather **every authorship signal** the reader exposes for that frame and resolve each to a person
@@ -188,7 +217,9 @@ section (Ⓐ→`Ad`, Ⓑ→`Mk`).
 2. For each section board, run the reader (Haiku/Bash):
    `python3 "${CLAUDE_PLUGIN_ROOT}/skills/attendance/scripts/leer_tablero.py" <board_id> --out <scratch>/S<NN>-<section>-frames.json`
    (reads `MIRO_TOKEN` from env; if unset/401 → stop, alert the conductor). Output = per-frame
-   title + student-created children + author info + `modified_by`/`modified_by_name` +
+   title + children with `is_student_created`/`is_student_edited`/`is_student_content` +
+   per-frame `student_items` + `baseline` (factory-text detection) + author info +
+   `modified_by`/`modified_by_name` +
    `service_account_id` + `author_frame_counts` + `modifier_frame_counts`.
 3. **Match** (Sonnet): parse each frame title → carné/name, fuzzy-match to roster. An
    unmatched-but-parseable carné → auto-append to roster (`status:"active"`,
@@ -283,6 +314,9 @@ subfolder; **VERIFY** it converted to a real Sheet; record the link. One Sheet p
       present + `authorship_unverifiable` (never punished for an API gap).
 - [ ] Lab-mode matching tolerates carné typos by cross-checking name (mapping to the roster carné,
       flagging `carne_typo`, NOT creating a phantom student).
+- [ ] **`relevant` judged on `is_student_content`** (created items **plus** seeded zones the
+      student wrote into), never on the count of created items alone; `baseline.reliable`
+      confirmed `true` before any absence is recorded.
 - [ ] Fishy cases carry **flags** for manual override; the stored value is always present/absent,
       never a third status.
 - [ ] New students are auto-appended with `joined_session` AND reported to the instructor.
