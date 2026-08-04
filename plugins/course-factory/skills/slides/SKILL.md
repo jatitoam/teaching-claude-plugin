@@ -103,9 +103,12 @@ Speaker note:
   😄  (only if it fits — cap per session per the course's humor budget, if it defines one)
 ```
 
-When `schedule.sections` is non-empty (dual-schedule courses), the time-range line carries one
-start–end pair **per section**, each derived from that section's start time in the plan's timeline
-(e.g. `Ⓐ <hh:mm–hh:mm> · Ⓑ <hh:mm–hh:mm>`), instead of a single range.
+When `schedule.sections` is non-empty (multi-schedule courses), the time-range line carries one
+start–end pair **per section** — however many are configured — each derived from that section's
+start time in the plan's timeline, instead of a single range. One circled letter per section, in
+`schedule.sections` order: `Ⓐ <hh:mm–hh:mm> · Ⓑ <hh:mm–hh:mm> · Ⓒ <hh:mm–hh:mm> · …` (Ⓐ Ⓑ Ⓒ Ⓓ Ⓔ …).
+**Emit a pair for every configured section — two is not the limit; don't stop at Ⓐ/Ⓑ because the
+example shows two.**
 
 **⚠️ The counter is scoped to the TIME WINDOW, not the teaching block.** A **timing block** is a run
 of consecutive slides that share the **exact same time range** (all sections' ranges move together,
@@ -339,8 +342,8 @@ sips -s format png /tmp/p.pdf --out /tmp/p.png    # open /tmp/p.png and confirm 
 - [ ] Speaker notes carry the correct header: teaching-block marker + time range(s) + `k/K`
       **scoped to the time window**. Slides that share a time range share the identical range and
       are counted `1/K … K/K`; the counter resets the moment the range changes (no moving target).
-- [ ] Times coherent with `S<NN>-plan.md` (block ranges add up); dual-schedule sections (if any)
-      stay in lockstep.
+- [ ] Times coherent with `S<NN>-plan.md` (block ranges add up); multi-schedule sections (if any)
+      stay in lockstep — and **every** configured section gets a range, not just the first two.
 - [ ] Every **live-demo** in the plan's Examples manifest (when `examples` is enabled) is reflected
       in the deck — either a dedicated demo slide with its own time range, or a `🔴 DEMO … (~m
       min)` note on a concept slide — with the demo minutes **included** in the time ranges and the

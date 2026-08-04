@@ -270,8 +270,10 @@ its final step. *(The heavy part runs on Sonnet/Haiku per §6; you, Opus, orches
   this window), not a climbing counter over shifting times. Full spec + worked example in the
   `slides` skill.
 <!-- bootstrap: {{schedule_header}} = "hh:mm–hh:mm" for a single-schedule course; for a course
-     with schedule.sections non-empty use the dual form "Ⓐ hh:mm–hh:mm · Ⓑ hh:mm–hh:mm" and note
-     the fixed Ⓑ offset. -->
+     with schedule.sections non-empty use the multi-section form
+     "Ⓐ hh:mm–hh:mm · Ⓑ hh:mm–hh:mm · Ⓒ hh:mm–hh:mm · …" — ONE circled letter per entry in
+     schedule.sections, in that order (Ⓐ Ⓑ Ⓒ Ⓓ Ⓔ …), however many there are; do not stop at two.
+     Note each section's fixed offset from the first. -->
 
 **By session type:** exams and labs have **no** opening/agenda/exercises/slides structure — an exam
 is the printable sheet; a lab is a **teacher-led guidance** (instructor script + live demo, no

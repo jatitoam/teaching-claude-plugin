@@ -38,9 +38,11 @@ schedule:
   meeting: "Fridays 18:00–22:00"     # free text; if the course runs multiple sections with
                                      # different times, describe them here and set `sections:`
   dates: "2026-07-10 to 2026-09-11"
-  sections: []                       # optional. e.g. [{id: "A", time: "17:30"}, {id: "B",
-                                     # time: "20:00"}] — when non-empty, slide speaker-note
-                                     # headers carry the dual-schedule Ⓐ/Ⓑ times
+  sections: []                       # optional, ANY number of entries. e.g. [{id: "A", time:
+                                     # "17:30"}, {id: "B", time: "20:00"}] — when non-empty, slide
+                                     # speaker-note headers carry one circled-letter time range per
+                                     # section (Ⓐ, Ⓑ, Ⓒ, Ⓓ, … in `sections` order). The example
+                                     # shows two; three or more work the same way
   session_types:                     # every session number appears in exactly one list;
     virtual: [1, 2, 3, 5, 6, 8, 9]   # the set of type names is per-course (virtual / onsite /
     onsite: [4, 7]                   # final are the common ones) — the generated PROTOCOL.md
