@@ -161,6 +161,13 @@ Invariants — respect these exactly:
    that each `is_student_edited` item starts with the factory instruction and the student's answer
    follows it.
 
+   **Known blind spot — very short answers.** The baseline is a board-wide *set* of factory texts,
+   not one scoped per zone. A genuine one-word answer that happens to match *some other* zone's
+   placeholder verbatim (`Sí`, `No`, `1`) reads as unedited, so a present student can come back
+   `is_student_edited: false`. The error only ever runs in the safe direction (undercount, never a
+   false present), but when a frame looks empty and the exercise invites terse answers, **open that
+   frame in Miro before recording an absence**.
+
    **The signal is the TEXT, not `modified_by_id`.** Dragging a seeded sticky — which several
    exercises explicitly ask for — changes `modified_by_id` without adding a single word; counting
    that credits students who wrote nothing.

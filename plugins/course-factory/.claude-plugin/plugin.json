@@ -1,5 +1,5 @@
 {
   "name": "course-factory",
   "description": "Course-agnostic harness for producing university course material: a bootstrap skill scaffolds a per-course harness (course.yaml, protocol, conductor guide, templates), and generalized artifact skills build session plans, examples, exercises, slides, labs, exams, homework, readings, project deliveries, presentation guides, Miro boards, and Google Doc publications — one session, one artifact at a time.",
-  "version": "1.2.0"
+  "version": "1.3.0"
 }

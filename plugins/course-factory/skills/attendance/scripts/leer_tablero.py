@@ -77,7 +77,8 @@ Forma exacta del JSON de salida:
     "default_title": "<título de fábrica detectado>",
     "unclaimed_frames": N,                            // frames que dieron la línea base
     "seeded_texts": N,                                // textos distintos de fábrica
-    "reliable": true                                  // false → no hubo con qué comparar (ver aviso)
+    "reliable": true,                                 // false → no hubo con qué comparar (ver aviso)
+    "note": "<explicación legible de la línea base o del aviso>"
   },
   "summary": {"frames_total": N, "frames_renamed": N, "frames_default": N, "children_total": N,
               "frames_with_student_content": N, "student_items_created": N,
@@ -181,7 +182,7 @@ def leer(board_id):
             frames[iid] = {
                 "frame_id": iid,
                 "title": title,
-                "is_default_title": title in DEFAULT_TITLES,
+                # is_default_title se completa luego, al conocer el título de fábrica del board
                 "created_by": created_by,
                 "created_by_name": members.get(created_by),
                 "modified_by": modified_by,           # última cuenta que modificó el frame (p.ej. renombró el título)
