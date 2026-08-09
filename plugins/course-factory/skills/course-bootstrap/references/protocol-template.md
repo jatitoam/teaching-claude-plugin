@@ -103,8 +103,13 @@ Orient → Delegate production (right tier) → Audit (judge) → Write .md
   - **Less text, simple bullets, written to the student.** Short lines over full sentences, plain
     words over harness vocabulary. If a line only parses for someone who has read the planning
     documents, it belongs in the speaker notes or instructor-only material — or nowhere.
-  - **Verification:** grep student-facing artifacts (including rubric `.json`/`.xlsx` cell text)
-    for a capital `D` followed by digits and for `§`. ⚠️ **The grep is necessary but NOT
+  - **Carve-out:** numbering students genuinely use in class — exercise labels (`1.1`, `1.2`), task
+    numbers, session numbers — stays. The rule targets *our* private references, not shared
+    coordinates.
+  - **Verification:** grep student-facing artifacts for a capital `D` followed by digits and for
+    `§`. Rubrics: grep the `.json` (the source the `.xlsx` is generated from); to check a built
+    `.xlsx` directly, `unzip -p <file> xl/sharedStrings.xml | grep -E '\bD[0-9]+|§'` — plain grep
+    on an `.xlsx` finds nothing and reports a false pass. ⚠️ **The grep is necessary but NOT
     sufficient** — harness shorthand hides in ordinary English ("the second scored row", "the
     first block"). **Read for it as well.**
 

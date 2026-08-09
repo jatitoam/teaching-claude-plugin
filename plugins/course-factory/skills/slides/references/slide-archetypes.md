@@ -51,8 +51,8 @@ character**.
 - **Derive it from:** the template's quote or text-plate shape, swapped to a monospace face on a
   tinted plate.
 - ⚠️ **It must never wrap or shear.** A sheared command is worse than no slide, because it looks
-  correct. *(A real incident: a CDN URL cut mid-string and a presenter's name rendered as "Tito
-  Alvare" — neither visible in the HTML source, only on render.)* Widen the plate, shrink the
+  correct. *(Observed failure mode: a URL cut mid-string and a presenter's name silently
+  truncated — neither visible in the HTML source, only on render.)* Widen the plate, shrink the
   type, or split across two lines at a safe boundary — never let the renderer choose the break.
 
 ## How to derive a missing shape without breaking the brand
