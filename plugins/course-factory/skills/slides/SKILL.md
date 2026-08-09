@@ -82,6 +82,18 @@ extraction and the viewer assembly itself, because they are mechanical and cheap
   and a printed clock time goes stale. The instructor reads the real resume time off the presenter
   clock; the note-header time range stays as the planning aid.
 - **Each exercise launch = ONE condensed slide** (not a group) — see §Inputs.
+- **Deliberate variety is required.** Each slide group is assigned an archetype **on purpose**
+  (see `references/slide-archetypes.md`); a deck that reuses one or two shapes throughout is **a
+  failing deck**, not a stylistic preference — a monotonous deck teaching visual craft refutes
+  itself in the room, and more generally, varied shapes are what keep a 40-slide deck legible.
+  **Reach for the underused shapes** a template usually has and decks usually ignore: device
+  mockups (desktop/tablet/phone frames — far stronger than flat screenshots), full-bleed photo,
+  big-number/big-statement, timeline, two-item compare. **The usual overuse risk is the
+  multi-column grid family** — it must not become the default. **The unifying device stays on
+  every slide** — variety of shape, unity of skin. ⚠️ **Counting caveat, stated honestly:**
+  counting archetypes *by name* flatters a deck. Several named shapes can look identical to an
+  audience (e.g. every "one giant numeral" variant reads as one shape). **Audit by how slides
+  LOOK, not by how they are labelled.**
 - The spec follows the **plan's timeline**: title (sacred slot) → opening/agenda → each teaching
   block, split into its sub-blocks, each followed by a single exercise-launch slide where the plan
   places one → wrap-up.
@@ -89,6 +101,7 @@ extraction and the viewer assembly itself, because they are mechanical and cheap
 
 ```
 ### Slide <n> — <short title>
+Archetype: <shape name — see references/slide-archetypes.md>
 Content (what's on screen, ≤6 lines):
   • …
 Visual: <suggested image/diagram>
@@ -223,8 +236,27 @@ self-contained HTML file per slide (`slide-01.html`, `slide-02.html`, …) plus 
      tools), download the `latin` `.woff2` subset into the build's `fonts/`; **never link the
      Google Fonts CDN** — each slide must stay self-contained. (python-pptx is an alternative to
      unzip+XML.)
-2. **Build HTML templates** *(Sonnet, inside the same agent as step 3)* from those tokens (title,
-   content, section divider…).
+   - **Slide archetypes — mine the template's shapes, not just its style:** walk **`ppt/slides/`**
+     (the example slides) **and `ppt/slideLayouts/`**, resolving relationships via `_rels` rather
+     than guessing which layout a slide uses. Group them into **distinct visual archetypes** — for
+     each: a short name; the slide/layout numbers that exemplify it; its structure (how many text
+     blocks, where, relative sizes); whether it carries image / full-bleed photo / icon / chart /
+     table / quote / number-callout; background treatment (light, dark, accent-filled, image
+     overlay); and **what content it is right for**. Identify the template's **unifying visual
+     device** — the thing every slide shares (a plate, a mat, a rule, a corner motif). *This is
+     what lets varied shapes still read as one deck, and it must survive onto every slide.* Write
+     the result to **`<folders.slides>/S<NN>-template-archetypes.md`** — a **committed artifact**,
+     not a scratch file. **Reuse rule:** if `S<NN>-template-archetypes.md` already exists **and**
+     the `.pptx` is unchanged since it was written, **reuse it** — do not re-mine. Templates often
+     repeat across sessions: a template may be shared between sessions, in which case an existing
+     catalog for the same `.pptx` may be copied rather than regenerated. **Honest limit:** the
+     catalog is only as rich as the template — a 4-layout template yields a handful of shapes; the
+     mandate is *use the range the template actually has*, never invent shapes that fight the
+     brand. See `references/slide-archetypes.md` for the generic taxonomy and how to derive shapes
+     the template doesn't ship.
+2. **Build HTML templates** *(Sonnet, inside the same agent as step 3)* from those tokens — **one
+   template per archetype the deck will actually use**, drawn from
+   `S<NN>-template-archetypes.md`, not a fixed generic trio.
 3. **Author each slide's HTML** *(Sonnet — one agent per deck, parallel if 2+ decks)*: give the
    agent the `.md` path so it **reads the content itself** (keep the expensive tokens off Opus's
    context), writing straight into `<folders.slides>/S<NN>-build/[<deck>/]`. Each file:
@@ -348,6 +380,14 @@ sips -s format png /tmp/p.pdf --out /tmp/p.png    # open /tmp/p.png and confirm 
       in the deck — either a dedicated demo slide with its own time range, or a `🔴 DEMO … (~m
       min)` note on a concept slide — with the demo minutes **included** in the time ranges and the
       block still summing to its planned duration.
+- [ ] **Archetype variety:** count the **distinct shapes as they look**; name any shape used more
+      than three times and justify it. **Monotony is a failing condition.**
+- [ ] **Derived shapes:** if the deck needed a before/after pair or a verbatim monospace block,
+      they were **derived deliberately** in the template's visual language — not skipped, not
+      improvised.
+- [ ] ⚠️ **Render the slides and LOOK at them.** Text that is sheared, wrapped, overflowing or
+      overlapping is **invisible in the HTML source** and only appears on render. State the real
+      failure mode: *a truncated command or URL still looks like a correct one.*
 - [ ] Key points are brief (not paragraphs); humor kept within the course's per-session cap, if
       defined.
 - [ ] Consistent language and terms; defined per the glossary.
