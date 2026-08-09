@@ -40,7 +40,7 @@ enabled artifacts.)*
 | 4 | Exercise N.2 | ☐ | `exercises/S<NN>-ex2.md` (+ rubric json/xlsx) | ☐ Google Doc / Miro |
 | 5 | Submission assignments | ☐ | n/a — conductor creates them by hand in the portal | n/a |
 | (6) | Delivery brief (if due) | ☐ | `project/D<n>-brief.md` | ☐ Google Doc + xlsx |
-| 7 | Slides (whole-session deck) | ☐ | `slides/S<NN>-slides-spec.md` | ☐ Local HTML build + ☐ PDF |
+| 7 | Slides (whole-session deck) | ☐ | `slides/S<NN>-slides-spec.md` (+ `S<NN>-template-archetypes.md`) | ☐ Local HTML build + ☐ PDF |
 
 **On-site / evaluation session (example rows):**
 

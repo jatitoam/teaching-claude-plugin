@@ -24,7 +24,7 @@ owning artifact slug is in `artifacts.enabled` (plus the always-created ones).
 | `class-exercises` | `<folders.exercises>/` | `exercises` | guides + rubric `.json/.xlsx` |
 | `readings` | `<folders.readings>/` | `readings` | short readings `S<NN>-reading.md` |
 | `homework` | `<folders.homework>/` | `homework` | homework/tarea brief + rubric |
-| `slides` | `<folders.slides>/` | `slides` | slide-spec `.md`, `S<NN>-build/` HTML, `S<NN> - <Name>.pdf`; conductor drops `S<NN>-template.pptx` here |
+| `slides` | `<folders.slides>/` | `slides` | slide-spec `.md`, `S<NN>-template-archetypes.md`, `S<NN>-build/` HTML, `S<NN> - <Name>.pdf`; conductor drops `S<NN>-template.pptx` here |
 | `lab` | `<folders.labs>/` | `labs` | lab guide + rubric `.json/.xlsx` |
 | `exam` | `<folders.exams>/` | `exams` | MCQ exam sheets |
 | `practical-exam` | `<folders.exams>/` | `exams` | shares the exams folder |

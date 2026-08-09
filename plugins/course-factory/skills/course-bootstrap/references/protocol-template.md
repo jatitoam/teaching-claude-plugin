@@ -89,6 +89,29 @@ Orient → Delegate production (right tier) → Audit (judge) → Write .md
   **no** separate "batch publication step": each skill runs its pipeline end to end (§7).
   <!-- bootstrap: {{publish_targets_inline}} = ", Miro boards" if miro-boards enabled, ",
        sign-up Sheet" if recap-signup enabled; else empty. -->
+- **No internal shorthand in anything a student reads.** Decision IDs (`D12`, `D50`), section
+  marks (`§4`), harness vocabulary ("the pack", "the manifest", "the second scored row", "Block
+  A") are **our** conventions. A student learns nothing from them and is shut out of a private
+  language. **Cite the substance, never the reference.**
+  - **This binds rubric text too** — criterion names, level descriptors and the penalties block
+    are read by students. Write "submitted late" and the actual percentage, never a pointer to a
+    decision record.
+  - **Spell out identifiers students do share.** Where a course numbers deliveries/assignments,
+    write **"Delivery 2"**, **"Delivery 3, due Sunday 23 August"** — not `D3`. ⚠️ **Watch the
+    collision:** in a course with both, `D2` may read as *Delivery 2* while `D50` is a decision
+    record. **If a number could be read either way, write the word.**
+  - **Less text, simple bullets, written to the student.** Short lines over full sentences, plain
+    words over harness vocabulary. If a line only parses for someone who has read the planning
+    documents, it belongs in the speaker notes or instructor-only material — or nowhere.
+  - **Carve-out:** numbering students genuinely use in class — exercise labels (`1.1`, `1.2`), task
+    numbers, session numbers — stays. The rule targets *our* private references, not shared
+    coordinates.
+  - **Verification:** grep student-facing artifacts for a capital `D` followed by digits and for
+    `§`. Rubrics: grep the `.json` (the source the `.xlsx` is generated from); to check a built
+    `.xlsx` directly, `unzip -p <file> xl/sharedStrings.xml | grep -E '\bD[0-9]+|§'` — plain grep
+    on an `.xlsx` finds nothing and reports a false pass. ⚠️ **The grep is necessary but NOT
+    sufficient** — harness shorthand hides in ordinary English ("the second scored row", "the
+    first block"). **Read for it as well.**
 
 ## 4. Sources of truth and the no-redundancy rule
 
