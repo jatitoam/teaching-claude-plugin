@@ -82,16 +82,26 @@ def _space_of(name):
     return parts[1] if len(parts) >= 5 else ""
 
 
+def _sharing_of(bid):
+    """policy.sharingPolicy del board, o aborta con el mensaje de siempre si Miro no la trae."""
+    b = _req("GET", f"/v2/boards/{bid}") or {}
+    pol = (b.get("policy") or {}).get("sharingPolicy")
+    if not isinstance(pol, dict):
+        sys.exit(f"ERROR: la respuesta de Miro para el board {bid} no trae policy.sharingPolicy\n"
+                 "(alerta al conductor).")
+    return pol
+
+
 def _apply_sharing(bid, target):
     """Fija la sharingPolicy del board y la VERIFICA leyéndola de vuelta. Idempotente."""
-    cur = _req("GET", f"/v2/boards/{bid}")["policy"]["sharingPolicy"]
+    cur = _sharing_of(bid)
     if all(cur.get(k) == v for k, v in target.items()):
         print("  SHARING (ya correcto) " + " ".join(f"{k}={cur.get(k)}" for k in target))
         return cur
     merged = dict(cur)
     merged.update(target)          # PATCH parcial NO: hay que mandar el objeto sharingPolicy completo
     _req("PATCH", f"/v2/boards/{bid}", {"policy": {"sharingPolicy": merged}})
-    got = _req("GET", f"/v2/boards/{bid}")["policy"]["sharingPolicy"]
+    got = _sharing_of(bid)
     bad = {k: got.get(k) for k, v in target.items() if got.get(k) != v}
     if bad:
         sys.exit(f"ERROR: no se pudo cerrar la comparticion del board {bid}: {bad}\n"
@@ -154,13 +164,30 @@ def build(spec):
     # plantilla abierta al equipo.
     sharing = spec.get("sharing_policy")
     tspace = spec.get("template_space")
+    if "sharing_policy" in spec and not sharing:
+        sys.exit("ERROR: el build-spec trae 'sharing_policy' vacia, asi que no se sabe que politica "
+                 "aplicar y la regla de 'template_space' queda anulada en silencio.\n"
+                 "(alerta al conductor — quitala del spec para usar 'template_space', o escribela entera).")
     if sharing is None:
         if not tspace:
             print("  ⚠️  build-spec sin 'template_space' — no se puede saber si este board es una "
                   "PLANTILLA; queda con la comparticion por defecto de Miro (equipo con acceso). "
                   "Copialo de course.yaml tool_stack.miro.template_space.")
-        elif _space_of(spec["board"]["name"]) == tspace:
-            sharing = TEMPLATE_SHARING
+        else:
+            # Con 'template_space' presente el nombre DEBE poder decirnos el <space>: si no,
+            # no se puede saber si es plantilla y el silencio dejaria el board abierto al equipo.
+            space = _space_of(spec["board"]["name"])
+            if not space:
+                sys.exit(f"ERROR: el nombre '{spec['board']['name']}' no sigue la convencion "
+                         "<prefix>-<space>-<ss>-<ee>-<Nombre>, asi que no se puede decidir si el board "
+                         "es una PLANTILLA y podria quedar abierto al equipo.\n"
+                         f"(alerta al conductor — corrige board.name y borra a mano el board vacio {bid}).")
+            if space == tspace:
+                sharing = TEMPLATE_SHARING
+            else:
+                # Evidencia POSITIVA de que se decidio "no es plantilla": si el <prefix> trae un
+                # guion, el <space> se parsea mal y este board se quedaria abierto sin que se note.
+                print(f"  SHARING (no es plantilla) space={space} template_space={tspace}")
     if sharing:
         _apply_sharing(bid, sharing)
 

@@ -64,10 +64,13 @@ result.
 `"${CLAUDE_PLUGIN_ROOT}/skills/miro-boards/scripts/estampar.py"` (never contains the token; reads
 it from `MIRO_TOKEN`). Read its module docstring for the exact CLI usage and the build-spec JSON
 shape before invoking it — it documents `board`/`team_id`/`grid`/`items[]` (`shape` / `sticky` /
-`text` / `connector`, child coordinates measured center-from-frame-top-left) and the two
+`text` / `connector`, child coordinates measured center-from-frame-top-left) and the three
 subcommands:
-- `python estampar.py build <build-spec.json>` → creates the board and stamps the canvas grid.
+- `python estampar.py build <build-spec.json>` → creates the board, closes its sharing if it is a
+  template (see below), and stamps the canvas grid.
   **Sonnet (layer 3) authors the `build-spec.json`.**
+- `python estampar.py lock <boardId> [<boardId> …]` → closes an EXISTING board's sharing to the
+  template policy. Idempotent; for retro-fixing boards created before this rule.
 - `python estampar.py clone <boardId> "<new name>"` → **⚠️ NOT reliable** — `copy_from` creates
   the board but **EMPTY** (0 items). Do not use it. To clone template → sections, **re-run
   `build` with the same build-spec, changing only `board.name`**.
@@ -141,7 +144,11 @@ is silently readable and editable by the whole Miro team. **Close it at creation
   `course.yaml tool_stack.miro.template_space`). `estampar.py build` then compares it against the
   `<space>` segment of `board.name`, applies the policy right after creating the board (before
   stamping, so a mid-run failure never leaves an open template), reads it back, and **aborts** if
-  it did not stick. It prints a `SHARING …` line — that line is the evidence for the audit.
+  it did not stick. It prints a `SHARING …` line — that line is the evidence for the audit. It also
+  **aborts** when `template_space` is set but `board.name` does not parse into a `<space>`
+  (otherwise the board would be created open with nothing to show for it), and prints
+  `SHARING (no es plantilla) …` for every board it decides is *not* a template, so the sharing
+  decision is always visible in the log, board by board.
   Without `template_space` the script prints a warning and leaves the default (team has access).
 - **Retro-fix / existing boards:** `python estampar.py lock <boardId> [<boardId> …]` — idempotent.
 - **Section clones (student boards) are NOT touched** by this rule; they keep the course's normal
@@ -249,9 +256,14 @@ via `copy_from`, unlike the write path through the MCP.)
       the build-spec; **`estampar.py` ran the stamping** (Opus via Bash directly, or Haiku).
       Opus did not hand-author every canvas item by item — the script does that.
 - [ ] **1-canvas preview approved by the conductor BEFORE the bulk run** (Gate 2).
-- [ ] **The template board is closed to the team** — `estampar.py` printed
-      `SHARING teamAccess=private access=private organizationAccess=private` for it (or `lock`
-      was run on it). A template still showing the team with `edit`/`view` is a defect.
+- [ ] **The template board is closed to the team** — `estampar.py` printed a `SHARING …` line
+      reading `teamAccess=private access=private organizationAccess=private` for it (the line
+      reads `SHARING (ya correcto) …` when it was already closed), or `lock` was run on it.
+      A template still showing the team with `edit`/`view` is a defect.
+- [ ] **No board was silently left open** — every board in the run printed either a `SHARING …`
+      line or `SHARING (no es plantilla) space=<x> template_space=<y>`. A missing line, or a
+      `space=` that is not the code you expect, means the name did not parse and the board's
+      sharing was never decided.
 - [ ] Section clones made with **`build` per section** (never `clone`/`copy_from`).
 - [ ] Board count per exercise matches the session's exercise spec.
 - [ ] Each board: the expected number of identically-named frames in a clean grid.

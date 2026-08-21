@@ -11,7 +11,7 @@ description: >
   specifics (language, schedule, evaluation model, tool stack, enabled artifacts) live in
   the course folder's course.yaml; the skills read it at runtime. Rubric-bearing skills
   require the evaluation-rubrics plugin; multi-version MCQ exams hand off to exam-creator.
-version: 1.4.0
+version: 1.5.0
 skills:
   - id: course-bootstrap
     path: skills/course-bootstrap
