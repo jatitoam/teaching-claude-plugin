@@ -9,6 +9,7 @@ board completo vía la REST API v2 de Miro.
 Uso:
     export MIRO_TOKEN=...            # token de la app (NO se guarda en el repo)
     python3 estampar.py build  <build-spec.json>
+    python3 estampar.py lock   <boardId> [<boardId> ...]    # cierra la compartición (plantillas)
     python3 estampar.py clone  <boardId> "<nuevo nombre>"   # ⚠️ NO USAR — ver abajo
 
 ⚠️ `clone` (copy_from) NO es fiable: verificado en S1 (2026-07-05) crea el board pero VACÍO (0 ítems).
@@ -18,6 +19,11 @@ build-spec.json (todos los patrones caben: A tabla+sticky · B mapa mental · C 
 {
   "board": {"name": "<prefix>-<space>-<ss>-<ee>-<Nombre>", "description": "nombre largo / notas"},
   "team_id": "...",                                      # OBLIGATORIO — course.yaml tool_stack.miro.team_id
+  "template_space": "P",                                 # OBLIGATORIO — course.yaml tool_stack.miro.template_space.
+                                                         # Si el <space> del nombre coincide, el board es PLANTILLA y se
+                                                         # crea CERRADO: equipo y link en "No access" (ver TEMPLATE_SHARING).
+                                                         # Los clones de sección conservan la política por defecto de Miro.
+  "sharing_policy": {...},                               # opcional — fuerza una sharingPolicy explícita (gana sobre lo anterior)
   "grid":  {"cols":5,"rows":8,"step_x":1440,"step_y":1580,
             "frame_w":1336,"frame_h":1450,"frame_title":"ID y Nombre"},
   "items": [   # coords de hijos: (x,y)=CENTRO del ítem desde la esquina sup-izq del frame
@@ -60,6 +66,48 @@ def _req(method, path, body=None):
                 time.sleep(1 + attempt)
                 continue
             sys.exit(f"ERROR de red en {method} {path}: {ex}\n(alerta al conductor)")
+
+
+
+# Compartición CERRADA de las PLANTILLAS (decisión del conductor, 2026-08-20): una plantilla es
+# material del docente, no del equipo. En la UI de Miro esto es el equipo en "No access" y
+# "Anyone with the link" en "No access"; el acceso del docente y de sus invitados llega por el
+# Space, que esta política NO toca.
+TEMPLATE_SHARING = {"teamAccess": "private", "access": "private", "organizationAccess": "private"}
+
+
+def _space_of(name):
+    """<prefix>-<space>-<ss>-<ee>-<Nombre> -> <space>  ('' si no sigue la convención)."""
+    parts = name.split("-")
+    return parts[1] if len(parts) >= 5 else ""
+
+
+def _sharing_of(bid):
+    """policy.sharingPolicy del board, o aborta con el mensaje de siempre si Miro no la trae."""
+    b = _req("GET", f"/v2/boards/{bid}") or {}
+    pol = (b.get("policy") or {}).get("sharingPolicy")
+    if not isinstance(pol, dict):
+        sys.exit(f"ERROR: la respuesta de Miro para el board {bid} no trae policy.sharingPolicy\n"
+                 "(alerta al conductor).")
+    return pol
+
+
+def _apply_sharing(bid, target):
+    """Fija la sharingPolicy del board y la VERIFICA leyéndola de vuelta. Idempotente."""
+    cur = _sharing_of(bid)
+    if all(cur.get(k) == v for k, v in target.items()):
+        print("  SHARING (ya correcto) " + " ".join(f"{k}={cur.get(k)}" for k in target))
+        return cur
+    merged = dict(cur)
+    merged.update(target)          # PATCH parcial NO: hay que mandar el objeto sharingPolicy completo
+    _req("PATCH", f"/v2/boards/{bid}", {"policy": {"sharingPolicy": merged}})
+    got = _sharing_of(bid)
+    bad = {k: got.get(k) for k, v in target.items() if got.get(k) != v}
+    if bad:
+        sys.exit(f"ERROR: no se pudo cerrar la comparticion del board {bid}: {bad}\n"
+                 "(alerta al conductor — la plantilla quedaria abierta al equipo).")
+    print("  SHARING " + " ".join(f"{k}={got.get(k)}" for k in target))
+    return got
 
 
 def _shape(bid, fid, it):
@@ -112,6 +160,37 @@ def build(spec):
     url = board.get("viewLink") or f"https://miro.com/app/board/{bid}"
     print(f"BOARD {bid}  {url}")
 
+    # Compartición: se resuelve ANTES de estampar, para que un fallo a media estampa no deje una
+    # plantilla abierta al equipo.
+    sharing = spec.get("sharing_policy")
+    tspace = spec.get("template_space")
+    if "sharing_policy" in spec and not sharing:
+        sys.exit("ERROR: el build-spec trae 'sharing_policy' vacia, asi que no se sabe que politica "
+                 "aplicar y la regla de 'template_space' queda anulada en silencio.\n"
+                 "(alerta al conductor — quitala del spec para usar 'template_space', o escribela entera).")
+    if sharing is None:
+        if not tspace:
+            print("  ⚠️  build-spec sin 'template_space' — no se puede saber si este board es una "
+                  "PLANTILLA; queda con la comparticion por defecto de Miro (equipo con acceso). "
+                  "Copialo de course.yaml tool_stack.miro.template_space.")
+        else:
+            # Con 'template_space' presente el nombre DEBE poder decirnos el <space>: si no,
+            # no se puede saber si es plantilla y el silencio dejaria el board abierto al equipo.
+            space = _space_of(spec["board"]["name"])
+            if not space:
+                sys.exit(f"ERROR: el nombre '{spec['board']['name']}' no sigue la convencion "
+                         "<prefix>-<space>-<ss>-<ee>-<Nombre>, asi que no se puede decidir si el board "
+                         "es una PLANTILLA y podria quedar abierto al equipo.\n"
+                         f"(alerta al conductor — corrige board.name y borra a mano el board vacio {bid}).")
+            if space == tspace:
+                sharing = TEMPLATE_SHARING
+            else:
+                # Evidencia POSITIVA de que se decidio "no es plantilla": si el <prefix> trae un
+                # guion, el <space> se parsea mal y este board se quedaria abierto sin que se note.
+                print(f"  SHARING (no es plantilla) space={space} template_space={tspace}")
+    if sharing:
+        _apply_sharing(bid, sharing)
+
     g = spec["grid"]
     items = spec.get("items", [])
     n = 0
@@ -155,6 +234,10 @@ if __name__ == "__main__":
     if len(sys.argv) >= 3 and sys.argv[1] == "build":
         with open(sys.argv[2], encoding="utf-8") as fh:
             build(json.load(fh))
+    elif len(sys.argv) >= 3 and sys.argv[1] == "lock":
+        for bid in sys.argv[2:]:
+            print(f"BOARD {bid}")
+            _apply_sharing(bid, TEMPLATE_SHARING)
     elif len(sys.argv) >= 4 and sys.argv[1] == "clone":
         clone(sys.argv[2], sys.argv[3])
     else:

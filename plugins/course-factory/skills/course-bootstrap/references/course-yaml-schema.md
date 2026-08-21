@@ -76,6 +76,9 @@ tool_stack:
   #   team_id: "1234567890"          # plaintext OK (not a secret); the TOKEN is not — it
   #   board_prefix: "TIC26"          # comes ONLY from the $MIRO_TOKEN environment variable
   #   spaces: ["P", "Ad", "Mk"]
+  #   template_space: "P"            # which entry of `spaces` holds the TEMPLATE boards. Boards
+  #                                  # in it are created PRIVATE (team + link = "No access"):
+  #                                  # a template is instructor material. See skill miro-boards.
   ollama_forced_failure: false       # true → the examples skill may guide forced-failure
                                      # demos with a small local model (ollama, optional)
   student_tools: "free text: the tool stack students use, in adoption order"

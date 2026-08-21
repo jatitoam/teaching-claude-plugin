@@ -93,7 +93,7 @@ Ask the conductor, in order — batch related questions, confirm before generati
    `homework`, also settle its **cadence** (per-session vs. occasional) and its position in the
    session's artifact sequence.
 6. **Tool stack.** Slides engine (`local-html`), the **student tool stack** (in adoption order),
-   whether **Miro** is used (→ `team_id`, `board_prefix`, `spaces`, and the **canvas-count rule per
+   whether **Miro** is used (→ `team_id`, `board_prefix`, `spaces`, `template_space`, and the **canvas-count rule per
    board** — e.g. a fixed number or a multiple of enrollment), and whether **forced-failure/ollama**
    demos are wanted (`ollama_forced_failure`).
 7. **Publishing targets & submission channels.** Drive `course_folder_id` (if known) + any per-type
