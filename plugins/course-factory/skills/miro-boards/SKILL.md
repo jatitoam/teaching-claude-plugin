@@ -87,6 +87,10 @@ conductor** — do not proceed, do not prompt for the token, do not write it any
 - Create board: `POST /v2/boards` — body `{"name","description","teamId"}`. ⚠️ `name` ≤ 60
   characters (hence the compact naming convention below); the long descriptive name goes in
   `description` (no practical limit).
+- Sharing policy: `GET /v2/boards/{id}` → `policy.sharingPolicy`; `PATCH /v2/boards/{id}` with
+  `{"policy":{"sharingPolicy":{…}}}` to change it. ⚠️ **Send the whole `sharingPolicy` object**
+  (read it, merge your field, send it back) — a partial patch is not reliable. See "Template
+  boards are private" below; `estampar.py` does this for you.
 - Duplicate board: `POST /v2/boards?copy_from={boardId}` — copies an entire board. This is the
   native path for cloning template → sections (validate on first real use; the script's `clone`
   subcommand is NOT this and is unreliable — see above).
@@ -121,6 +125,27 @@ even while loose. Generalized pattern, driven entirely by `course.yaml tool_stac
   descriptive name goes in `description`.
 - A template board and its section clones share `<session>-<exercise>-<Name>`; only `<space>`
   changes between them.
+
+## Template boards are PRIVATE — MANDATORY
+
+A **template** board (the one whose `<space>` is the course's template space, i.e.
+`tool_stack.miro.template_space` in `course.yaml`) is **instructor material, not team material**.
+The Miro API creates every board with the team already holding `edit`, so a template left alone
+is silently readable and editable by the whole Miro team. **Close it at creation:**
+
+- Target policy — `teamAccess: "private"`, `access: "private"`, `organizationAccess: "private"`.
+  In the Miro UI that reads as the team row and *Anyone with the link* both on **"No access"**.
+- The instructor and their invited collaborators keep access **through the Space**, which this
+  policy does not touch. Do **not** remove board members to achieve it.
+- **How:** every build-spec MUST carry `"template_space"` (copied from
+  `course.yaml tool_stack.miro.template_space`). `estampar.py build` then compares it against the
+  `<space>` segment of `board.name`, applies the policy right after creating the board (before
+  stamping, so a mid-run failure never leaves an open template), reads it back, and **aborts** if
+  it did not stick. It prints a `SHARING …` line — that line is the evidence for the audit.
+  Without `template_space` the script prints a warning and leaves the default (team has access).
+- **Retro-fix / existing boards:** `python estampar.py lock <boardId> [<boardId> …]` — idempotent.
+- **Section clones (student boards) are NOT touched** by this rule; they keep the course's normal
+  access so students can reach them.
 
 ## Canvas geometry
 
@@ -198,8 +223,9 @@ via `copy_from`, unlike the write path through the MCP.)
 3. **Choose the PATTERN** (layer 2, Opus) per exercise, from the catalog, per what the spec asks
    for.
 4. **Build the build-spec and PREVIEW with 1 canvas:**
-   a. **Layer 3 — Sonnet:** authors the `build-spec.json` (board `{name, description}`, `grid`,
-      `items[]` of the chosen pattern with coords/colors/content). Save it in scratchpad.
+   a. **Layer 3 — Sonnet:** authors the `build-spec.json` (board `{name, description}`, `team_id`,
+      **`template_space`**, `grid`, `items[]` of the chosen pattern with coords/colors/content).
+      Save it in scratchpad.
       (Fine coordinate edits after conductor feedback can be Opus directly — mechanical editing.)
    b. **Preview 1×1 (layer 4):** copy the spec with `grid.cols=1,rows=1` and
       `name:"…(PREVIEW 1 canvas)"`, and run
@@ -210,7 +236,8 @@ via `copy_from`, unlike the write path through the MCP.)
       Iterate on this one canvas (re-stamp a new preview, delete the old) until approved.
 5. **Stamp the full grid (after preview approval):** run `estampar.py build` with the complete
    spec (full grid) → the template board. Delete the preview. Verify via REST/MCP: the expected
-   frame count + scaffolding items. Audit (Opus) against the acceptance criteria.
+   frame count + scaffolding items, **and the `SHARING teamAccess=private access=private` line**
+   for the template board. Audit (Opus) against the acceptance criteria.
 6. **Clone to sections — `build` per section (NOT `clone`/`copy_from`, which creates empty
    boards):** for each destination Space, copy the spec changing only `board.name` (swap
    `<space>`), and run `estampar.py build`. Verify the full frame count in each. **The conductor
@@ -222,6 +249,9 @@ via `copy_from`, unlike the write path through the MCP.)
       the build-spec; **`estampar.py` ran the stamping** (Opus via Bash directly, or Haiku).
       Opus did not hand-author every canvas item by item — the script does that.
 - [ ] **1-canvas preview approved by the conductor BEFORE the bulk run** (Gate 2).
+- [ ] **The template board is closed to the team** — `estampar.py` printed
+      `SHARING teamAccess=private access=private organizationAccess=private` for it (or `lock`
+      was run on it). A template still showing the team with `edit`/`view` is a defect.
 - [ ] Section clones made with **`build` per section** (never `clone`/`copy_from`).
 - [ ] Board count per exercise matches the session's exercise spec.
 - [ ] Each board: the expected number of identically-named frames in a clean grid.
