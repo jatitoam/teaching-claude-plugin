@@ -50,7 +50,9 @@ Dos modos de estampado
    (instrucciones, zonas de trabajo) va en `items` y **solo el insumo sembrado cambia** en
    `items_by_col`.
    - Los alias de `connector` se resuelven sobre la lista combinada del frame, así que un
-     conector puede unir un ítem común con uno de la variante.
+     conector puede unir un ítem común con uno de la variante. Por eso los alias tienen que ser
+     ÚNICOS entre `items` y la entrada de la columna: si una variante repite el alias de un ítem
+     común, gana la variante en silencio y el conector se ata al ítem equivocado.
    - Si `items_by_col` no tiene tantas entradas como columnas, el script ABORTA: estampar una
      variante en la columna equivocada es un fallo silencioso que solo se ve en clase.
 """
@@ -175,6 +177,10 @@ def build(spec):
     _by_col = spec.get("items_by_col")
     if _by_col is not None:
         _cols = spec.get("grid", {}).get("cols")
+        if not isinstance(_cols, int):
+            sys.exit("ERROR: el build-spec declara 'items_by_col' pero no un 'grid.cols' entero, "
+                     "asi que no hay columnas entre las que repartir las variantes.\n"
+                     "(alerta al conductor). No se creo ningun board.")
         if not isinstance(_by_col, list) or _by_col == [] or len(_by_col) != _cols:
             got = len(_by_col) if isinstance(_by_col, list) else type(_by_col).__name__
             sys.exit(f"ERROR: 'items_by_col' declara {got} entradas y grid.cols declara {_cols}: "

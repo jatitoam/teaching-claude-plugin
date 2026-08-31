@@ -88,15 +88,18 @@ shape before invoking it — it documents `board`/`team_id`/`grid`/`items[]` (`s
    and neighbours in different columns cannot copy. Put the shared scaffolding (instruction band,
    work zones) in `items` and **only the seeded input** in `items_by_col`.
    - Connector aliases resolve over the frame's combined list, so a connector may join a common
-     item to a variant item.
+     item to a variant item. **Aliases must therefore be unique across `items` + the column's
+     entry:** a variant item reusing a common item's `alias` silently wins the lookup and any
+     connector naming it binds to the wrong item. Prefix variant aliases (e.g. `v3_zona`).
    - The script **aborts before creating the board** if the entry count does not match
      `grid.cols` — a variant stamped into the wrong column is a silent failure that only shows up
      in class.
    - ⚠️ **Equal difficulty is the author's job, not the script's.** When students get different
      variants for the same grade, the variants must be comparable in length and difficulty, or
      the grade measures which column they sat in. Audit them against each other before stamping.
-   - The **preview gate** for this mode is **one canvas per variant** (`cols = <variants>`,
-     `rows = 1`), not a single 1×1 — the conductor has to see every variant.
+   - The **preview gate** (Gate 2, step 4b) for this mode is **one canvas per variant**
+     (`cols = <variants>`, `rows = 1`), not a single 1×1 — the conductor has to see every
+     variant, and a 1×1 preview that keeps `items_by_col` aborts the script.
 
 Details for if Sonnet needs to **extend the script** with a new item kind:
 
@@ -222,12 +225,14 @@ top-left** (out of the way), and there are **clear empty zones for the student t
 - **Gate 1 · Reuse-vs-build:** reusing a prior-year exercise vs. building a new one is decided by
   **the conductor with the Opus orchestrator**, *before* invoking this skill (it arrives decided
   in the spec/handover). This skill **executes**; it does not choose on its own.
-- **Gate 2 · Single-canvas DESIGN approval (preview), BEFORE the bulk run:** the conductor's
-  visual gate is **one canvas** (grid **1×1**), not the full board. Stamp **1 frame** as a
-  preview, the conductor reviews/adjusts it in the Miro UI, iterate on THAT ONE (each iteration
-  costs a handful of calls, not hundreds), and **only after their approval** stamp the full grid
-  and clone to sections. Rename the preview `…(PREVIEW 1 canvas)` and **delete it** on approval.
-  **Never stamp the full grid or clone to sections without preview approval.**
+- **Gate 2 · DESIGN approval (preview), BEFORE the bulk run:** the conductor's visual gate is
+  **one canvas per variant**, never the full board — grid **1×1** in the identical mode, and
+  **`cols = <variants>`, `rows = 1`** when the board uses `items_by_col` (the conductor has to
+  see every variant, and a 1×1 preview aborts the script in that mode). Stamp that single row as
+  a preview, the conductor reviews/adjusts it in the Miro UI, iterate on THAT ONE row (each
+  iteration costs a handful of calls, not hundreds), and **only after their approval** stamp the
+  full grid and clone to sections. Rename the preview `…(PREVIEW <n> canvas)` and **delete it**
+  on approval. **Never stamp the full grid or clone to sections without preview approval.**
 
 ## The one thing that stays manual: Spaces
 
@@ -250,20 +255,28 @@ via `copy_from`, unlike the write path through the MCP.)
 2. **If REUSE:** locate the prior-year board with the MCP `board_search_boards` (query = the
    exercise name); review it with `context_explore`/`layout_read`. Bring the scaffolding to this
    year's template (re-stamp, or the conductor Duplicates it).
-3. **Choose the PATTERN** (layer 2, Opus) per exercise, from the catalog, per what the spec asks
-   for.
-4. **Build the build-spec and PREVIEW with 1 canvas:**
+3. **Choose the PATTERN and the stamping MODE** (layer 2, Opus) per exercise: the pattern from
+   the catalog, per what the spec asks for; and the mode — every canvas identical, or **one
+   variant per grid column** (`items_by_col`, see **Two stamping modes**). Both are decided
+   here, by Opus, not by Sonnet while authoring.
+4. **Build the build-spec and PREVIEW one canvas per variant:**
    a. **Layer 3 — Sonnet:** authors the `build-spec.json` (board `{name, description}`, `team_id`,
-      **`template_space`**, `grid`, `items[]` of the chosen pattern with coords/colors/content).
-      Save it in scratchpad.
+      **`template_space`**, `grid`, `items[]` of the chosen pattern with coords/colors/content;
+      **plus `items_by_col[]` with exactly `grid.cols` entries when layer 2 chose the per-column
+      variant mode** — only the seeded input goes there, the shared scaffolding stays in
+      `items`). Save it in scratchpad.
       (Fine coordinate edits after conductor feedback can be Opus directly — mechanical editing.)
-   b. **Preview 1×1 (layer 4):** copy the spec with `grid.cols=1,rows=1` and
-      `name:"…(PREVIEW 1 canvas)"`, and run
+   b. **Preview one row (layer 4):** copy the spec with `name:"…(PREVIEW <n> canvas)"` and the
+      grid cut to a single row — `grid.cols=1,rows=1` in the identical mode, or
+      `grid.cols=<variants>,rows=1` **keeping every `items_by_col` entry** in variant mode
+      (cutting `cols` to 1 there aborts the script, by design) — and run
       `python "${CLAUDE_PLUGIN_ROOT}/skills/miro-boards/scripts/estampar.py" build <preview.json>`.
       Opus runs the script via Bash directly (deterministic, cheaper than opening a Haiku agent
       — see the work-split table). Report the URL.
-   c. **⛔ Gate 2 — the conductor validates the DESIGN in the UI** (colors, text, sizes, zones).
-      Iterate on this one canvas (re-stamp a new preview, delete the old) until approved.
+   c. **⛔ Gate 2 — the conductor validates the DESIGN in the UI** (colors, text, sizes, zones;
+      in variant mode **also that the variants are comparable in length and difficulty**, since
+      they are graded against one rubric). Iterate on this one row (re-stamp a new preview,
+      delete the old) until approved.
 5. **Stamp the full grid (after preview approval):** run `estampar.py build` with the complete
    spec (full grid) → the template board. Delete the preview. Verify via REST/MCP: the expected
    frame count + scaffolding items, **and the `SHARING teamAccess=private access=private` line**
@@ -278,7 +291,9 @@ via `copy_from`, unlike the write path through the MCP.)
 - [ ] **Layer split respected:** Opus decided strategy+pattern and judged; **Sonnet** authored
       the build-spec; **`estampar.py` ran the stamping** (Opus via Bash directly, or Haiku).
       Opus did not hand-author every canvas item by item — the script does that.
-- [ ] **1-canvas preview approved by the conductor BEFORE the bulk run** (Gate 2).
+- [ ] **Preview approved by the conductor BEFORE the bulk run** (Gate 2) — 1 canvas in the
+      identical mode, **one canvas per variant** (`cols = <variants>`, `rows = 1`) in the
+      per-column variant mode.
 - [ ] **The template board is closed to the team** — `estampar.py` printed a `SHARING …` line
       reading `teamAccess=private access=private organizationAccess=private` for it (the line
       reads `SHARING (ya correcto) …` when it was already closed), or `lock` was run on it.
@@ -290,6 +305,14 @@ via `copy_from`, unlike the write path through the MCP.)
 - [ ] Section clones made with **`build` per section** (never `clone`/`copy_from`).
 - [ ] Board count per exercise matches the session's exercise spec.
 - [ ] Each board: the expected number of identically-named frames in a clean grid.
+- [ ] **If per-column variants were used:** the board carries **`grid.cols` different
+      variants**, each repeated down its own column, verified by spot-checking the first frame of
+      **every** column against the variant the spec assigns to it. `estampar.py` only checks the
+      entry *count* — a variant written into the wrong entry is caught nowhere else.
+- [ ] **If per-column variants were used:** the variants were audited against each other for
+      comparable length and difficulty (one rubric grades them all — otherwise the grade measures
+      which column the student sat in), and no `alias` collides between `items` and a column's
+      entry.
 - [ ] Each frame: scaffolding per the spec using the **chosen catalog pattern** (A table+sticky /
       B mind map / C screenshots / or another), instructions top-left, clear empty zones to work
       in.
