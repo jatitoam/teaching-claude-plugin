@@ -33,8 +33,26 @@ build-spec.json (todos los patrones caben: A tabla+sticky · B mapa mental · C 
     {"kind":"sticky","x":750,"y":330,"w":200,"fill":"light_yellow","content":""},
     {"kind":"text","x":668,"y":700,"w":1100,"content":"...","font_size":24},
     {"kind":"connector","from":"aliasA","to":"aliasB"}    # une dos ítems del MISMO frame por alias
-  ]
-}
+  ],
+  "items_by_col": [ [...], [...], [...], [...], [...] ]   # OPCIONAL — variantes POR COLUMNA del grid.
+}                                                         # Ver "Dos modos de estampado" abajo.
+
+Dos modos de estampado
+----------------------
+1) TODOS LOS LIENZOS IGUALES (por defecto). Se omite `items_by_col`: los `items` se estampan
+   idénticos en los <cols>×<rows> frames. Es el comportamiento de siempre.
+
+2) UNA VARIANTE POR COLUMNA DEL GRID. Se declara `items_by_col` con **exactamente `grid.cols`
+   entradas** (una lista de ítems por columna, o `null` si esa columna no añade nada). Cada frame
+   de la columna `c` recibe `items` + `items_by_col[c]`, así que la columna se repite igual hacia
+   abajo en las `rows` filas. Sirve para un ejercicio con N enunciados distintos —uno por
+   columna— repetidos por filas para dar varias instancias de cada uno: el andamiaje común
+   (instrucciones, zonas de trabajo) va en `items` y **solo el insumo sembrado cambia** en
+   `items_by_col`.
+   - Los alias de `connector` se resuelven sobre la lista combinada del frame, así que un
+     conector puede unir un ítem común con uno de la variante.
+   - Si `items_by_col` no tiene tantas entradas como columnas, el script ABORTA: estampar una
+     variante en la columna equivocada es un fallo silencioso que solo se ve en clase.
 """
 import os, sys, json, time, urllib.request, urllib.error
 
@@ -152,6 +170,18 @@ def build(spec):
     if not team_id:
         sys.exit("ERROR: build-spec sin team_id — copia course.yaml tool_stack.miro.team_id "
                  "(no hay default; alerta al conductor).")
+    # La forma del spec se valida ANTES de tocar la API: si abortaramos despues de crear el board,
+    # cada intento dejaria un board vacio que hay que borrar a mano.
+    _by_col = spec.get("items_by_col")
+    if _by_col is not None:
+        _cols = spec.get("grid", {}).get("cols")
+        if not isinstance(_by_col, list) or _by_col == [] or len(_by_col) != _cols:
+            got = len(_by_col) if isinstance(_by_col, list) else type(_by_col).__name__
+            sys.exit(f"ERROR: 'items_by_col' declara {got} entradas y grid.cols declara {_cols}: "
+                     "tiene que haber UNA entrada por columna (usa null en las columnas que no "
+                     "anaden nada).\n"
+                     "(alerta al conductor — una variante estampada en la columna equivocada no se "
+                     "ve hasta la clase). No se creo ningun board.")
     board = _req("POST", "/v2/boards", {
         "name": spec["board"]["name"][:60],
         "description": spec["board"].get("description", ""),
@@ -193,9 +223,15 @@ def build(spec):
 
     g = spec["grid"]
     items = spec.get("items", [])
+    by_col = spec.get("items_by_col")
+    if by_col is not None:
+        by_col = [v or [] for v in by_col]
+        print(f"  VARIANTES por columna: {[len(v) for v in by_col]} items extra "
+              f"(+{len(items)} comunes) x {g['rows']} filas")
     n = 0
     for f in range(g["rows"]):
         for c in range(g["cols"]):
+            frame_items = items + (by_col[c] if by_col else [])
             fr = _req("POST", f"/v2/boards/{bid}/frames", {
                 "data": {"title": g.get("frame_title", "ID y Nombre"),
                          "format": "custom", "type": "freeform"},
@@ -204,7 +240,7 @@ def build(spec):
                 "style": {"fillColor": g.get("frame_fill", "#ffffff")}})
             fid = fr["id"]
             alias = {}
-            for it in items:
+            for it in frame_items:
                 k = it["kind"]
                 if k == "connector":
                     continue
@@ -213,7 +249,7 @@ def build(spec):
                       _sticky(bid, fid, it)
                 if it.get("alias"):
                     alias[it["alias"]] = iid
-            for it in items:
+            for it in frame_items:
                 if it["kind"] == "connector":
                     _connector(bid, alias[it["from"]], alias[it["to"]])
             n += 1

@@ -44,7 +44,8 @@ this course has no Miro tool stack configured.
 ## What you produce
 
 The **Miro boards** for a session's exercises. **One board = one exercise**; each board has a
-**grid of identical per-student canvases** (frames titled per the course's convention, e.g. "ID
+**grid of per-student canvases** (identical by default, or one variant per grid column — see
+**Two stamping modes**; frames titled per the course's convention, e.g. "ID
 and Name") where each student claims one, renames it with their identifying info (= attendance
 record), and works the exercise's scaffolding inside the frame.
 
@@ -64,8 +65,8 @@ result.
 `"${CLAUDE_PLUGIN_ROOT}/skills/miro-boards/scripts/estampar.py"` (never contains the token; reads
 it from `MIRO_TOKEN`). Read its module docstring for the exact CLI usage and the build-spec JSON
 shape before invoking it — it documents `board`/`team_id`/`grid`/`items[]` (`shape` / `sticky` /
-`text` / `connector`, child coordinates measured center-from-frame-top-left) and the three
-subcommands:
+`text` / `connector`, child coordinates measured center-from-frame-top-left), the optional
+`items_by_col[]` (see **Two stamping modes** below) and the three subcommands:
 - `python estampar.py build <build-spec.json>` → creates the board, closes its sharing if it is a
   template (see below), and stamps the canvas grid.
   **Sonnet (layer 3) authors the `build-spec.json`.**
@@ -74,6 +75,28 @@ subcommands:
 - `python estampar.py clone <boardId> "<new name>"` → **⚠️ NOT reliable** — `copy_from` creates
   the board but **EMPTY** (0 items). Do not use it. To clone template → sections, **re-run
   `build` with the same build-spec, changing only `board.name`**.
+
+**Two stamping modes — pick one deliberately, in layer 2 with the rest of the pattern:**
+
+1. **Every canvas identical** (default). Omit `items_by_col`. The `items` are stamped into all
+   `cols`×`rows` frames. This is the normal case: one exercise, N students, N identical canvases.
+2. **One variant per grid column.** Declare `items_by_col` with **exactly `grid.cols` entries**
+   (a list of items per column, or `null` for a column that adds nothing). Every frame in column
+   `c` gets `items` + `items_by_col[c]`, so **each column carries a different variant, repeated
+   down its `rows`**. Use it when one exercise has N different seeded prompts — one per column,
+   repeated down the rows to give several instances of each, so **each student does ONE variant**
+   and neighbours in different columns cannot copy. Put the shared scaffolding (instruction band,
+   work zones) in `items` and **only the seeded input** in `items_by_col`.
+   - Connector aliases resolve over the frame's combined list, so a connector may join a common
+     item to a variant item.
+   - The script **aborts before creating the board** if the entry count does not match
+     `grid.cols` — a variant stamped into the wrong column is a silent failure that only shows up
+     in class.
+   - ⚠️ **Equal difficulty is the author's job, not the script's.** When students get different
+     variants for the same grade, the variants must be comparable in length and difficulty, or
+     the grade measures which column they sat in. Audit them against each other before stamping.
+   - The **preview gate** for this mode is **one canvas per variant** (`cols = <variants>`,
+     `rows = 1`), not a single 1×1 — the conductor has to see every variant.
 
 Details for if Sonnet needs to **extend the script** with a new item kind:
 
