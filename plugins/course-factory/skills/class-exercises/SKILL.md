@@ -109,6 +109,20 @@ guide still specs the instructions, but its **materialization** is a Miro board,
   so the `miro-boards` engine can stamp it directly. Name which pattern in the `miro-boards`
   catalog fits (table/zones + sticky notes · mind map · capture frames · or another pattern you
   propose).
+- **The consigna repeats inside each work zone, not only in the instructions band:** spec every
+  zone with a bold title plus one or two sentences of instruction under it (smaller than the
+  title) — the student works looking at the zone, not scrolling back to the canvas header. The
+  top-left instructions band still carries the complete, self-contained consigna; it just stops
+  being the only place it lives.
+- **If the exercise seeds one variant per grid column:** concretize, per variant, any question
+  whose answer depends on a dimension the case doesn't otherwise fix (e.g. "if it doubled" needs
+  to say doubled **in what** — and that "what" may differ per seeded variant). Put the concretized
+  question in the same element as that variant's case, and end every variant's question in
+  identical wording so no column reads easier than another.
+- **If the exercise asks for "a business you know":** spec, on the canvas, what counts (current
+  job, family business, a past job, or a business known closely as a regular customer) and that
+  anything not known with certainty may be assumed — the only thing that doesn't count is
+  inventing a business that doesn't exist.
 - **Reuse-vs-build gate:** if an equivalent exercise exists from a prior course offering, resolve
   reuse-vs-build **with the conductor** before materializing — do not default to one choice alone;
   record the decision in the spec and handover.
@@ -166,6 +180,13 @@ Do not re-upload local files that already sync to Drive — use the MCP only to 
       reminder for the conductor is in the closing summary.
 - [ ] If `tool_stack.miro.enabled`: canvas layout spec'd per exercise, reuse-vs-build gate resolved
       with the conductor, template approved before cloning to other sections/spaces.
+- [ ] If `tool_stack.miro.enabled`: every work zone in the canvas layout carries a title plus its
+      own instruction (not the instructions band alone) — no zone spec'd as a title only.
+- [ ] If `tool_stack.miro.enabled` with per-column variants: any variant-dependent question names
+      its dimension explicitly per variant, in the same element as that variant's case, ending in
+      identical wording across variants.
+- [ ] If `tool_stack.miro.enabled` and the exercise asks for "a business you know": the canvas
+      spec states what counts and that uncertain details may be assumed.
 - [ ] If Miro is not enabled: no Miro/canvas mechanics appear anywhere.
 
 ## Close
