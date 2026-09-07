@@ -200,6 +200,54 @@ top-left** (out of the way), and there are **clear empty zones for the student t
 (sticky notes, nodes, frames). The frame size adapts to the pattern. These three are proven;
 **Opus may propose others** (timeline, 2×2 matrix, column table, ranking, empathy map, etc.).
 
+### The consigna repeats INSIDE each work zone — MANDATORY
+
+The instructions band top-left is **not the only place the consigna lives**. **Every work zone
+carries its own title + a short instruction directly under it**, so the student works looking at
+the box where they write, not scrolling back to re-read the canvas header:
+
+- Each zone's `content` is a **bold title, then one or two sentences** stating what goes in that
+  zone. Never a title alone (a `text`/`shape` item whose `content` is just the zone's name, with
+  the actual instruction living only in the top-left band, fails this rule).
+- The zone's instruction text sits **one size below the zone title** (e.g. title at 24pt, the
+  instruction at 20pt; or both at 20pt with the title in bold) — visually subordinate, but present.
+- The top-left instructions band stays **fully self-contained** (it still carries the complete
+  consigna, unabridged) — what changes is that it stops being the *only* place carrying it.
+- This applies to every catalog pattern (colored cells in A, branch/child nodes in B, capture
+  frames in C) and to any pattern Opus proposes.
+- **Sonnet (layer 3)** authors this per zone when writing the build-spec; **Opus (layer 2)**
+  checks it when judging the preview (Gate 2) before the bulk run.
+
+### Per-column variants: the question must be concretized per variant — MANDATORY
+
+When an exercise uses **per-column variants** (`items_by_col`, see **Two stamping modes**), the
+scaffolding cannot leave open a variable the case doesn't fix. Concretely:
+
+- If the exercise's question depends on a quantity/dimension that changes by variant (e.g. "if
+  the business doubled" without saying doubled **in what** — headcount? messages? customers? —
+  and each seeded variant implies a different one), **the question must name that dimension
+  explicitly, per variant**, not once in the shared instructions band.
+- That concretized question travels in the **same read-only element as the seeded case** (so it
+  is part of `items_by_col`, not `items` — each variant's case and its fully-specified question
+  are one inseparable unit).
+- **All variants' questions end in the same words** — vary only the part that must vary (the
+  dimension/quantity), never the phrasing around it, so no column is easier to read or parse than
+  another.
+
+### "A business you know" prompts must define what counts — MANDATORY
+
+Any exercise that asks the student to use "a business you know" (or equivalent — not all students
+work) must state, on the canvas itself, both of the following:
+
+- **What counts:** where you work today, your family's business, somewhere you worked before, or
+  one you know closely as a regular customer.
+- **What may be assumed:** anything not known with certainty may be assumed — the only thing that
+  does not count is inventing a business that does not exist.
+
+This text lives in the same read-only element as the rest of the case/instructions for that zone
+(top-level instructions band, or the per-variant element in `items_by_col` when the exercise has
+variants) — never left implicit or assumed obvious.
+
 **A · Table / colored zones + sticky notes** *(analyze, classify, answer defined fields)*
 - Frame divided into colored cells (one per question/field) covering it; instruction text
   top-left (light text on color); empty sticky notes (1–2 per zone) to answer in. REST: `shapes`
@@ -316,6 +364,17 @@ via `copy_from`, unlike the write path through the MCP.)
 - [ ] Each frame: scaffolding per the spec using the **chosen catalog pattern** (A table+sticky /
       B mind map / C screenshots / or another), instructions top-left, clear empty zones to work
       in.
+- [ ] **No work zone's `content` is a title alone** — every zone carries a bold title plus one or
+      two sentences of instruction under it, at a smaller size than the title. Verifiable by
+      script over the build-spec JSON: every zone item's `content` has more than just the title
+      line/phrase.
+- [ ] **If per-column variants were used:** any question whose answer depends on a
+      variant-specific dimension (e.g. "if it doubled" without saying in what) names that
+      dimension explicitly per variant, in the same element as the seeded case, and every
+      variant's question ends in identical wording.
+- [ ] **If the exercise asks for "a business you know":** the canvas states what counts (current
+      job, family business, past job, or a business known closely as a regular customer) and that
+      anything uncertain may be assumed — only an invented, non-existent business is disallowed.
 - [ ] **Name matches the EXACT convention** `<board_prefix>-<space>-<session>-<exercise>-<Name>`
       (≤60 chars; session/exercise 2 digits); long descriptive name in `description`.
 - [ ] **Gate 2 respected:** no clone to sections without preview approval.
