@@ -120,11 +120,17 @@ After the **human validates** the `.md`:
   the link in the handover.
 - **Answer key stays SEPARATE:** note to the conductor that the key section must be printed and
   kept apart from the student copies (do not hand it out with the exam).
-- **Print format (last step):** if `course.yaml` has `publishing.exam_print` (or the conductor
-  asks for the institutional print layout), run the `exam-print-format` skill on **each published
-  student Doc** (never the key) — one Sonnet agent per Doc, **sequentially** (they share the
-  browser and clipboard), each verified by you with your own screenshots per that skill's
-  §Orchestrator verification. Record in the handover that each Doc is print-ready.
+- **Print format (last step — AUTOMATIC, do not ask):** read `course.yaml →
+  publishing.exam_print.base_doc` (the sample exam the conductor provided at bootstrap).
+  - **Non-empty →** right after publishing, run the `exam-print-format` skill on **each published
+    student Doc** (never the key), without asking the conductor: one Sonnet agent per Doc,
+    **sequentially** (they share the browser and clipboard), each verified by you with your own
+    screenshots per that skill's §Orchestrator verification. Record in the handover that each Doc
+    is print-ready (or what failed). If a run reports «base_doc is not a formatted sample», **stop
+    the remaining runs** — the same base would fail every Doc — and report it to the conductor.
+  - **Empty or absent →** skip it, and say so in the closing summary in one line («print format
+    skipped: no sample exam was provided at bootstrap — add `publishing.exam_print.base_doc` to
+    enable it»). Never invent or pick a base Doc yourself.
 
 ## Close
 
@@ -132,7 +138,8 @@ After the **human validates** the `.md`:
 2. **Human gate (md-first):** the conductor validates the `.md`. *(End the turn with a summary;
    do not publish until the green light.)*
 3. **Publish** the exam to a printable Google Doc; remind the conductor to keep the key
-   separate. Then apply **`exam-print-format`** to each student Doc (see §Publication).
+   separate. Then, automatically, apply **`exam-print-format`** to each student Doc when
+   `publishing.exam_print.base_doc` is set (see §Publication).
 4. **Update the handover** (check the exam box; note the Doc link), **add lessons** to
    `shared-context.md` (tier calibration, traps), **record decisions** in
    `<folders.sources>/<sources.decisions>` if any were made, and **emit the closing block** per

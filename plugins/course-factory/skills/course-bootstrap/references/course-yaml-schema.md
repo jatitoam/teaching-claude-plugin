@@ -90,6 +90,14 @@ publishing:
                                      # verified IDs also accumulate in shared-context.md
   portal: "GES"                      # student-submission portal name ("" if none). No API —
                                      # skills REMIND the conductor to create assignments.
+  exam_print:                        # print layout applied AUTOMATICALLY by `exam` (via the
+                                     # `exam-print-format` skill) to every published exam Doc.
+    base_doc: ""                     # Doc ID (not URL) of a sample exam formatted by hand (header
+                                     # on page 1, title banner, [ ] | option tables). Asked at
+                                     # bootstrap; "" = the format step is skipped.
+    title: "Examen Parcial {n}"      # banner text; {n} = partial number
+    pages: 2                         # exact page count every version must fit
+    body_pt: 10                      # Normal-style font size
 
 naming:
   session_prefix: "S"                # S01, S02, … (two digits)
