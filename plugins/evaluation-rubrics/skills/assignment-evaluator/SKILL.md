@@ -3,7 +3,7 @@ name: assignment-evaluator
 description: >
   Evaluates student or group assignment submissions against an existing rubric and records
   results in a cumulative grades .xlsx file. Use this skill when the user provides a student
-  submission (PDF, docx, md, or txt) and a rubric, and wants to score or grade the work. Trigger on phrases
+  submission (PDF, docx, md, txt, or a video — YouTube link or local video file) and a rubric, and wants to score or grade the work. Trigger on phrases
   like: "evaluate this submission", "grade this assignment", "score this lab", "add this
   student to the grades file", "evaluate against the rubric", or any request to assess
   student work using a rubric. Each invocation appends one row to the grades file.
@@ -12,8 +12,8 @@ description: >
 
 # Assignment Evaluator
 
-Reads a student/group PDF submission, scores it against a rubric xlsx, and appends one row
-to a cumulative grades file.
+Reads a student/group submission (document or video), scores it against a rubric xlsx, and
+appends one row to a cumulative grades file.
 
 ## Step 1 — Gather Inputs
 
@@ -22,6 +22,9 @@ Required each time:
    - PDF — read directly; name extracted from cover page.
    - `.docx` — read via the docx skill; name extracted from cover page.
    - `.md` / `.txt` — read as plain text; no cover page expected (see name rules below).
+   - **Video** — a YouTube URL (public/unlisted), a local video file (`.mp4`, `.mov`, `.mkv`,
+     `.webm`, …), or a document whose deliverable is a video link. Graded from an evidence pack;
+     see **Video submissions** below before Step 3.
 2. **Rubric xlsx** — produced by rubric-creator; defines criteria and weights.
 3. **Assignment brief** (PDF or text) — provides context for what was expected.
 
@@ -50,6 +53,28 @@ row whose text starts with "Penal…", a header row, then one row per penalty wi
 amount like `-15` or `-100%` in column E). `append_grade.py` parses this block separately — note
 which penalties exist so you can assess them in Step 3. Rubrics with no penalties block behave
 exactly as before.
+
+## Video submissions
+
+If the submission is, or contains, a video link/file (several links → one pack each):
+
+1. Invoke the `video-evidence` skill (same plugin) **first**: preflight, then build the pack with
+   `--out <output_dir>/evidence/ --id <slug> --rubric <rubric xlsx or its source JSON>` (prefer the
+   rubric-creator JSON when it sits next to the xlsx — it carries the level descriptions). Add
+   `--max-duration` / `--lang` when the brief implies them. If preflight fails, stop and give the
+   user the install command it prints.
+2. Let `video-evidence` grade the pack into `<output_dir>/evidence/<slug>/evidence.json`
+   (Sonnet subagent per video when grading several submissions; borderline items stay with you).
+3. In Step 3 below, score **from `evidence.json`**, not from impressions: its verdicts map 1:1 to
+   the score labels and penalty levels. Every observation for a Partially Meets / Does Not Meet
+   criterion cites timestamps, e.g. "chart at 02:14 shows product codes, not names
+   (frames/t0134.000.jpg)."
+4. `REVIEW_REQUIRED` items are **not** scores. List them with their `mm:ss` windows in the Step 4
+   pause and get the instructor's call; never convert one to Does Not Meet / not_met yourself.
+   The row JSON and `append_grade.py` only accept the three labels, so nothing is written until
+   every REVIEW_REQUIRED item is resolved.
+5. Steps 4–6 (row JSON, `append_grade.py`, `/build-grades`) are unchanged. The evidence pack stays
+   in `<output_dir>/evidence/` as the audit trail; the downloaded video itself is deleted.
 
 ## Step 3 — Evaluate the Submission
 
@@ -114,7 +139,8 @@ Omit `penalties` entirely for penalty-free rubrics (backward compatible).
 Save to `<output_dir>/evaluations/row_<slug>.json`.
 
 **Pause here.** Present the evaluation to the user in chat as a summary table (name, each
-criterion with its score, and any observations). Ask the user to confirm or request
+criterion with its score, and any observations; for videos, also every REVIEW_REQUIRED item
+with its `mm:ss` window). Ask the user to confirm or request
 corrections before writing the grades file. Do not run Step 5 until the user approves.
 
 ## Step 5 — Append to Grades File
