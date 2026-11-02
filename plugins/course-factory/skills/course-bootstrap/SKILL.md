@@ -110,6 +110,15 @@ Ask the conductor, in order — batch related questions, confirm before generati
    `exam` skill applies this format **automatically** to every published exam; if the conductor
    has no sample yet, leave `base_doc: ""` — that is the only way the format step is skipped —
    and list it in the report as a pending item they can fill later.
+   **7c. Practical-exam print sample (ALWAYS ask when `practical-exam` is enabled).** Ask for the
+   Google Doc of a **practical-exam statement already formatted by hand** (Title and Subtitle
+   banners, headings, tables with a coloured header row — the rubric table's colour is the one
+   reused), plus the table sizes (rubric/penalty vs. other tables), the size of printed addresses,
+   the rubric and penalty column widths in cm, and whether printed addresses drop `https://`.
+   Record them in `publishing.practical_print` (schema in `references/course-yaml-schema.md`) —
+   `base_doc` holds the **Doc ID**, not the URL. The `practical-exam` skill applies this format
+   **automatically** to every published statement; with no sample yet, leave `base_doc: ""` (the
+   only way the step is skipped) and list it in the report as pending.
 8. **Sources of truth.** Which of syllabus / session briefs / glossary / decisions the conductor
    **already has** (record filenames in `sources:`) vs. which must be **authored later** (flag in
    the report; never fabricate their contents).
@@ -248,6 +257,8 @@ Before reporting done, verify:
 - [ ] Root `CLAUDE.md` is short and points to PROTOCOL/START/course.yaml with the key rules.
 - [ ] `publishing.exam_print` is present **iff** `exam` is enabled; `base_doc` is either a Doc ID
   (not a URL) or `""` and listed as pending in the report.
+- [ ] `publishing.practical_print` is present **iff** `practical-exam` is enabled; `base_doc` is
+  either a Doc ID (not a URL) or `""` and listed as pending in the report.
 
 ## Close (report to the conductor)
 
@@ -270,6 +281,7 @@ Manual prerequisites (yours):
   - MIRO_TOKEN env var (only if Miro enabled) — set in your environment, never in a file
   - Sources of truth to author (if any): <syllabus / session briefs / glossary / decisions still missing>
   - Exam print sample (only if exam enabled and base_doc is ""): add publishing.exam_print.base_doc — until then exam print format is skipped
+  - Practical-exam print sample (only if practical-exam enabled and base_doc is ""): add publishing.practical_print.base_doc — until then practical print format is skipped
   - Cross-plugin prerequisites: evaluation-rubrics for rubrics; exam-creator (optional) for multi-version MCQs
 
 Next: launch the first real agent —
