@@ -114,6 +114,13 @@ the **judge**; `video-evidence` (same plugin) only captures, indexes and selects
 3. **Write `<pack>/verdicts.json`** (shape in video-evidence `references/output-contract.md`): one
    entry per evidence-map item with `verdict`, `note`, `cites` (t + frame/quote/metadata_field),
    `review_required` windows, plus 5–10 chronological `key_moments` (cover → … → final state).
+   Optional verdict fields: `"not_applicable"` verdict (pieces outside the plan: no cites, excluded
+   from review); `outside_video: true` on items no video can show (rendered without window or
+   link); `confirmation: {by, via: "direct"|"relayed", relayed_by?, at?, note?}` recording who
+   confirmed accessibility and how (a relayed confirmation names the relaying session); top-level
+   `extra_sections: [{title, markdown}]` for instructor sections (e.g. plan vs delivered). Render
+   with `--preamble <file>` for a header block (file view link, notes). Both live in inputs, so
+   re-rendering never loses them — don't hand-edit review.md.
    Then render the audit page:
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/skills/video-evidence/scripts/render_review.py" <pack> <pack>/verdicts.json

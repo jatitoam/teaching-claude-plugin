@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
@@ -87,6 +88,7 @@ def youtube_id(url):
 def parse_rubric(path):
     """Return (criteria, penalties) as lists of dicts for evidence-map.json."""
     path = Path(path)
+    parse_rubric.meta = {}
     if path.suffix.lower() == ".json":
         data = json.loads(path.read_text(encoding="utf-8"))
 
@@ -94,8 +96,14 @@ def parse_rubric(path):
             weight = next((c[k] for k in weight_keys if k in c), None)
             levels = {k: c[k] for k in ("cumple", "parcial", "no_cumple",
                                         "meets", "partial", "not_met") if k in c}
-            return {"criterion": c.get("name", ""), "weight": weight,
-                    "levels": levels}
+            it = {"criterion": c.get("name", ""), "weight": weight,
+                  "levels": levels}
+            for k in ("code", "pts_parcial", "pct_parcial"):  # optional, additive
+                if c.get(k) is not None:
+                    it[k] = c[k]
+            return it
+        parse_rubric.meta = {k: data[k] for k in ("scoring", "cap", "conversion")
+                             if data.get(k) is not None}
         return ([item(c, ("pts", "weight", "points")) for c in data.get("criteria", [])],
                 [item(c, ("penalty", "penalizacion", "pts"))
                  for c in data.get("penalties", [])])
@@ -140,16 +148,24 @@ def evidence_map_skeleton(sid, rubric_path):
     criteria, penalties = parse_rubric(rubric_path)
     items = []
     for i, c in enumerate(criteria, 1):
-        items.append({"id": f"C{i}", "kind": "criterion", "criterion": c["criterion"],
-                      "weight": c["weight"], "levels": c["levels"],
-                      "candidates": [], "coverage": ""})
+        it = {"id": f"C{i}", "kind": "criterion", "criterion": c["criterion"],
+              "weight": c["weight"], "levels": c["levels"],
+              "candidates": [], "coverage": ""}
+        it.update({k: c[k] for k in ("code", "pts_parcial", "pct_parcial") if k in c})
+        items.append(it)
     for i, c in enumerate(penalties, 1):
-        items.append({"id": f"P{i}", "kind": "penalty", "criterion": c["criterion"],
-                      "penalty": c["weight"], "levels": c["levels"],
-                      "candidates": [], "coverage": ""})
-    return {"contract": CONTRACT, "submission_id": sid,
+        it = {"id": f"P{i}", "kind": "penalty", "criterion": c["criterion"],
+              "penalty": c["weight"], "levels": c["levels"],
+              "candidates": [], "coverage": ""}
+        it.update({k: c[k] for k in ("code", "pts_parcial", "pct_parcial") if k in c})
+        items.append(it)
+    emap = {"contract": CONTRACT, "submission_id": sid,
             "rubric_source": str(rubric_path), "status": "PENDING_SELECTION",
             "items": items}
+    rmeta = getattr(parse_rubric, "meta", {}) or {}
+    if rmeta.get("scoring") == "piezas":
+        emap.update(rmeta)   # scoring, cap, conversion (render_review "Puntos")
+    return emap
 
 
 # ------------------------------------------------------------------- download
@@ -158,13 +174,19 @@ def classify_source(s):
     """youtube | gdrive | canva | other-url | local (by host of an http(s) URL)."""
     if not re.match(r"https?://", s or "", re.I):
         return "local"
-    host = (urlparse(s).hostname or "").lower()
+    try:
+        parsed = urlparse(s)
+        host = (parsed.hostname or "").lower()
+    except ValueError:   # e.g. "http://[bad" (Invalid IPv6 URL)
+        return "other-url"
 
     def on(*domains):
         return any(host == d or host.endswith("." + d) for d in domains)
     if on("youtube.com", "youtu.be"):
         return "youtube"
     if on("drive.google.com", "docs.google.com"):
+        if re.search(r"/drive/(?:u/\d+/)?folders/|/folderview", parsed.path):
+            return "gdrive-folder"
         return "gdrive"
     if on("canva.com", "canva.link"):
         return "canva"
@@ -185,12 +207,49 @@ FAIL_REASONS = (
 
 
 def failure_reason(stderr):
-    low = (stderr or "").lower()
+    if not isinstance(stderr, str):
+        return "yt-dlp failed: " + type(stderr).__name__
+    low = stderr.lower()
     for needle, reason in FAIL_REASONS:
         if needle in low:
             return "yt-dlp: " + reason
-    tail = (stderr or "").strip().splitlines()[-1:] or ["unknown error"]
-    return "yt-dlp: " + tail[0][:120]
+    tail = stderr.strip().splitlines()[-1:] or ["unknown error"]
+    return "yt-dlp: " + re.sub(r"^yt-dlp failed \(\d+\):\s*", "", tail[0])[:120]
+
+
+PATH_FLAGS = ("--out", "--rubric", "--work-dir", "--save-dir")
+
+
+def manual_save_path(save_dir, sid):
+    """Default: <OS temp>/video-manual/<id>/<id>.mp4 (never inside --out); --save-dir overrides."""
+    d = Path(save_dir).expanduser().resolve() if save_dir \
+        else Path(tempfile.gettempdir()) / "video-manual" / sid
+    d.mkdir(parents=True, exist_ok=True)
+    return d / f"{sid}.mp4"
+
+
+def resume_rest(raw_args, source, sid):
+    """raw CLI args minus SOURCE, with every path-valued flag made absolute; --id and
+    --force ensured."""
+    rest, i, skipped = [], 0, False
+    while i < len(raw_args):
+        x = raw_args[i]
+        if x == source and not skipped:
+            skipped = True
+        elif x in PATH_FLAGS and i + 1 < len(raw_args):
+            rest += [x, str(Path(raw_args[i + 1]).expanduser().resolve())]
+            i += 1
+        elif any(x.startswith(f + "=") for f in PATH_FLAGS):
+            f, v = x.split("=", 1)
+            rest += [f, str(Path(v).expanduser().resolve())]
+        else:
+            rest.append(x)
+        i += 1
+    if "--id" not in rest:
+        rest += ["--id", sid]
+    if "--force" not in rest:
+        rest.append("--force")  # the failed pack dir already exists
+    return rest
 
 
 def watch_meta(source, is_url):
@@ -422,6 +481,33 @@ def make_index_frames(pack, frames, width, ffmpeg, min_frames, workers=6):
     return {"width": width, "dir": "index-frames", "recommended": rec}
 
 
+def write_index_batches(pack, frames, index_meta, batch_max):
+    """<pack>/.work/index-batch-NN.txt: one index-frames path (absolute) per line, even split
+    with at most batch_max per batch. Returns the list of pack-relative batch files."""
+    wdir = pack / ".work"
+    wdir.mkdir(exist_ok=True)
+    for old in wdir.glob("index-batch-*.txt"):
+        old.unlink()
+    batch_max = max(1, int(batch_max or 18))
+    n = len(frames)
+    if not n:
+        return []
+    nb = -(-n // batch_max)
+    base, extra = divmod(n, nb)
+    d = index_meta.get("dir") or "frames"
+    out, i = [], 0
+    for b in range(nb):
+        size = base + (1 if b < extra else 0)
+        chunk = frames[i:i + size]
+        i += size
+        name = f"index-batch-{b + 1:02d}.txt"
+        (wdir / name).write_text(
+            "\n".join(str(pack / d / Path(f["file"]).name) for f in chunk) + "\n",
+            encoding="utf-8")
+        out.append(f".work/{name}")
+    return out
+
+
 def make_contact_sheets(pack, frames, work, has_drawtext):
     sheets = []
     chunks = [frames[i:i + MAX_PER_SHEET] for i in range(0, len(frames), MAX_PER_SHEET)]
@@ -556,6 +642,14 @@ def build_parser():
     ap.add_argument("--index-min-frames", type=int, default=2, metavar="N",
                     help="metadata.index.recommended = haiku if kept frames >= N else skip "
                          "(default 2: break-even, see SKILL.md Step 2)")
+    ap.add_argument("--index-batch", type=int, default=18, metavar="N",
+                    help="max frames per .work/index-batch-NN.txt list (default 18, even split)")
+    ap.add_argument("--save-dir", metavar="DIR",
+                    help="where the manual download should be saved (default "
+                         "<OS temp>/video-manual/<id>/; never inside --out)")
+    ap.add_argument("--watch-url", metavar="URL",
+                    help="override the watch target (e.g. the file's view URL when the "
+                         "original link was a Drive folder)")
     ap.add_argument("--frames-only", metavar="PACK",
                     help="regenerate index-frames/ for an existing pack from its frames/ "
                          "(no download/probe/transcribe), update metadata.index, exit")
@@ -610,8 +704,10 @@ def frames_only(pack, a):
         log(f"error: {len(missing)} kept frames missing from frames/ (first: {missing[0]})")
         return 4
     meta["index"] = make_index_frames(pack, frames, a.index_width, ffmpeg, a.index_min_frames)
+    meta["index"]["batches"] = write_index_batches(pack, frames, meta["index"], a.index_batch)
     write_json(pack / "metadata.json", meta)
-    print(json.dumps({"pack": str(pack), "index": meta["index"], "kept_frames": len(frames)},
+    print(json.dumps({"pack": str(pack), "index": meta["index"], "kept_frames": len(frames),
+                      "index_batches": meta["index"]["batches"]},
                      indent=2))
     return 0
 
@@ -633,6 +729,8 @@ def main(argv=None):
         parser.error("--obtained-via is only valid with a local SOURCE and --source-url")
     if a.source_url and is_url:
         parser.error("--source-url is only valid with a local SOURCE")
+    if a.watch_url and not re.match(r"https?://", a.watch_url):
+        parser.error("--watch-url must be an http(s) URL (replace the placeholder)")
     orig_url = a.source if is_url else a.source_url
     src_type = classify_source(orig_url) if orig_url else "local"
     obtained_via = "yt-dlp" if is_url else (
@@ -671,10 +769,12 @@ def main(argv=None):
             "source": {"kind": "url" if is_url else "file", "type": src_type,
                        "url": orig_url,
                        "path": None if is_url else str(Path(a.source).resolve()),
-                       "obtained_via": obtained_via},
+                       "obtained_via": obtained_via,
+                       **({"watch_url": a.watch_url} if a.watch_url else {})},
             "submission_id": sid, "youtube": None,
-            "watch": watch_meta(a.source_url, True) if (a.source_url and not is_url)
-            else watch_meta(a.source, is_url),
+            "watch": watch_meta(a.watch_url, True) if a.watch_url else (
+                watch_meta(a.source_url, True) if (a.source_url and not is_url)
+                else watch_meta(a.source, is_url)),
             "download": {"status": "skipped", "error": None}, "probe": None,
             "params": {"interval": a.interval, "scene": a.scene,
                        "max_height": a.max_height, "frame_width": a.frame_width,
@@ -692,31 +792,45 @@ def main(argv=None):
     created_video = False
     try:
         if is_url:
-            log(f"downloading {a.source}")
-            try:
-                video, info = download(a.source, work, a.max_height, a.cookies_from_browser)
-                created_video = True
-            except (RuntimeError, OSError) as exc:
-                meta["download"] = {"status": "failed", "error": str(exc)[-800:]}
+            exc = None
+            folder = src_type == "gdrive-folder"
+            if folder:
+                reason = ("Drive folder URL: open the folder and download the video file "
+                          "inside")
+                meta["download"] = {"status": "failed", "error": reason}
+            else:
+                log(f"downloading {a.source}")
+                try:
+                    video, info = download(a.source, work, a.max_height, a.cookies_from_browser)
+                    created_video = True
+                except Exception as e:  # never leak a raw crash as the reason
+                    exc = e
+                    if isinstance(e, RuntimeError):
+                        reason = failure_reason(str(e))
+                    else:
+                        log(traceback.format_exc())
+                        reason = "yt-dlp failed: " + type(e).__name__
+                    meta["download"] = {"status": "failed", "error": str(e)[-800:]}
+            if folder or exc is not None:
                 write_json(pack / "metadata.json", meta)
-                reason = failure_reason(str(exc))
-                save_to = Path(a.out).expanduser().resolve() / "_downloads" / f"{sid}.mp4"
-                save_to.parent.mkdir(parents=True, exist_ok=True)
-                rest = list(raw_args)
-                if a.source in rest:
-                    rest.remove(a.source)
-                if "--force" not in rest:
-                    rest.append("--force")  # the failed pack dir already exists
-                print(json.dumps({"status": "manual_download_needed",
-                                  "source_type": src_type, "url": a.source,
-                                  "submission_id": sid, "reason": reason,
-                                  "save_to": str(save_to),
-                                  "resume_args": [str(save_to), "--source-url", a.source,
-                                                  "--obtained-via", "manual"] + rest},
-                                 indent=2))
+                save_to = manual_save_path(a.save_dir, sid)
+                resume = [str(save_to), "--source-url", a.source, "--obtained-via", "manual"] \
+                    + resume_rest(raw_args, a.source, sid)
+                out_json = {"status": "manual_download_needed",
+                            "source_type": src_type, "url": a.source,
+                            "submission_id": sid, "reason": reason,
+                            "save_to": str(save_to), "resume_args": resume}
+                if folder:
+                    out_json["folder"] = True
+                    if not a.watch_url:
+                        out_json["watch_url_hint"] = ("pass --watch-url <file view URL> once "
+                                                      "you know the file")
+                        out_json["resume_args"] += ["--watch-url", "<file view URL>"]
+                print(json.dumps(out_json, indent=2))
                 log(f"Download failed ({src_type}): {reason}. Download the video manually, "
                     f"save it as {save_to}, then re-run with the resume_args printed on stdout.")
-                log(str(exc)[-400:])
+                if exc is not None:
+                    log(str(exc)[-400:])
                 return 3
             meta["download"] = {"status": "ok", "error": None}
             meta["youtube"] = {k: info.get(k) for k in YT_FIELDS}
@@ -742,6 +856,11 @@ def main(argv=None):
                 meta["flags"]["over_max_duration"] = dur > a.max_duration
                 if dur > a.max_duration:
                     warnings.append(f"duration {mmss(dur)} exceeds max {mmss(a.max_duration)}")
+            low = meta["probe"]["height"] < 480
+            meta["flags"]["low_resolution"] = low
+            if low:
+                warnings.append(f"source is {meta['probe']['height']}p: small text may be "
+                                "illegible \u2014 review small-text items on the original")
             log(f"probe: {meta['probe']['duration_mmss']} "
                 f"{meta['probe']['width']}x{meta['probe']['height']}")
             scenes = scene_times(video, a.scene)
@@ -781,6 +900,8 @@ def main(argv=None):
                               "masked": bool(dd_info and dd_info["masked"])}
             meta["index"] = make_index_frames(pack, frames, a.index_width, FFMPEG,
                                               a.index_min_frames)
+            meta["index"]["batches"] = write_index_batches(pack, frames, meta["index"],
+                                                           a.index_batch)
             sheets = make_contact_sheets(pack, frames, work,
                                          pf["tools"]["ffmpeg"].get("drawtext", False))
             write_json(pack / "contact-sheet.json", {"sheets": sheets})
@@ -836,6 +957,7 @@ def main(argv=None):
                    "duration": meta["probe"]["duration_mmss"],
                    "duration_s": meta["probe"]["duration_s"],
                    "frames": meta["frames"], "index": meta["index"],
+                   "index_batches": meta["index"].get("batches", []),
                    "contact_sheets": [s["sheet"] for s in sheets],
                    "transcript": meta["transcript"]["status"],
                    "evidence_map": (pack / "evidence-map.json").exists(),

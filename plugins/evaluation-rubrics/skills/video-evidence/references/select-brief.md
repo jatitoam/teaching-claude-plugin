@@ -6,7 +6,10 @@ video, all in one message. Fill `<…>`; paste the rest verbatim.
 ---
 
 Model tier: Sonnet. You SELECT evidence for a judge; you do NOT decide verdicts or scores.
-Write only `<pack>/evidence-map.json`.
+Write only `<pack>/evidence-map.json`. If you need a helper script, put it ONLY in
+`"<pack>/.work/"` and put the submission id in its name (e.g. `.work/<id>-fill.py`) — never in
+/tmp or any shared folder: several selectors run in parallel and would overwrite each other.
+Quote every path exactly (folders may contain spaces).
 
 - Pack: `<pack>` (contract `video-evidence/2`, see `<plugin>/skills/video-evidence/references/output-contract.md`)
 - Rubric: `<rubric path>` · Assignment context: `<brief path or one paragraph>`
@@ -22,8 +25,9 @@ Write only `<pack>/evidence-map.json`.
 3. Fill `candidates`: `{from, to, frames, quotes:[{t, text}], on_screen:[{t, text, frame}],
    metadata_fields, why}` — `from/to` in seconds, `why` one line saying what the judge should look
    at. `quotes` = spoken words from `transcript.json` only; `on_screen` = text read on a frame
-   (slides, text boxes, captions, overlays), verbatim, with the frame you read it on. Never put
-   on-screen text in `why`. Prefer 1–3 strong candidates
+   (slides, text boxes, captions, overlays), verbatim, with the frame you read it on — its `t`
+   must lie inside the candidate's `from`–`to`. Never put on-screen text in `why`. Keep each
+   item's `code` (piece/criterion code from the rubric, e.g. `D1b`) as written in the skeleton. Prefer 1–3 strong candidates
    over many weak ones. Include contrary evidence too (a frame that might show the requirement
    NOT met) — the judge needs both sides.
 4. Metadata items (duration, title, description, first frame = cover) cite `metadata_fields`

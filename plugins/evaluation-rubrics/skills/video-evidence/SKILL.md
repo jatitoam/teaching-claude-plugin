@@ -24,7 +24,7 @@ Scripts: `${CLAUDE_PLUGIN_ROOT}/skills/video-evidence/scripts/` (below: `$S`).
 | Stage | Who | Output |
 |---|---|---|
 | 1. Capture | script, no model | metadata, frames (deduped), contact sheets, transcript, evidence-map skeleton |
-| 2. Index | **Haiku**, one per ≤ 22 frames (1280-px copies) | `frames-index.json` — describes frames, never judges |
+| 2. Index | **Haiku**, one per ≤ 18 frames (1280-px copies) | `frames-index.json` — describes frames, never judges |
 | 3. Select | **Sonnet**, one per video | `evidence-map.json` — candidate windows per criterion, no verdicts |
 | 4. Judge | assignment-evaluator (lead, or a delegated Sonnet) | `verdicts.json`, `review.md`, row JSON |
 
@@ -60,7 +60,14 @@ python3 "$S/video_evidence.py" <url-or-path> --out <out_dir> --id <slug> \
 - **Exit 3 = manual download needed.** stdout carries a JSON object (`source_type`, `url`,
   `reason`, `save_to`, `resume_args`; see the contract). Hand it back to the caller —
   assignment-evaluator turns it into a request to the instructor. Once the file exists, re-run
-  with `resume_args` (local path + `--source-url <original> --obtained-via manual`).
+  with `resume_args` (all paths absolute: local path + `--source-url <original> --obtained-via
+  manual`). `save_to` defaults to the OS temp dir (`<tmp>/video-manual/<id>/<id>.mp4`), never
+  inside `--out` (synced/course folders); `--save-dir` overrides it.
+- **Drive folder links** (`source_type: "gdrive-folder"`, `folder: true`): no download attempt;
+  the instructor downloads the video file inside. Pass that file's view URL with
+  `--watch-url` so watch links point to the file, not the folder.
+- **Low resolution:** below 480p the summary warns and `metadata.flags.low_resolution` is true —
+  small-text items must be checked on the original, and may need REVIEW_REQUIRED.
 - **Connectors (optional, caller's choice).** If the host session has an authenticated connector
   that can export the video (e.g. Canva: get-export-formats → export-design mp4 → download the
   signed URL), the caller may use it and pass `--source-url <original> --obtained-via connector`.
@@ -78,9 +85,10 @@ python3 "$S/video_evidence.py" <url-or-path> --out <out_dir> --id <slug> \
 Check `metadata.index.recommended` (also in the capture summary):
 
 - `"skip"` → no index; the Sonnet selector opens every frame itself (Step 3 handles it).
-- `"haiku"` → split `frames.json → frames[]` into even batches of **≤ 22** and dispatch one Haiku
-  agent per batch with `references/index-brief.md` (`model: haiku`, description
-  `[Haiku] Index frames <id> b<NN>`), ≤ 8 agents per message. Haiku reads the 1280-px copies in
+- `"haiku"` → the capture already wrote even batches of **≤ 18** frames to
+  `<pack>/.work/index-batch-NN.txt` (`--index-batch`, listed in `metadata.index.batches`).
+  Dispatch one Haiku agent per batch file with `references/index-brief.md` (`model: haiku`,
+  description `[Haiku] Index frames <id> b<NN>`), ≤ 8 agents per message. Haiku reads the 1280-px copies in
   `index-frames/`; selector and judge keep the full-res `frames/`.
 
 Then `python3 "$S/merge_index.py" <pack>`; exit 1 lists frames no batch described → re-dispatch
@@ -95,12 +103,15 @@ index from 2 kept frames: in practice only a clip of a few seconds (first + last
 Re-derive when prices change. Haiku is 20× cheaper per token, so its fixed overhead is repaid
 almost immediately; the index also keeps the selector's context small on long videos.
 
-**Why 22 frames at 1280 px — the 100k price tier.** Haiku 5.5 bills any request whose prompt
+**Why 18 frames at 1280 px — the 100k price tier.** Haiku 5.5 bills any request whose prompt
 exceeds 100k tokens at 5× ($0.50 vs $0.10/MTok). Batch size n is bounded by **F + n·h < 100k with
-margin**: 24-frame batches measured 98–101.6k (some requests crossed the tier), so the default is
-**22** (≈ 94k). Re-derive n when the index frame width (h) or prices change; at 1080p (h ≈ 3k) the
-same bound gives ~12. Alignment held at 24 when frames are read strictly one at a time (checked
-on a 104-frame video) and drifted at 35, so 22 is safe on that count too.
+margin**, where h must include re-reads: 24-frame batches measured 98–101.6k, and in live grading
+a 19-frame batch of busy composite frames hit 105.5k because the agent re-opened frames (49 tool
+uses). Default **18** (≈ 88k nominal, ~12k headroom) plus a **read-once rule** in the brief.
+Re-derive n when the index frame width (h) or prices change; at 1080p (h ≈ 3k) the same bound
+gives ~10. Alignment held at 24 one-frame-at-a-time and drifted at 35, so 18 is safe on that
+count too. The break-even above is unaffected (N* ≈ 1.8 frames: it depends on F, h and prices,
+not on batch size).
 
 ## Step 3 — Select (Sonnet) — only with a rubric
 
@@ -109,7 +120,12 @@ One Sonnet agent per video, all in one message, with `references/select-brief.md
 runs `finalize_pack.py`, which validates the map and fills every `watch` link
 (`https://youtu.be/<id>?t=<s−3>` for YouTube, `mm:ss <path>` for local files).
 
-Lead check: `python3 "$S/finalize_pack.py" <pack>` exits 0 for every pack.
+Lead check: `python3 "$S/finalize_pack.py" <pack>` exits 0 for every pack. Finalize also stamps
+the map with the pack's `submission_id` and a hash of `frames.json` and rejects a map built for a
+different or changed pack (parallel selectors once overwrote each other's helper script). Any
+helper script a selector writes goes in `"<pack>/.work/"` only, named with the submission id.
+`on_screen` times must fall inside their candidate window; text with no overlap with the Haiku
+index is flagged as unverified.
 
 ## Step 4 — Hand off
 

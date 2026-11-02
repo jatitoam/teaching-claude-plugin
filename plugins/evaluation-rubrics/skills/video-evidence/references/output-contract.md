@@ -146,3 +146,25 @@ Rendered from `verdicts.json`: header (title, source, duration, flags, transcrip
 **Needs your review** (REVIEW_REQUIRED first: criterion, window, reason, watch link, thumbnail) →
 **Verdicts** (criterion → verdict → note → watch links → thumbnail) → **Key moments**
 (chronological). Thumbnails are relative `frames/…` links. Local only — student data.
+
+## Additions in plugin 1.8.0 (all optional — the contract stays `video-evidence/2`)
+
+Packs and verdicts built before 1.8.0 keep working: finalize stamps them (warning "stamped legacy
+map") and render warns where it would now error.
+
+| File | Field | Meaning |
+|---|---|---|
+| metadata.json | `flags.low_resolution` | `probe.height < 480` |
+| metadata.json | `source.type: "gdrive-folder"`, `source.watch_url` | folder links; `--watch-url` override |
+| metadata.json | `index.batches` | `.work/index-batch-NN.txt` files (≤ `--index-batch`, default 18; absolute frame paths, one per line) |
+| exit-3 JSON | `folder`, `watch_url_hint` | folder links; `save_to` defaults to `<tmp>/video-manual/<id>/`; `resume_args` absolute |
+| evidence-map.json | `integrity: {submission_id, frames_sha256}` | stamped by finalize; mismatch = error |
+| evidence-map.json | `scoring`, `cap`, `conversion` (top); `code`, `pts_parcial` (items) | piece rubrics (`"scoring": "piezas"`) |
+| verdicts.json | verdict `not_applicable` / `N/A` | outside the submission's plan; no cites needed |
+| verdicts.json | item `outside_video`, `code`, `confirmation: {by, via: direct\|relayed, relayed_by?, at?, note?}` | see assignment-evaluator |
+| verdicts.json | `extra_sections: [{title, markdown}]` | rendered after Key moments |
+| render_review.py | `--preamble FILE` | inserted after the header block |
+
+Watch text for non-YouTube sources is the exact cited `mm:ss` (the −3 s lead applies only to
+seekable YouTube links). For piece rubrics review.md adds an informative `## Puntos` section that
+matches the grades xlsx (same conversion parsing, half-up rounding).
