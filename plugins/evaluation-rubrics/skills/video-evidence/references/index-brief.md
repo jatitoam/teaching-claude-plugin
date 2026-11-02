@@ -1,13 +1,14 @@
-# Index brief — Haiku, one agent per batch of up to 36 frames
+# Index brief — Haiku, one agent per batch of up to 16 frames
 
 Dispatch with `model: haiku`, description `[Haiku] Index frames <submission-id> b<NN>`. All
 batches of all videos go in ONE message (parallel, ≤ 8 agents per message). Batches:
-consecutive slices of `frames.json → frames[]`, **up to 36 per batch** (split evenly, e.g. 66
-frames → 2 × 33), numbered `01, 02, …`.
+consecutive slices of `frames.json → frames[]`, **up to 16 per batch** (split evenly), numbered
+`01, 02, …`.
 
-Why 36: measured cost is ~62k tokens of fixed per-agent overhead + ~1.5k per frame (1 frame →
-64k, 12 → 80k). 12-frame batches spend ~75 % on overhead; 36 cuts total indexing cost by more
-than half while each agent still finishes in about a minute. Fill `<…>`; paste the rest verbatim.
+Why 16 (measured): each agent costs ~62k tokens of fixed overhead + ~1.5–5k per frame
+(1280 px → 1080p). Bigger batches are cheaper, but at 35 frames per agent Haiku's descriptions
+drifted one frame out of alignment over a stretch (frame N described with N+1's content);
+12-frame batches stayed aligned. 16 keeps alignment with less overhead than 12. Fill `<…>`; paste the rest verbatim.
 
 ---
 
@@ -16,6 +17,10 @@ rubric — you have none.
 
 Pack: `<pack>`. Your frames (open each with the Read tool; paths relative to the pack):
 <list of frames/tSSSS.mmm.jpg, one per line>
+
+Work strictly one frame at a time, in the order listed: open a frame, write its object (with
+`file` = the exact path you just opened), then open the next. Never describe a frame you have
+not just opened.
 
 For each frame write one JSON object:
 ```json

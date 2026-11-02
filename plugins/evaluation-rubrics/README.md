@@ -16,7 +16,7 @@
 | Stage | Who | Output |
 |---|---|---|
 | Capture | script (no model) | metadata, de-duplicated frames, contact sheets, transcript |
-| Index | Haiku, ≤ 36 frames per agent | `frames-index.json` (describes, never judges) |
+| Index | Haiku, ≤ 16 frames per agent | `frames-index.json` (describes, never judges) |
 | Select | Sonnet, one per video | `evidence-map.json` (candidate windows per criterion, no verdicts) |
 | Judge | `assignment-evaluator` (lead / delegated Sonnet) | `verdicts.json`, `review.md` (REVIEW_REQUIRED first, `youtu.be/…?t=` links), grades row |
 

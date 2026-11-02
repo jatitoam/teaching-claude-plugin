@@ -24,7 +24,7 @@ Scripts: `${CLAUDE_PLUGIN_ROOT}/skills/video-evidence/scripts/` (below: `$S`).
 | Stage | Who | Output |
 |---|---|---|
 | 1. Capture | script, no model | metadata, frames (deduped), contact sheets, transcript, evidence-map skeleton |
-| 2. Index | **Haiku**, one per ≤ 36 frames | `frames-index.json` — describes frames, never judges |
+| 2. Index | **Haiku**, one per ≤ 16 frames | `frames-index.json` — describes frames, never judges |
 | 3. Select | **Sonnet**, one per video | `evidence-map.json` — candidate windows per criterion, no verdicts |
 | 4. Judge | assignment-evaluator (lead, or a delegated Sonnet) | `verdicts.json`, `review.md`, row JSON |
 
@@ -65,7 +65,7 @@ python3 "$S/video_evidence.py" <url-or-path> --out <out_dir> --id <slug> \
 
 ## Step 2 — Index (Haiku)
 
-Split each pack's `frames.json → frames[]` into even batches of ≤ 36 and dispatch one Haiku agent
+Split each pack's `frames.json → frames[]` into even batches of ≤ 16 and dispatch one Haiku agent
 per batch with `references/index-brief.md` (`model: haiku`, description
 `[Haiku] Index frames <id> b<NN>`) — every batch of every video in one message. Then:
 
