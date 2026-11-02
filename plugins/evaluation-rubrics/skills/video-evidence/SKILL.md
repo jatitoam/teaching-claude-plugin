@@ -54,12 +54,22 @@ python3 "$S/video_evidence.py" <url-or-path> --out <out_dir> --id <slug> \
 - Downloads go to an OS temp subdir and are deleted afterwards unless `--keep-video`.
 - Several videos: capture **sequentially** — YouTube rate-limits download bursts, and
   transcription is heavy. Index/select stages parallelize instead.
-- **Exit 3 (download failed):** retry once with `--cookies-from-browser chrome` (ask first — it
-  reads browser cookies), else ask for a manual download and re-run on the local path **with
-  `--source-url <the YouTube URL>`** — the pack keeps `youtu.be/…?t=` watch links and fetches the
-  title/description if YouTube answers. If it can't, the warning says so and the judge must treat
-  description criteria as REVIEW_REQUIRED. Bursts of downloads trigger YouTube's bot check
-  (HTTP 429); capture sequentially when grading a whole class.
+- **Sources.** Any URL or local file. The script classifies it (`youtube | gdrive | canva |
+  other-url | local`) and tries **yt-dlp for every URL**. This skill never prompts the user and
+  contains no Drive/Canva API client.
+- **Exit 3 = manual download needed.** stdout carries a JSON object (`source_type`, `url`,
+  `reason`, `save_to`, `resume_args`; see the contract). Hand it back to the caller —
+  assignment-evaluator turns it into a request to the instructor. Once the file exists, re-run
+  with `resume_args` (local path + `--source-url <original> --obtained-via manual`).
+- **Connectors (optional, caller's choice).** If the host session has an authenticated connector
+  that can export the video (e.g. Canva: get-export-formats → export-design mp4 → download the
+  signed URL), the caller may use it and pass `--source-url <original> --obtained-via connector`.
+  Never required.
+- `watch`: YouTube → `youtu.be/<id>?t=`; Drive/Canva/other → `mm:ss <original view URL>` (Drive
+  URL seeking is unverified, so no `&t=`); local → `mm:ss <path>`. Title/description are fetched
+  only for YouTube; elsewhere description criteria are REVIEW_REQUIRED.
+- YouTube rate-limits download bursts (HTTP 429 / "sign in to confirm") — capture sequentially;
+  `--cookies-from-browser chrome` only with the user's OK (it reads browser cookies).
 - Read the printed summary: `warnings`, `frames.extracted → count` (dedupe), `max_gap_s`,
   transcript status / `sparse`.
 

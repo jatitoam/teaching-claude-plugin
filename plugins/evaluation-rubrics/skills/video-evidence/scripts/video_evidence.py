@@ -31,6 +31,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import preflight  # noqa: E402
@@ -51,7 +52,9 @@ EPILOG = """\
 examples:
   video_evidence.py https://youtu.be/XXXXXXXXXXX --out ./packs --rubric rubric.json
   video_evidence.py ./student.mp4 --out ./packs --id s042 --no-transcribe
-exit codes: 0 ok, 2 preflight failed, 3 download failed, 4 probe/frame failure.
+  video_evidence.py ./dl.mp4 --source-url https://drive.google.com/file/d/ID/view --out ./packs
+exit codes: 0 ok, 2 preflight failed, 3 download failed (stdout = one JSON object
+{"status":"manual_download_needed", ..., "resume_args":[...]}), 4 probe/frame failure.
 Progress on stderr, JSON summary on stdout. Videos are downloaded to the OS
 temp dir (outside synced folders) and deleted unless --keep-video.
 """
@@ -150,6 +153,45 @@ def evidence_map_skeleton(sid, rubric_path):
 
 
 # ------------------------------------------------------------------- download
+
+def classify_source(s):
+    """youtube | gdrive | canva | other-url | local (by host of an http(s) URL)."""
+    if not re.match(r"https?://", s or "", re.I):
+        return "local"
+    host = (urlparse(s).hostname or "").lower()
+
+    def on(*domains):
+        return any(host == d or host.endswith("." + d) for d in domains)
+    if on("youtube.com", "youtu.be"):
+        return "youtube"
+    if on("drive.google.com", "docs.google.com"):
+        return "gdrive"
+    if on("canva.com", "canva.link"):
+        return "canva"
+    return "other-url"
+
+
+# (substring in yt-dlp stderr, lowercase) -> short reason; first match wins
+FAIL_REASONS = (
+    ("sign in to confirm", "bot check (sign in to confirm)"),
+    ("private video", "private video"),
+    ("http error 429", "HTTP 429 (rate limited)"),
+    ("too many requests", "HTTP 429 (rate limited)"),
+    ("http error 403", "HTTP 403 (domain-restricted)"),
+    ("forbidden", "HTTP 403 (domain-restricted)"),
+    ("unsupported url", "unsupported URL"),
+    ("http error 404", "HTTP 404 (not found)"),
+)
+
+
+def failure_reason(stderr):
+    low = (stderr or "").lower()
+    for needle, reason in FAIL_REASONS:
+        if needle in low:
+            return "yt-dlp: " + reason
+    tail = (stderr or "").strip().splitlines()[-1:] or ["unknown error"]
+    return "yt-dlp: " + tail[0][:120]
+
 
 def watch_meta(source, is_url):
     if not is_url:
@@ -512,6 +554,9 @@ def build_parser():
     ap.add_argument("--source-url", metavar="URL",
                     help="with a local SOURCE: the video's original URL (manual-download "
                          "fallback) — keeps youtu.be watch links and fetches metadata if reachable")
+    ap.add_argument("--obtained-via", choices=("manual", "connector"),
+                    help="with a local SOURCE + --source-url: how the file was obtained "
+                         "(default manual)")
     ap.add_argument("--force", action="store_true",
                     help="overwrite a non-empty pack directory")
     return ap
@@ -519,11 +564,21 @@ def build_parser():
 
 def main(argv=None):
     global FFMPEG
-    a = build_parser().parse_args(argv)
+    parser = build_parser()
+    a = parser.parse_args(argv)
+    raw_args = list(sys.argv[1:] if argv is None else argv)
     is_url = re.match(r"https?://", a.source) is not None
     if not is_url and not Path(a.source).is_file():
         log(f"error: file not found: {a.source}")
         return 4
+    if a.obtained_via and (is_url or not a.source_url):
+        parser.error("--obtained-via is only valid with a local SOURCE and --source-url")
+    if a.source_url and is_url:
+        parser.error("--source-url is only valid with a local SOURCE")
+    orig_url = a.source if is_url else a.source_url
+    src_type = classify_source(orig_url) if orig_url else "local"
+    obtained_via = "yt-dlp" if is_url else (
+        (a.obtained_via or "manual") if a.source_url else "local")
 
     pf = preflight.run_checks(need_download=is_url, need_transcribe=not a.no_transcribe)
     if not pf["ok"]:
@@ -555,8 +610,10 @@ def main(argv=None):
     warnings = []
     meta = {"contract": CONTRACT,
             "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "source": {"kind": "url", "url": a.source} if is_url
-            else {"kind": "file", "path": str(Path(a.source).resolve())},
+            "source": {"kind": "url" if is_url else "file", "type": src_type,
+                       "url": orig_url,
+                       "path": None if is_url else str(Path(a.source).resolve()),
+                       "obtained_via": obtained_via},
             "submission_id": sid, "youtube": None,
             "watch": watch_meta(a.source_url, True) if (a.source_url and not is_url)
             else watch_meta(a.source, is_url),
@@ -584,17 +641,30 @@ def main(argv=None):
             except (RuntimeError, OSError) as exc:
                 meta["download"] = {"status": "failed", "error": str(exc)[-800:]}
                 write_json(pack / "metadata.json", meta)
-                log("Download failed. Download the video manually (e.g. with a GUI "
-                    "downloader, or re-run with --cookies-from-browser chrome) and "
-                    "re-run with the local file path as SOURCE.")
+                reason = failure_reason(str(exc))
+                save_to = Path(a.out).expanduser().resolve() / "_downloads" / f"{sid}.mp4"
+                save_to.parent.mkdir(parents=True, exist_ok=True)
+                rest = list(raw_args)
+                if a.source in rest:
+                    rest.remove(a.source)
+                if "--force" not in rest:
+                    rest.append("--force")  # the failed pack dir already exists
+                print(json.dumps({"status": "manual_download_needed",
+                                  "source_type": src_type, "url": a.source,
+                                  "submission_id": sid, "reason": reason,
+                                  "save_to": str(save_to),
+                                  "resume_args": [str(save_to), "--source-url", a.source,
+                                                  "--obtained-via", "manual"] + rest},
+                                 indent=2))
+                log(f"Download failed ({src_type}): {reason}. Download the video manually, "
+                    f"save it as {save_to}, then re-run with the resume_args printed on stdout.")
                 log(str(exc)[-400:])
                 return 3
             meta["download"] = {"status": "ok", "error": None}
             meta["youtube"] = {k: info.get(k) for k in YT_FIELDS}
         else:
             video = Path(a.source).resolve()
-            if a.source_url:
-                meta["source"]["url"] = a.source_url
+            if a.source_url and src_type == "youtube":
                 try:
                     info = fetch_info(a.source_url, a.cookies_from_browser)
                     meta["youtube"] = {k: info.get(k) for k in YT_FIELDS}
@@ -602,6 +672,8 @@ def main(argv=None):
                     meta["download"]["error"] = "metadata fetch failed: " + str(exc)[-300:]
                     warnings.append("--source-url metadata unavailable (title/description "
                                     "not fetched); description criteria need human review")
+            elif a.source_url:
+                meta["source"]["metadata"] = f"not available for {src_type}"
 
         try:
             meta["probe"] = probe(video)

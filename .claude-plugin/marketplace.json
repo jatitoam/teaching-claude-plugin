@@ -4,7 +4,7 @@
     "name": "jatitoam"
   },
   "description": "Claude plugins for teaching and academic workflows",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "plugins": [
     {
       "name": "course-factory",
@@ -17,7 +17,7 @@
       "name": "evaluation-rubrics",
       "source": "./plugins/evaluation-rubrics",
       "description": "Create grading rubrics and evaluate student submissions, including video deliverables",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "category": "education"
     },
     {

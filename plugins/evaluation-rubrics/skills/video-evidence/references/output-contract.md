@@ -28,7 +28,7 @@ any shape below bumps it (and the plugin's MAJOR version once released to other 
 | Field | Meaning |
 |---|---|
 | `contract`, `generated_at`, `submission_id` | identity |
-| `source.kind` / `.url` / `.path` | `url` or `file` |
+| `source` | `{kind: url\|file, type: youtube\|gdrive\|canva\|other-url\|local, url, path, obtained_via: yt-dlp\|local\|manual\|connector, metadata?}` — `type` is the ORIGINAL source's type (a local file with `--source-url` takes the URL's type); `metadata: "not available for <type>"` for non-YouTube URLs |
 | `youtube` | `{id, title, description, uploader, channel, upload_date, availability, webpage_url}` or `null` |
 | `download` | `{status: ok\|failed\|skipped, error}` |
 | `probe` | `{duration_s (ffprobe exact), duration_mmss, width, height, fps, has_audio, codec}` |
@@ -38,6 +38,24 @@ any shape below bumps it (and the plugin's MAJOR version once released to other 
 | `watch` | `{kind: "youtube", id, template: "https://youtu.be/<id>?t={s}"}` (YouTube URL, or local file + `--source-url`) · `{kind: "file", path}` · `{kind: "url", url}` (non-YouTube URL) |
 | `flags.over_max_duration` | `true`/`false`, `null` without `--max-duration` |
 | `video_kept`, `tool_versions` | hygiene / reproducibility |
+
+## Exit 3 — manual download needed (stdout JSON)
+
+When a URL can't be fetched (yt-dlp is tried for every URL), the script never prompts anyone: it
+exits **3** and prints one JSON object on stdout (human explanation on stderr; `metadata.json`
+is still written with `download.status: "failed"`):
+
+```json
+{"status": "manual_download_needed", "source_type": "gdrive",
+ "url": "https://drive.google.com/file/d/<id>/view", "submission_id": "grupo3",
+ "reason": "yt-dlp: HTTP 403 (domain-restricted)",
+ "save_to": "<out>/_downloads/grupo3.mp4",
+ "resume_args": ["<out>/_downloads/grupo3.mp4", "--source-url", "<url>", "--obtained-via", "manual",
+                 "--out", "<out>", "--id", "grupo3", "--rubric", "<rubric>", "--force"]}
+```
+
+`reason` ∈ bot check (sign in to confirm) · private video · HTTP 429 (rate limited) · HTTP 403
+(domain-restricted) · unsupported URL · HTTP 404 (not found) · last stderr line.
 
 ## frames.json
 

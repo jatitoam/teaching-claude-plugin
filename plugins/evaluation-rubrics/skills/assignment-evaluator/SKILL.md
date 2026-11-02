@@ -62,6 +62,14 @@ the **judge**; `video-evidence` (same plugin) only captures, indexes and selects
 1. **Evidence.** Run `video-evidence` Steps 0–3 with `--out <output_dir>/evidence/ --id <slug>
    --rubric <rubric JSON, else xlsx>` (+ `--max-duration` / `--lang` when the brief implies them).
    Preflight fails → stop and point the user to `/evaluation-rubrics:install-video-deps`.
+   **You coordinate sources.** If capture exits **3** (`manual_download_needed` JSON on stdout),
+   ask the instructor — one message per batch, listing for each submission: the student/group,
+   the original URL, the reason, and the exact `save_to` path to save the file to. Optionally,
+   if this session has an authenticated connector that can export the file (e.g. Canva →
+   export MP4), use it instead and pass `--obtained-via connector`. Then resume with the JSON's
+   `resume_args`. Never guess a source or skip a submission silently.
+   Late-delivery and similar items that no video can show (submission timestamps) go straight
+   to REVIEW_REQUIRED with reason "outside the video" — don't spend evidence work on them.
    Model tiers are fixed: capture = script, index = Haiku, select = Sonnet, judge = you (the lead;
    or one Sonnet per video when you delegate judging of many submissions — keep borderline items).
 2. **Judge from `evidence-map.json`.** For each item read its candidates and `coverage`, open
