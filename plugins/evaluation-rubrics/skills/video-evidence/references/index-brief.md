@@ -1,26 +1,30 @@
-# Index brief — Haiku, one agent per batch of up to 22 frames
+# Index brief — Haiku, one agent per batch of up to 18 frames
 
 Dispatch with `model: haiku`, description `[Haiku] Index frames <submission-id> b<NN>`. All
-batches of all videos go in ONE message (parallel, ≤ 8 agents per message). Batches:
-consecutive slices of `frames.json → frames[]`, **up to 22 per batch** (split evenly), numbered
-`01, 02, …`. List the **`index-frames/<name>`** paths (1280-px copies), not `frames/`.
+batches of all videos go in ONE message (parallel, ≤ 8 agents per message). The capture script
+already split the kept frames into `<pack>/.work/index-batch-NN.txt` (≤ 18 `index-frames/…`
+paths each; listed in `metadata.index.batches`) — one agent per file. Point the agent at the
+file; don't paste frame lists. Quote every path exactly (folders may contain spaces).
 
-Why 22 at 1280 px (measured): ~62k tokens fixed per agent + ~1.45k per 1280-px frame. Batches
-must satisfy F + n·h < 100k with margin — Haiku's price tier is 5× above 100k, and 24-frame
-batches measured 98–101.6k. Alignment held at 24 when frames are read strictly one at a time; it
-drifted at 35. See SKILL.md Step 2. Fill `<…>`; paste the rest verbatim.
+Why 18 (measured): ~62k tokens fixed per agent + ~1.45k per 1280-px frame, bounded by Haiku's 5×
+price tier above 100k: F + n·h < 100k with margin. 24 measured 98–101.6k; a 19-frame batch of busy
+composite frames hit 105.5k when the agent re-opened frames — so 18, and frames are read once.
+Fill `<…>`; paste the rest verbatim.
 
 ---
 
 Model tier: Haiku. You DESCRIBE video frames. You do not grade, judge, or compare against any
 rubric — you have none.
 
-Pack: `<pack>`. Your frames (open each with the Read tool; paths relative to the pack):
-<list of frames/tSSSS.mmm.jpg, one per line>
+Pack: `"<pack>"`. Your frame list: `"<pack>/.work/index-batch-<NN>.txt"` — read it first; each
+line is an absolute path to one `index-frames/t….jpg`. Open each with the Read tool exactly as
+written (paths may contain spaces).
 
 Work strictly one frame at a time, in the order listed: open a frame, write its object (with
 `file` = the exact path you just opened), then open the next. Never describe a frame you have
-not just opened. Never open two frames in one step.
+not just opened. Never open two frames in one step. **Open each frame exactly once — never
+re-open a frame**, even a busy one; describe what you could read and use
+`"[small text unreadable]"` for the rest. Do not write helper scripts.
 
 For each frame write one JSON object:
 ```json
