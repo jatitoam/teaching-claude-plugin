@@ -98,6 +98,19 @@ publishing:
     title: "Examen Parcial {n}"      # banner text; {n} = partial number
     pages: 2                         # exact page count every version must fit
     body_pt: 10                      # Normal-style font size
+  practical_print:                   # print layout applied AUTOMATICALLY by `practical-exam` (via
+                                     # the `practical-exam-print-format` skill) to every published
+                                     # statement Doc. Present iff practical-exam is enabled.
+    base_doc: ""                     # Doc ID (not URL) of a practical-exam statement formatted by
+                                     # hand (Title/Subtitle banners, headings, tables with a coloured
+                                     # header row). Colours/fonts are READ from it, not configured.
+                                     # Asked at bootstrap; "" = the format step is skipped.
+    rubric_table_pt: 9               # rubric and penalty tables
+    table_pt: 11                     # every other table
+    url_pt: 16                       # printed addresses (centred, bold, black, unlinked)
+    rubric_cols_cm: [4.1, 10.7, 1.8] # criterion · description · points
+    penalty_cols_cm: [4.8, 9.1, 2.5]
+    strip_scheme: true               # print "host/path" instead of "https://host/path"
 
 naming:
   session_prefix: "S"                # S01, S02, … (two digits)

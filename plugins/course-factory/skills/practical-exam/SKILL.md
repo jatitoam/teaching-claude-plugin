@@ -66,13 +66,39 @@ Opus calibrates and judges whether the difficulty is right.
       complements (does not overlap) the sibling concept-check exam.
 - [ ] AI-use constraints stated per the course's AI-use policy in its sources/PROTOCOL.
 
+## Publication (this skill owns its pipeline end-to-end)
+
+After the **human validates** the `.md`:
+
+- **Publish** each student-facing statement (one Doc per case/version when the exam has several)
+  via the `publish-google-doc` engine, into the exams Drive subfolder per
+  `publishing.drive.subfolders`. Rubric keys and conductor notes are never published for students.
+  Record every Doc ID in the handover together with the `.md` it was published from.
+- **Print format (last step — AUTOMATIC, do not ask):** read `course.yaml →
+  publishing.practical_print.base_doc` (the sample practical exam the conductor provided at
+  bootstrap).
+  - **Non-empty →** right after publishing, run the `practical-exam-print-format` skill on **each
+    published statement Doc**, without asking the conductor (brief each agent with the Doc ID, the
+    exact per-Doc `.md` it was published from, and that skill's folder path): one Sonnet agent per Doc,
+    **sequentially** (they share the browser), each verified by you per that skill's §Orchestrator
+    verification (text fingerprint against its source `.md`, plus the Title-space and last-page
+    checks the export cannot show) before launching the next. Record in the handover that each Doc
+    is print-ready (or what failed). If a run reports «base_doc is not a formatted practical-exam
+    sample», **stop the remaining runs** — the same base would fail every Doc — and report it.
+  - **Empty or absent →** skip it, and say so in the closing summary in one line («print format
+    skipped: no sample practical exam was provided at bootstrap — add
+    `publishing.practical_print.base_doc` to enable it»). Never invent or pick a base Doc yourself.
+- **If a statement is republished later**, its formatting is lost: run the print format again on
+  the new Doc and ask the conductor to trash the old one.
+
 ## Close
 
 1. Write the `.md` and self-audit against the acceptance criteria.
 2. **Human gate (md-first):** the conductor validates the `.md`. *(End the turn with a summary;
    do not publish until the green light.)*
 3. **Publish** via the `publish-google-doc` engine (into the exams Drive subfolder per
-   `publishing.drive.subfolders`).
+   `publishing.drive.subfolders`). Then, automatically, apply **`practical-exam-print-format`** to
+   each statement Doc when `publishing.practical_print.base_doc` is set (see §Publication).
 4. **Update the handover** (check the practical-exam box; note the Doc link), **add lessons** to
    `shared-context.md` (tier calibration, calibration traps), **record decisions** in
    `<folders.sources>/<sources.decisions>` if any were made, and **emit the closing block** per

@@ -12,7 +12,7 @@ plugins:
       + PDF), labs, exams, homework, readings, project deliveries, presentation
       guides, Miro boards, and Google Doc publishing. Course specifics live in
       the course folder's course.yaml, read at runtime.
-    version: 1.9.0
+    version: 1.10.0
     skills:
       - course-bootstrap
       - session-planning
@@ -24,6 +24,7 @@ plugins:
       - exam
       - exam-print-format
       - practical-exam
+      - practical-exam-print-format
       - homework
       - readings
       - project-delivery
