@@ -200,6 +200,26 @@ top-left** (out of the way), and there are **clear empty zones for the student t
 (sticky notes, nodes, frames). The frame size adapts to the pattern. These three are proven;
 **Opus may propose others** (timeline, 2×2 matrix, column table, ranking, empathy map, etc.).
 
+**A · Table / colored zones + sticky notes** *(analyze, classify, answer defined fields)*
+- Frame divided into colored cells (one per question/field) covering it; instruction text
+  top-left (light text on color); empty sticky notes (1–2 per zone) to answer in. REST: `shapes`
+  (cells) + `sticky_notes`, all with `parent.id`=frame.
+
+**B · Mind map** *(brainstorming, decomposing a concept into branches)*
+- A central node with the concept (pill/rounded rectangle, colored border) + branches with EMPTY
+  child nodes for the student to fill. REST: nodes = `shapes` `round_rectangle` + `connectors`
+  joining central→branches→children. Instructions top-left of the frame. Frame large and square
+  (more breathing room than pattern A).
+
+**C · Screenshots / work in an external tool** *(any tool outside Miro)*
+- 1–2 empty frames (bordered rectangles, white background) where the student pastes their
+  screenshot from the external tool, with a label below stating what goes in each. REST: `shapes`
+  (frames) + `shapes`/text for labels. Frame landscape-oriented.
+
+> Detailed instructions for the exercise live on the exercise's slide/spec; the board carries
+> only the minimal scaffolding to work in. Choose the pattern per what the exercise spec asks
+> for.
+
 ### The consigna repeats INSIDE each work zone — MANDATORY
 
 The instructions band top-left is **not the only place the consigna lives**. **Every work zone
@@ -247,26 +267,6 @@ work) must state, on the canvas itself, both of the following:
 This text lives in the same read-only element as the rest of the case/instructions for that zone
 (top-level instructions band, or the per-variant element in `items_by_col` when the exercise has
 variants) — never left implicit or assumed obvious.
-
-**A · Table / colored zones + sticky notes** *(analyze, classify, answer defined fields)*
-- Frame divided into colored cells (one per question/field) covering it; instruction text
-  top-left (light text on color); empty sticky notes (1–2 per zone) to answer in. REST: `shapes`
-  (cells) + `sticky_notes`, all with `parent.id`=frame.
-
-**B · Mind map** *(brainstorming, decomposing a concept into branches)*
-- A central node with the concept (pill/rounded rectangle, colored border) + branches with EMPTY
-  child nodes for the student to fill. REST: nodes = `shapes` `round_rectangle` + `connectors`
-  joining central→branches→children. Instructions top-left of the frame. Frame large and square
-  (more breathing room than pattern A).
-
-**C · Screenshots / work in an external tool** *(any tool outside Miro)*
-- 1–2 empty frames (bordered rectangles, white background) where the student pastes their
-  screenshot from the external tool, with a label below stating what goes in each. REST: `shapes`
-  (frames) + `shapes`/text for labels. Frame landscape-oriented.
-
-> Detailed instructions for the exercise live on the exercise's slide/spec; the board carries
-> only the minimal scaffolding to work in. Choose the pattern per what the exercise spec asks
-> for.
 
 ## Two conductor gates (harness rule — respect them)
 
