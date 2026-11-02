@@ -24,7 +24,7 @@ Scripts: `${CLAUDE_PLUGIN_ROOT}/skills/video-evidence/scripts/` (below: `$S`).
 | Stage | Who | Output |
 |---|---|---|
 | 1. Capture | script, no model | metadata, frames (deduped), contact sheets, transcript, evidence-map skeleton |
-| 2. Index | **Haiku**, one per ≤ 16 frames | `frames-index.json` — describes frames, never judges |
+| 2. Index | **Haiku**, one per ≤ 24 frames (1280-px copies) | `frames-index.json` — describes frames, never judges |
 | 3. Select | **Sonnet**, one per video | `evidence-map.json` — candidate windows per criterion, no verdicts |
 | 4. Judge | assignment-evaluator (lead, or a delegated Sonnet) | `verdicts.json`, `review.md`, row JSON |
 
@@ -75,16 +75,30 @@ python3 "$S/video_evidence.py" <url-or-path> --out <out_dir> --id <slug> \
 
 ## Step 2 — Index (Haiku)
 
-Split each pack's `frames.json → frames[]` into even batches of ≤ 16 and dispatch one Haiku agent
-per batch with `references/index-brief.md` (`model: haiku`, description
-`[Haiku] Index frames <id> b<NN>`) — every batch of every video in one message. Then:
+Check `metadata.index.recommended` (also in the capture summary):
 
-```bash
-python3 "$S/merge_index.py" <pack>
-```
+- `"skip"` → no index; the Sonnet selector opens every frame itself (Step 3 handles it).
+- `"haiku"` → split `frames.json → frames[]` into even batches of **≤ 24** and dispatch one Haiku
+  agent per batch with `references/index-brief.md` (`model: haiku`, description
+  `[Haiku] Index frames <id> b<NN>`), ≤ 8 agents per message. Haiku reads the 1280-px copies in
+  `index-frames/`; selector and judge keep the full-res `frames/`.
 
-Exit 1 lists frames no batch described → re-dispatch just those. Haiku describes; it never
-decides small-text questions (name vs code etc.) — the selector and judge open the frames.
+Then `python3 "$S/merge_index.py" <pack>`; exit 1 lists frames no batch described → re-dispatch
+just those. Haiku describes; it never decides small-text questions — the selector and judge do.
+
+**When to skip (break-even, `--index-min-frames`, default 2).** Indexing N kept frames costs
+`(F + h·N)·pH`; letting the Sonnet selector read them directly costs `s·N·pS`. Skip iff
+`N ≤ N* = F·pH / (s·pS − h·pH)`. Measured / current values (2026-11): F = 62k tokens fixed per
+Haiku agent, h = 1.45k per 1280-px frame, s = 1.8k per full-res frame for Sonnet, pH = $0.10/MTok
+(Haiku 5.5, prompts ≤ 100k), pS = $2.00/MTok (Sonnet 5.5) → **N\* = 6.2 / 3.455 ≈ 1.8 frames**, so
+index from 2 kept frames: in practice only a clip of a few seconds (first + last frame) skips.
+Re-derive when prices change. Haiku is 20× cheaper per token, so its fixed overhead is repaid
+almost immediately; the index also keeps the selector's context small on long videos.
+
+**Why 24 frames at 1280 px.** Haiku 5.5 bills prompts over 100k tokens at 5× ($0.50/MTok). A batch
+reaches F + 24·h ≈ 97k — just under the cliff (measured 98–101.6k). At 1080p (h ≈ 3k) the same
+cliff caps batches at ~12. Alignment held at 24 one-frame-at-a-time (checked on a 104-frame
+video); it drifted at 35 frames per agent.
 
 ## Step 3 — Select (Sonnet) — only with a rubric
 

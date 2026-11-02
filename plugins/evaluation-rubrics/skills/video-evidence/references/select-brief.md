@@ -14,11 +14,16 @@ Write only `<pack>/evidence-map.json`.
 1. Read `metadata.json` (youtube title/description, `probe.duration_s`, `frames.max_gap_s`,
    `transcript.sparse`, flags), `frames-index.json` (Haiku descriptions of every kept frame;
    a frame covers the screen until `static_until_mmss`), `transcript.json`, and `evidence-map.json`.
+   If there is no `frames-index.json` (`metadata.index.recommended` was "skip" — a very short
+   video), open every frame in `frames.json` yourself instead; there are only a few.
 2. For each item (criterion or penalty), find where in the video it can be judged. Use the index
    and transcript to locate candidates, then **open the candidate frames at full resolution**
    yourself — index descriptions are leads, not facts (Haiku may misread small text).
-3. Fill `candidates`: `{from, to, frames, quotes:[{t, text}], metadata_fields, why}` — `from/to` in
-   seconds, `why` one line saying what the judge should look at. Prefer 1–3 strong candidates
+3. Fill `candidates`: `{from, to, frames, quotes:[{t, text}], on_screen:[{t, text, frame}],
+   metadata_fields, why}` — `from/to` in seconds, `why` one line saying what the judge should look
+   at. `quotes` = spoken words from `transcript.json` only; `on_screen` = text read on a frame
+   (slides, text boxes, captions, overlays), verbatim, with the frame you read it on. Never put
+   on-screen text in `why`. Prefer 1–3 strong candidates
    over many weak ones. Include contrary evidence too (a frame that might show the requirement
    NOT met) — the judge needs both sides.
 4. Metadata items (duration, title, description, first frame = cover) cite `metadata_fields`

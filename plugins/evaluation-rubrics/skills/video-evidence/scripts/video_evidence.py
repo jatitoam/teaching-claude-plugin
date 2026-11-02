@@ -402,6 +402,26 @@ def dedupe_frames(frames, pack, ffmpeg, threshold, tile_threshold, mask_live=Fal
 
 # ---------------------------------------------------------------- contact sheet
 
+def make_index_frames(pack, frames, width, ffmpeg, min_frames, workers=6):
+    """Downscaled copy of every kept frame in index-frames/ (cheap-model reading).
+
+    Returns the metadata.index block. width 0 disables (and removes a stale dir).
+    """
+    idir = pack / "index-frames"
+    shutil.rmtree(idir, ignore_errors=True)
+    rec = "haiku" if len(frames) >= min_frames else "skip"
+    if not width:
+        return {"width": 0, "dir": None, "recommended": rec}
+    idir.mkdir()
+
+    def one(f):
+        run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", pack / f["file"],
+             "-vf", f"scale='min(iw,{width})':-2", "-q:v", "3", idir / Path(f["file"]).name])
+    with ThreadPoolExecutor(workers) as ex:
+        list(ex.map(one, frames))
+    return {"width": width, "dir": "index-frames", "recommended": rec}
+
+
 def make_contact_sheets(pack, frames, work, has_drawtext):
     sheets = []
     chunks = [frames[i:i + MAX_PER_SHEET] for i in range(0, len(frames), MAX_PER_SHEET)]
@@ -525,8 +545,20 @@ def build_parser():
     ap = argparse.ArgumentParser(
         description="Build an evidence pack (frames, transcript, metadata) from a video.",
         epilog=EPILOG, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("source", metavar="SOURCE", help="http(s) URL or local video file")
-    ap.add_argument("--out", required=True, metavar="OUT_DIR")
+    ap.add_argument("source", metavar="SOURCE", nargs="?",
+                    help="http(s) URL or local video file")
+    ap.add_argument("--out", metavar="OUT_DIR", help="required unless --frames-only")
+    ap.add_argument("--index-width", type=int, default=1280, metavar="PX",
+                    help="write index-frames/ copies of kept frames at this max width "
+                         "(default 1280; 0 disables)")
+    # Break-even (SKILL.md "Step 2"): Haiku index pays off from N* = F*pH/(s*pS - h*pH)
+    # = 62k*0.10/(1.8k*2.00 - 1.45k*0.10) = 1.79 kept frames -> index from 2.
+    ap.add_argument("--index-min-frames", type=int, default=2, metavar="N",
+                    help="metadata.index.recommended = haiku if kept frames >= N else skip "
+                         "(default 2: break-even, see SKILL.md Step 2)")
+    ap.add_argument("--frames-only", metavar="PACK",
+                    help="regenerate index-frames/ for an existing pack from its frames/ "
+                         "(no download/probe/transcribe), update metadata.index, exit")
     ap.add_argument("--id", dest="sid", metavar="SUBMISSION_ID")
     ap.add_argument("--rubric", metavar="RUBRIC.json|.xlsx")
     ap.add_argument("--interval", type=float, default=5.0)
@@ -562,11 +594,37 @@ def build_parser():
     return ap
 
 
+def frames_only(pack, a):
+    try:
+        frames = json.loads((pack / "frames.json").read_text(encoding="utf-8"))["frames"]
+        meta = json.loads((pack / "metadata.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError, KeyError) as exc:
+        log(f"error: not a usable pack: {pack} ({exc})")
+        return 4
+    ffmpeg = preflight.find_tool("ffmpeg")
+    if not ffmpeg:
+        log("error: ffmpeg not found")
+        return 2
+    missing = [f["file"] for f in frames if not (pack / f["file"]).is_file()]
+    if missing:
+        log(f"error: {len(missing)} kept frames missing from frames/ (first: {missing[0]})")
+        return 4
+    meta["index"] = make_index_frames(pack, frames, a.index_width, ffmpeg, a.index_min_frames)
+    write_json(pack / "metadata.json", meta)
+    print(json.dumps({"pack": str(pack), "index": meta["index"], "kept_frames": len(frames)},
+                     indent=2))
+    return 0
+
+
 def main(argv=None):
     global FFMPEG
     parser = build_parser()
     a = parser.parse_args(argv)
     raw_args = list(sys.argv[1:] if argv is None else argv)
+    if a.frames_only:
+        return frames_only(Path(a.frames_only).expanduser().resolve(), a)
+    if not a.source or not a.out:
+        parser.error("SOURCE and --out are required (unless --frames-only)")
     is_url = re.match(r"https?://", a.source) is not None
     if not is_url and not Path(a.source).is_file():
         log(f"error: file not found: {a.source}")
@@ -625,7 +683,7 @@ def main(argv=None):
                            "threshold": a.dedupe_threshold,
                            "tile_threshold": a.dedupe_tile_threshold},
                        "lang": a.lang, "max_duration": a.max_duration},
-            "frames": None,
+            "frames": None, "index": None,
             "transcript": {"status": "skipped", "engine": None, "model": None,
                            "language": None, "error": None},
             "flags": {"over_max_duration": None}, "video_kept": None,
@@ -721,6 +779,8 @@ def main(argv=None):
                               "dropped_duplicates": dropped, "max_gap_s": max_gap,
                               "live_tiles": dd_info and dd_info["live_tiles"],
                               "masked": bool(dd_info and dd_info["masked"])}
+            meta["index"] = make_index_frames(pack, frames, a.index_width, FFMPEG,
+                                              a.index_min_frames)
             sheets = make_contact_sheets(pack, frames, work,
                                          pf["tools"]["ffmpeg"].get("drawtext", False))
             write_json(pack / "contact-sheet.json", {"sheets": sheets})
@@ -775,7 +835,8 @@ def main(argv=None):
         summary = {"pack": str(pack), "submission_id": sid,
                    "duration": meta["probe"]["duration_mmss"],
                    "duration_s": meta["probe"]["duration_s"],
-                   "frames": meta["frames"], "contact_sheets": [s["sheet"] for s in sheets],
+                   "frames": meta["frames"], "index": meta["index"],
+                   "contact_sheets": [s["sheet"] for s in sheets],
                    "transcript": meta["transcript"]["status"],
                    "evidence_map": (pack / "evidence-map.json").exists(),
                    "flags": meta["flags"], "warnings": warnings}

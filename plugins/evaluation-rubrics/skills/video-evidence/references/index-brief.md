@@ -1,14 +1,13 @@
-# Index brief — Haiku, one agent per batch of up to 16 frames
+# Index brief — Haiku, one agent per batch of up to 24 frames
 
 Dispatch with `model: haiku`, description `[Haiku] Index frames <submission-id> b<NN>`. All
 batches of all videos go in ONE message (parallel, ≤ 8 agents per message). Batches:
-consecutive slices of `frames.json → frames[]`, **up to 16 per batch** (split evenly), numbered
-`01, 02, …`.
+consecutive slices of `frames.json → frames[]`, **up to 24 per batch** (split evenly), numbered
+`01, 02, …`. List the **`index-frames/<name>`** paths (1280-px copies), not `frames/`.
 
-Why 16 (measured): each agent costs ~62k tokens of fixed overhead + ~1.5–5k per frame
-(1280 px → 1080p). Bigger batches are cheaper, but at 35 frames per agent Haiku's descriptions
-drifted one frame out of alignment over a stretch (frame N described with N+1's content);
-12-frame batches stayed aligned. 16 keeps alignment with less overhead than 12. Fill `<…>`; paste the rest verbatim.
+Why 24 at 1280 px (measured): ~62k tokens fixed per agent + ~1.45k per 1280-px frame, so a
+24-frame batch stays just under Haiku's 100k-token price cliff (5× above it). Alignment held at
+24 when frames are read strictly one at a time; it drifted at 35. See SKILL.md Step 2. Fill `<…>`; paste the rest verbatim.
 
 ---
 
@@ -20,11 +19,11 @@ Pack: `<pack>`. Your frames (open each with the Read tool; paths relative to the
 
 Work strictly one frame at a time, in the order listed: open a frame, write its object (with
 `file` = the exact path you just opened), then open the next. Never describe a frame you have
-not just opened.
+not just opened. Never open two frames in one step.
 
 For each frame write one JSON object:
 ```json
-{"file": "frames/t0065.000.jpg",
+{"file": "index-frames/t0065.000.jpg",
  "app": "Power BI Desktop",
  "screen": "report view with a bar chart",
  "headings": ["Country wise sales"],

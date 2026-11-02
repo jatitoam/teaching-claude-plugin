@@ -4,7 +4,8 @@
     finalize_pack.py <pack_dir> [--strict]
 
 Checks: contract is video-evidence/2; every item has >=1 candidate or a non-empty
-`coverage`; every candidate has `why`, from <= to, existing frame files, quotes inside the
+`coverage`; every candidate has `why`, from <= to, existing frame files, quotes and
+on_screen entries ({t, text, frame}; t within the video) inside the
 transcript range, resolvable `metadata_fields`. Fills/overwrites `watch` on every
 candidate (from `from`) and fills missing from_mmss/to_mmss/quote mmss. Sets
 status SELECTED when there are no errors. --strict promotes warnings to errors.
@@ -85,8 +86,9 @@ def finalize(pack, strict=False):
                 warnings.append(f"{tag}: to ({t}) beyond video duration ({dur})")
             if not str(c.get("why") or "").strip():
                 errors.append(f"{tag}: missing why")
-            if not (c.get("frames") or c.get("quotes") or c.get("metadata_fields")):
-                warnings.append(f"{tag}: cites no frames, quotes or metadata fields")
+            if not (c.get("frames") or c.get("quotes") or c.get("metadata_fields")
+                    or c.get("on_screen")):
+                warnings.append(f"{tag}: cites no frames, quotes, on_screen text or metadata fields")
             for fr in c.get("frames") or []:
                 if not (pack / fr).is_file():
                     errors.append(f"{tag}: frame not found: {fr}")
@@ -100,6 +102,20 @@ def finalize(pack, strict=False):
                 elif qt < 0 or qt > t_end + TOL:
                     errors.append(f"{tag}: quote t={qt} outside transcript range 0-{t_end}")
                 q.setdefault("mmss", mmss(qt))
+            c.setdefault("frames", [])
+            c.setdefault("quotes", [])
+            c.setdefault("metadata_fields", [])
+            c["on_screen"] = c.get("on_screen") or []
+            for k, o in enumerate(c["on_screen"], 1):
+                ot = o.get("t")
+                if not is_num(ot) or ot < 0 or (dur and ot > dur + TOL):
+                    errors.append(f"{tag}: on_screen {k} t={ot!r} outside 0-{dur}")
+                else:
+                    o.setdefault("mmss", mmss(ot))
+                if not str(o.get("text") or "").strip():
+                    errors.append(f"{tag}: on_screen {k} has empty text")
+                if not o.get("frame") or not (pack / o["frame"]).is_file():
+                    errors.append(f"{tag}: on_screen {k} frame not found: {o.get('frame')}")
             for mf in c.get("metadata_fields") or []:
                 if not resolve(meta, mf):
                     warnings.append(f"{tag}: metadata field {mf!r} absent or null")

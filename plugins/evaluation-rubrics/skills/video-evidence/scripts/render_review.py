@@ -6,7 +6,7 @@
 verdicts.json::
   {"submission_id":..,"items":[{"id","criterion","kind":"criterion|penalty",
      "verdict":"Meets Expectations|Partially Meets|Does Not Meet|REVIEW_REQUIRED|met|partial|not_met",
-     "note", "cites":[{"t","frame"|null,"quote"|null,"metadata_field"|null}],
+     "note", "cites":[{"t","frame"|null,"quote"|null,"on_screen"|null,"metadata_field"|null}],
      "review_required":[{"from","to","reason"}]}],
    "key_moments":[{"t","frame","label"}]}
 
@@ -54,8 +54,12 @@ def validate(pack, v):
         for i, c in enumerate(cites, 1):
             if not is_num(c.get("t")):
                 errs.append(f"{iid}/cite {i}: numeric t required")
-            if not (c.get("frame") or c.get("quote") or c.get("metadata_field")):
-                errs.append(f"{iid}/cite {i}: needs frame, quote or metadata_field")
+            if not (c.get("frame") or c.get("quote") or c.get("metadata_field")
+                    or c.get("on_screen")):
+                errs.append(f"{iid}/cite {i}: needs frame, quote, on_screen or metadata_field")
+            if "on_screen" in c and c["on_screen"] is not None \
+                    and not str(c["on_screen"]).strip():
+                errs.append(f"{iid}/cite {i}: on_screen text is empty")
             if c.get("frame") and not (pack / c["frame"]).is_file():
                 errs.append(f"{iid}/cite {i}: frame not found: {c['frame']}")
         for i, w in enumerate(wins, 1):
@@ -155,6 +159,8 @@ def render(pack, meta, v, frames):
             bits = []
             if c.get("quote"):
                 bits.append(f'"{c["quote"]}"')
+            if c.get("on_screen"):
+                bits.append(f"screen: \u201c{c['on_screen']}\u201d")
             if c.get("metadata_field"):
                 bits.append(f"metadata: {c['metadata_field']}")
             if c.get("frame"):

@@ -15,6 +15,8 @@ def main():
     entries = {}
     for batch in sorted((pack / "frames-index").glob("batch-*.json")):
         for e in json.loads(batch.read_text()):
+            if e["file"].startswith("index-frames/"):   # indexers read the 1280 px copies
+                e = dict(e, file="frames/" + e["file"].split("/", 1)[1])
             entries[e["file"]] = e
     want = [f["file"] for f in frames]
     missing = [f for f in want if f not in entries]

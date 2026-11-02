@@ -15,6 +15,7 @@ any shape below bumps it (and the plugin's MAJOR version once released to other 
 ├── contact-sheet.jpg       # capture — contact-sheet-01.jpg, -02.jpg … when > 60 frames
 ├── contact-sheet.json      # capture — every sheet, cell (row, col) → file, t, mmss
 ├── transcript.json/.srt    # capture — unless --no-transcribe, no audio, or failure
+├── index-frames/t….jpg     # capture — 1280-px copies of kept frames, read by the Haiku index
 ├── frames-index/batch-NN.json  # index (Haiku), merged by merge_index.py into ↓
 ├── frames-index.json       # index
 ├── evidence-map.json       # skeleton (script, with --rubric) → filled by select (Sonnet) → finalize_pack.py
@@ -35,6 +36,7 @@ any shape below bumps it (and the plugin's MAJOR version once released to other 
 | `params` | tunables used |
 | `frames` | `{count (kept), extracted, dropped_duplicates, max_gap_s}` — `max_gap_s` is the sampling gap between extracted frames, incl. the tail |
 | `transcript` | `{status: ok\|failed\|skipped\|no_audio, engine, model, language, segments, error, words_per_min, sparse, dropped_artifacts, dropped_samples[{start, text, reason: past_end\|repeat_loop}]}` — `sparse` (< 30 words/min) = music/no narration, text may be hallucinated |
+| `index` | `{width: 1280, dir: "index-frames", recommended: "haiku"\|"skip"}` — 1280-px copies for the Haiku index (`--index-width`, 0 disables); `recommended` from `--index-min-frames` (SKILL.md Step 2) |
 | `watch` | `{kind: "youtube", id, template: "https://youtu.be/<id>?t={s}"}` (YouTube URL, or local file + `--source-url`) · `{kind: "file", path}` · `{kind: "url", url}` (non-YouTube URL) |
 | `flags.over_max_duration` | `true`/`false`, `null` without `--max-duration` |
 | `video_kept`, `tool_versions` | hygiene / reproducibility |
@@ -100,6 +102,8 @@ is generated from the same segments.
    "candidates": [
      {"from": 95.0, "to": 140.0, "from_mmss": "01:35", "to_mmss": "02:20",
       "frames": ["frames/t0100.000.jpg"], "quotes": [{"t": 98.2, "mmss": "01:38", "text": "…"}],
+      "on_screen": [{"t": 100.0, "mmss": "01:40", "text": "¿Qué producto vende más?",
+                     "frame": "frames/t0100.000.jpg"}],
       "metadata_fields": [], "why": "Model view with a line between Sales and Products",
       "watch": "https://youtu.be/b-NE9crKYYw?t=92"}],
    "coverage": ""},
@@ -111,7 +115,9 @@ is generated from the same segments.
 
 Status: `PENDING_SELECTION` (skeleton) → `SELECTED` (after `finalize_pack.py` passes). Every
 item has ≥ 1 candidate **or** a `coverage` note (what was searched, and the stretch where it could
-have been missed). Every cited frame exists; every candidate has `why`.
+have been missed). Every cited frame exists; every candidate has `why`. `quotes` are spoken
+(transcript range); `on_screen` is optional verbatim screen text — `t` within the video, `frame`
+must exist (added in 1.7.0, additive: the contract stays `video-evidence/2`).
 
 ## verdicts.json (judge)
 
@@ -121,7 +127,8 @@ have been missed). Every cited frame exists; every candidate has `why`.
             "verdict": "Meets Expectations",
             "note": "…",
             "cites": [{"t": 100.0, "frame": "frames/t0100.000.jpg", "quote": null,
-                       "metadata_field": null, "watch": "https://youtu.be/…?t=97"}],
+                       "on_screen": null, "metadata_field": null,
+                       "watch": "https://youtu.be/…?t=97"}],
             "review_required": [{"from": 220.0, "to": 230.0, "reason": "fast scroll",
                                  "watch": "…"}]}],
  "key_moments": [{"t": 0.0, "frame": "frames/t0000.000.jpg", "label": "cover", "watch": "…"}]}

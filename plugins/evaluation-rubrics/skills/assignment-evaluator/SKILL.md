@@ -87,6 +87,17 @@ the **judge**; `video-evidence` (same plugin) only captures, indexes and selects
      description-based items are REVIEW_REQUIRED.
    - Small-text questions (product name vs code, exact values) are decided only from the
      full-resolution frame — never from the Haiku index.
+   - **Accessibility is not inferred from download failures.** A failed automatic download
+     (yt-dlp 403, bot check, unsupported host) says nothing about whether the instructor can open
+     the link. Never mark an accessibility/"video accesible" item `not_met` on that basis. When
+     `metadata.source.obtained_via` is `manual` or `connector`, the accessibility verdict comes
+     from the instructor's confirmation that they could open the original link with their own
+     account — record it in the note with its source (e.g. "instructor opened the Drive link
+     2026-11-02"); until confirmed, it is REVIEW_REQUIRED. Non-YouTube hosts (Drive, Canva, …) are
+     not a defect in themselves.
+   - On-screen text (`on_screen` in a candidate: slides, text boxes, overlays) is evidence like a
+     transcript quote — cite it as `{"t", "frame", "on_screen": "<verbatim text>"}` after checking
+     it on the frame.
 3. **Write `<pack>/verdicts.json`** (shape in video-evidence `references/output-contract.md`): one
    entry per evidence-map item with `verdict`, `note`, `cites` (t + frame/quote/metadata_field),
    `review_required` windows, plus 5–10 chronological `key_moments` (cover → … → final state).
