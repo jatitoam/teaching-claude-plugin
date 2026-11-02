@@ -48,6 +48,19 @@ Derived automatically:
 Parse the rubric xlsx to extract criteria names and weights (column A and column E, rows 2+).
 This determines the column structure of the grades file.
 
+**Two scoring modes — pick by the rubric, never mix them in one grades file:**
+
+- **Level mode** (default; rubric `.xlsx`): Meets = 100 %, Partially = 60 %, Does Not Meet = 0 of
+  each criterion's weight, summed to 100.
+- **Piece mode** (rubric `.json` with `"scoring": "piezas"`): each criterion is a *piece* with a
+  `code`, fixed `pts` and a fixed partial value `pts_parcial` (a number, or `"50 %"` of `pts`). A
+  group earns only the pieces it delivers; the sum is capped at `cap`, then converted to the
+  grade with `conversion` (a number, `{"divide_by": 100, "multiply_by": 3}`, or the string
+  `MIN(puntos;300)/100*3`). Open pieces whose `pts` is a range (`"10–25"`) need the agreed value
+  per row in `piece_points`. Pass the **JSON** (not the xlsx) to the scripts in this mode.
+  Pieces outside the group's approved plan are **`not_applicable`** — they score 0 and are
+  excluded, never "Does Not Meet".
+
 Rubrics may also carry an **optional penalties block** below the additive table (a bold heading
 row whose text starts with "Penal…", a header row, then one row per penalty with a free-text
 amount like `-15` or `-100%` in column E). `append_grade.py` parses this block separately — note
@@ -190,10 +203,20 @@ corrections before writing the grades file. Do not run Step 5 until the user app
 Once the user confirms the evaluation:
 
 ```bash
-python scripts/append_grade.py <rubric_xlsx> <grades_xlsx> <output_dir>/evaluations/row_<slug>.json
+python scripts/append_grade.py <rubric_xlsx|rubric_json> <grades_xlsx> <output_dir>/evaluations/row_<slug>.json
 ```
 
-The script:
+**Piece mode** (rubric JSON with `"scoring": "piezas"`): the row JSON's `scores` keys may be the
+piece code (`"D8"`), its name, or `"D8 · name"`; values are the three labels or
+`"not_applicable"` (`"N/A"`); pieces not listed count as not_applicable. Add
+`"piece_points": {"O9": 20}` for range pieces. The grades sheet is
+`Name | <code · name> per piece | Puntos | Nota | Observations`: Puntos = Σ pieces − point
+penalties (e.g. −15, partial −6), then capped (a `CAP — puntos 320 → 300` note is added); Nota =
+Puntos × conversion, then percentage penalties (−50 %, −100 %) apply to the Nota. Puntos and
+Nota round half-up to 2 decimals. The script refuses to append a row of one mode into a sheet of
+the other, and errors on unknown piece/penalty names (piece mode is strict on purpose).
+
+The script (level mode):
 - Creates the grades file with the correct header if it doesn't exist yet.
 - Appends the row and calculates the total automatically from rubric weights.
 - Applies any `penalties` from the row JSON against the rubric's penalties block (point

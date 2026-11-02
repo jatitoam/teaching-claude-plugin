@@ -18,11 +18,14 @@ Use this after editing one or more row JSONs to apply corrections and recalculat
 ## Slash command usage
 
 ```
-/build-grades <evaluations_dir> <rubric_xlsx> [<grades_xlsx>]
+/build-grades <evaluations_dir> <rubric_xlsx|rubric_json> [<grades_xlsx>]
 ```
 
 - `<evaluations_dir>` — path to the folder containing `row_*.json` files (required)
-- `<rubric_xlsx>` — path to the rubric xlsx used when the evaluations were created (required)
+- `<rubric_xlsx|rubric_json>` — the rubric used when the evaluations were created (required). Pass the
+  **JSON** for piece-mode rubrics (`"scoring": "piezas"`: fixed points per piece, cap, conversion) —
+  the rebuild then produces exactly the rows `append_grade.py` writes in that mode (see
+  assignment-evaluator Step 2). Level-mode xlsx rubrics behave exactly as before.
 - `<grades_xlsx>` — path for the output grades file (optional; defaults to
   `<evaluations_dir>/../grades_<slug>.xlsx` where `<slug>` is derived from the rubric filename)
 
