@@ -22,6 +22,7 @@ plugins:
       - publish-google-doc
       - lab
       - exam
+      - exam-print-format
       - practical-exam
       - homework
       - readings
