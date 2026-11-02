@@ -3,7 +3,7 @@ name: assignment-evaluator
 description: >
   Evaluates student or group assignment submissions against an existing rubric and records
   results in a cumulative grades .xlsx file. Use this skill when the user provides a student
-  submission (PDF, docx, md, or txt) and a rubric, and wants to score or grade the work. Trigger on phrases
+  submission (PDF, docx, md, txt, or a video — YouTube link or local video file) and a rubric, and wants to score or grade the work. Trigger on phrases
   like: "evaluate this submission", "grade this assignment", "score this lab", "add this
   student to the grades file", "evaluate against the rubric", or any request to assess
   student work using a rubric. Each invocation appends one row to the grades file.
@@ -12,8 +12,8 @@ description: >
 
 # Assignment Evaluator
 
-Reads a student/group PDF submission, scores it against a rubric xlsx, and appends one row
-to a cumulative grades file.
+Reads a student/group submission (document or video), scores it against a rubric xlsx, and
+appends one row to a cumulative grades file.
 
 ## Step 1 — Gather Inputs
 
@@ -22,6 +22,9 @@ Required each time:
    - PDF — read directly; name extracted from cover page.
    - `.docx` — read via the docx skill; name extracted from cover page.
    - `.md` / `.txt` — read as plain text; no cover page expected (see name rules below).
+   - **Video** — a YouTube URL (public/unlisted), a local video file (`.mp4`, `.mov`, `.mkv`,
+     `.webm`, …), or a document whose deliverable is a video link. Graded from an evidence pack;
+     see **Video submissions** below before Step 3.
 2. **Rubric xlsx** — produced by rubric-creator; defines criteria and weights.
 3. **Assignment brief** (PDF or text) — provides context for what was expected.
 
@@ -50,6 +53,70 @@ row whose text starts with "Penal…", a header row, then one row per penalty wi
 amount like `-15` or `-100%` in column E). `append_grade.py` parses this block separately — note
 which penalties exist so you can assess them in Step 3. Rubrics with no penalties block behave
 exactly as before.
+
+## Video submissions
+
+If the submission is, or contains, a video link/file (several links → one pack each), you are
+the **judge**; `video-evidence` (same plugin) only captures, indexes and selects evidence.
+
+1. **Evidence.** Run `video-evidence` Steps 0–3 with `--out <output_dir>/evidence/ --id <slug>
+   --rubric <rubric JSON, else xlsx>` (+ `--max-duration` / `--lang` when the brief implies them).
+   Preflight fails → stop and point the user to `/evaluation-rubrics:install-video-deps`.
+   **You coordinate sources.** If capture exits **3** (`manual_download_needed` JSON on stdout),
+   ask the instructor — one message per batch, listing for each submission: the student/group,
+   the original URL, the reason, and the exact `save_to` path to save the file to. Optionally,
+   if this session has an authenticated connector that can export the file (e.g. Canva →
+   export MP4), use it instead and pass `--obtained-via connector`. Then resume with the JSON's
+   `resume_args`. Never guess a source or skip a submission silently.
+   Late-delivery and similar items that no video can show (submission timestamps) go straight
+   to REVIEW_REQUIRED with reason "outside the video" — don't spend evidence work on them.
+   Model tiers are fixed: capture = script, index = Haiku, select = Sonnet, judge = you (the lead;
+   or one Sonnet per video when you delegate judging of many submissions — keep borderline items).
+2. **Judge from `evidence-map.json`.** For each item read its candidates and `coverage`, open
+   **every cited frame** at full resolution (open more frames if a candidate is ambiguous; follow
+   `static_until` spans), read cited quotes in context in `transcript.json`, and decide the
+   verdict against the rubric's level texts. Rules (non-negotiable):
+   - **Absence of evidence ≠ evidence of absence.** If the requirement could have appeared
+     between sampled frames, during a fast scroll/transition, or the text is unreadable →
+     `REVIEW_REQUIRED` with a `{from, to, reason}` window. Never Does Not Meet / not_met for that.
+   - `Does Not Meet` / `not_met` needs **positive** evidence: a frame showing the wrong thing, a
+     transcript statement, or a metadata fact (e.g. `probe.duration_s` 412 vs a 300 s cap).
+   - `metadata.transcript.sparse` → the transcript is not narration evidence (Whisper invents
+     filler over music); judge narration from frames or flag REVIEW_REQUIRED.
+   - YouTube description not fetched (`youtube` null / `download.status` ≠ `ok`) →
+     description-based items are REVIEW_REQUIRED.
+   - Small-text questions (product name vs code, exact values) are decided only from the
+     full-resolution frame — never from the Haiku index.
+   - **Accessibility is not inferred from download failures.** A failed automatic download
+     (yt-dlp 403, bot check, unsupported host) says nothing about whether the instructor can open
+     the link. Never mark an accessibility/"video accesible" item `not_met` on that basis. When
+     `metadata.source.obtained_via` is `manual` or `connector`, the accessibility verdict comes
+     from the instructor's confirmation that they could open the original link with their own
+     account — record it in the note with its source (e.g. "instructor opened the Drive link
+     2026-11-02"); until confirmed, it is REVIEW_REQUIRED. Non-YouTube hosts (Drive, Canva, …) are
+     not a defect in themselves.
+   - On-screen text (`on_screen` in a candidate: slides, text boxes, overlays) is evidence like a
+     transcript quote — cite it as `{"t", "frame", "on_screen": "<verbatim text>"}` after checking
+     it on the frame.
+3. **Write `<pack>/verdicts.json`** (shape in video-evidence `references/output-contract.md`): one
+   entry per evidence-map item with `verdict`, `note`, `cites` (t + frame/quote/metadata_field),
+   `review_required` windows, plus 5–10 chronological `key_moments` (cover → … → final state).
+   Then render the audit page:
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/skills/video-evidence/scripts/render_review.py" <pack> <pack>/verdicts.json
+   ```
+   It validates citations, adds `watch` links (YouTube `youtu.be/<id>?t=` ~3 s early; local
+   files `mm:ss path`) and writes `<pack>/review.md`: REVIEW_REQUIRED first, then verdicts with
+   watch links and thumbnails, then the key-moments sequence. `review.md` is student data — keep
+   it local, never publish it.
+4. **Step 3 below** maps verdicts 1:1 to score labels / penalty levels. Every Partially Meets /
+   Does Not Meet observation carries the watch link or mm:ss, e.g. "chart at 02:14 shows product
+   codes, not names (https://youtu.be/abc123?t=131)", so the xlsx points to the minute.
+5. **REVIEW_REQUIRED is not a score.** Present those items first at the Step 4 pause (with watch
+   links and the `review.md` path) and get the instructor's call; never convert one yourself. The
+   row JSON and `append_grade.py` accept only the three labels, so nothing is written until every
+   item is resolved. Steps 4–6 are otherwise unchanged; the pack stays as the audit trail and the
+   downloaded video itself is deleted.
 
 ## Step 3 — Evaluate the Submission
 
@@ -114,7 +181,8 @@ Omit `penalties` entirely for penalty-free rubrics (backward compatible).
 Save to `<output_dir>/evaluations/row_<slug>.json`.
 
 **Pause here.** Present the evaluation to the user in chat as a summary table (name, each
-criterion with its score, and any observations). Ask the user to confirm or request
+criterion with its score, and any observations; for videos, REVIEW_REQUIRED items first with
+their watch links, and the path to `review.md`). Ask the user to confirm or request
 corrections before writing the grades file. Do not run Step 5 until the user approves.
 
 ## Step 5 — Append to Grades File

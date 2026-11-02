@@ -40,12 +40,14 @@ plugins:
     display_name: Evaluation Rubrics
     description: >
       Tools for designing analytic grading rubrics and evaluating student
-      or group assignment submissions with cumulative grade tracking.
-    version: 1.3.0
+      or group assignment submissions (documents or videos) with cumulative
+      grade tracking.
+    version: 1.7.2
     skills:
       - rubric-creator
       - assignment-evaluator
       - build-grades
+      - video-evidence
   - id: exam-creator
     path: plugins/exam-creator
     display_name: Exam Creator

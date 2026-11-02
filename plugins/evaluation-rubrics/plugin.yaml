@@ -4,7 +4,9 @@ description: >
   Tools for designing analytic grading rubrics and evaluating student or group
   assignment submissions. Includes rubric generation from assignment descriptions
   and automated scoring against existing rubrics with cumulative grade tracking.
-version: 1.3.0
+  Video submissions (YouTube or local files) are graded from an auditable
+  evidence pack of timestamped frames, transcript, and metadata.
+version: 1.7.2
 skills:
   - id: rubric-creator
     path: skills/rubric-creator
@@ -12,5 +14,9 @@ skills:
     path: skills/assignment-evaluator
   - id: build-grades
     path: skills/build-grades
-commands: []
+  - id: video-evidence
+    path: skills/video-evidence
+commands:
+  - id: install-video-deps
+    path: commands/install-video-deps.md
 mcp_servers: []

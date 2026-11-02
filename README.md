@@ -23,9 +23,16 @@ index.yaml                   # Top-level registry of all plugins
 | Plugin | Description | Skills | Commands | MCP Servers |
 |--------|-------------|--------|----------|-------------|
 | [course-factory](plugins/course-factory) | Course-agnostic harness: bootstrap a per-course harness and produce session plans, examples, exercises, slides, labs, exams, homework, readings, project deliveries, presentation guides, Miro boards, attendance sheets, and Google Doc publications | 21 | — | — |
-| [evaluation-rubrics](plugins/evaluation-rubrics) | Create grading rubrics, evaluate student submissions, and rebuild cumulative grade files | 3 | — | — |
+| [evaluation-rubrics](plugins/evaluation-rubrics) | Create grading rubrics, evaluate student submissions (documents or videos), and rebuild cumulative grade files | 4 | 1 | — |
 | [exam-creator](plugins/exam-creator) | Generate multiple-choice exams from course content, shuffle N versions with answer keys, and export to Google Docs | 3 | — | — |
 | [google-drive-creation](plugins/google-drive-creation) | General-purpose Google Doc and Google Slides creation with named styles, code blocks, and inline formatting | 2 | — | — |
+
+### Runtime dependencies
+
+- Python helper scripts: `pip install openpyxl`.
+- **evaluation-rubrics → video grading** (`video-evidence` skill) needs `ffmpeg`, `yt-dlp`, and a
+  Whisper CLI. One command installs them on macOS and prints the exact commands elsewhere — see
+  [plugins/evaluation-rubrics/README.md](plugins/evaluation-rubrics/README.md#video-dependencies).
 
 ## Plugin Concepts
 
