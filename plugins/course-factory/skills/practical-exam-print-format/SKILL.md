@@ -18,8 +18,9 @@ browser while a run is in progress.
 
 *(Procedure proven on 2026-11-02 with the course-local predecessor of this file: 10 statement Docs
 of one partial exam formatted by Sonnet agents and verified by the lead with course-specific
-scripts. `text-fingerprint.py` reproduces those verified fingerprints; the generalized
-`doc-report.js` is pending a live run.)*
+scripts. The generalized scripts were then run live on 2026-11-02: `doc-report.js` on the base and
+on one formatted Doc gave the expected values, and `text-fingerprint.py` reproduces the verified
+fingerprints.)*
 
 ## Inputs (all required — stop and ask if any is missing)
 
@@ -70,7 +71,10 @@ paragraph spacing, Edit › Find and replace, Table properties, etc.
   `https://docs.google.com/document/d/<BASE_DOC_ID>/edit`; `tabs_create_mcp` → **TARGET**
   `https://docs.google.com/document/d/<TARGET_DOC_ID>/edit`.
 - In BASE, run `scripts/doc-report.js` (paste its content into `javascript_tool`) → keep the JSON
-  as **EXPECTED**: `title`, `subtitle`, `h1` (pt, font, weight, colour, band), and the
+  as **EXPECTED**. The tool truncates long results: the script leaves a global `report`, so read
+  the rest with a second short call, e.g.
+  `JSON.stringify({urls: report.urls, tables: report.tables.map(t => [t.index, t.header.join('|'), t.headerBg, t.pt, t.spacing])})`.
+  Keep from EXPECTED: `title`, `subtitle`, `h1` (pt, font, weight, colour, band), and the
   `tables[].headerBg` of the **rubric** table = the header colour to use everywhere.
 - **Validate BASE:** `title.band` and `subtitle.band` are coloured (not `rgba(0, 0, 0, 0)`) and its
   rubric table has a coloured `headerBg` with white `headerText`. If not, the sample is not usable:

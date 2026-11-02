@@ -2,6 +2,8 @@
 // Paste into `javascript_tool` in the tab of a Google Doc — the BASE (expected values) or the TARGET
 // (actual values); both give the same JSON shape, so compare them field by field. Safe to run several
 // times in the same tab (`var`, no top-level `const`).
+// The tool truncates long results: read the rest from the global `report` with a second short call.
+// Verified live 2026-11-02 (base: header rgb(24, 54, 178); a formatted Doc: fingerprint = its source).
 // Read-only: fetches the Doc's own export (txt + html) and renders the html in an off-screen iframe
 // via a Blob URL (the Docs page enforces TrustedHTML, so innerHTML is refused). px → pt = × 0.75.
 // Paragraph spacing is exported as PADDING (margins are always 0): `spacing` = "top/bottom" padding.
