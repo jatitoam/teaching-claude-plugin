@@ -6,7 +6,7 @@ description: >
   and automated scoring against existing rubrics with cumulative grade tracking.
   Video submissions (YouTube or local files) are graded from an auditable
   evidence pack of timestamped frames, transcript, and metadata.
-version: 1.4.0
+version: 1.5.0
 skills:
   - id: rubric-creator
     path: skills/rubric-creator
@@ -16,5 +16,7 @@ skills:
     path: skills/build-grades
   - id: video-evidence
     path: skills/video-evidence
-commands: []
+commands:
+  - id: install-video-deps
+    path: commands/install-video-deps.md
 mcp_servers: []

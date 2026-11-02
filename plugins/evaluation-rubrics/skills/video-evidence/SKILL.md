@@ -3,109 +3,111 @@ name: video-evidence
 description: >
   Turns a video submission (YouTube URL — public or unlisted — or a local video file) into an
   on-disk, auditable evidence pack — metadata incl. the YouTube title/description, exact
-  duration, timestamped frames (scene changes + fixed interval), a contact sheet, and a
-  timestamped transcript — and, when a rubric is given, a per-criterion evidence.json with
-  verdicts that cite timestamps, frames, and quotes. Use when grading or reviewing a video
-  deliverable ("evaluate this video", "grade this YouTube submission", "build the evidence
-  pack for these videos"), and whenever assignment-evaluator meets a submission that is or
-  contains a video link/file. Do NOT trigger for editing, producing, or summarizing videos
+  duration, de-duplicated timestamped frames (scene changes + fixed interval), contact sheets,
+  a timestamped transcript, a per-frame index, and (with a rubric) an evidence-map.json that
+  points each criterion to the windows, frames, quotes and metadata where it can be judged,
+  with watch links. Captures, indexes and selects evidence only — it does NOT grade. Use when
+  assignment-evaluator meets a video submission, or when asked to "build the evidence pack" /
+  "index this video for grading". Do NOT trigger for editing, producing, or summarizing videos
   for non-evaluation purposes.
 ---
 
 # Video Evidence
 
 Claude cannot watch video; it reads images and text. This skill decomposes a video into an
-evidence pack (frames + transcript + metadata) on disk, then grades against the pack. The
-deterministic part is a script; the model only judges what the pack shows.
+evidence pack on disk and points the judge at the right moments. **It never issues verdicts** —
+`assignment-evaluator` does (see its "Video submissions" section).
 
-Output contract: **`video-evidence/1`** — see `references/output-contract.md`.
+Contract: **`video-evidence/2`** — `references/output-contract.md`.
+Scripts: `${CLAUDE_PLUGIN_ROOT}/skills/video-evidence/scripts/` (below: `$S`).
 
-Scripts live in `${CLAUDE_PLUGIN_ROOT}/skills/video-evidence/scripts/` (below: `$S`).
+| Stage | Who | Output |
+|---|---|---|
+| 1. Capture | script, no model | metadata, frames (deduped), contact sheets, transcript, evidence-map skeleton |
+| 2. Index | **Haiku**, one per ≤ 36 frames | `frames-index.json` — describes frames, never judges |
+| 3. Select | **Sonnet**, one per video | `evidence-map.json` — candidate windows per criterion, no verdicts |
+| 4. Judge | assignment-evaluator (lead, or a delegated Sonnet) | `verdicts.json`, `review.md`, row JSON |
 
-## Step 1 — Preflight (always, before anything else)
+## Step 0 — Preflight (always)
 
 ```bash
 python3 "$S/preflight.py" [--need-download] [--no-transcribe]
 ```
 
-Pass `--need-download` when any input is a URL. If it exits non-zero, **stop**: show the user
-the `install_hint` from its JSON (first option: `bash "$S/setup-video-deps.sh"`) and wait. Do not
-start a partial run. Never run the setup script with sudo or on the user's behalf without
-asking — it installs software.
+`--need-download` when any input is a URL. Non-zero exit → **stop** and point the user at
+`/evaluation-rubrics:install-video-deps` (it previews with `--dry-run` and asks before
+installing). Never install on your own initiative.
 
-## Step 2 — Gather inputs
-
-- **Source(s)** — URL(s) or local path(s). One pack per video.
-- **Output dir** — where packs go (`<out>/<submission-id>/`). Ask if not given and there is no
-  obvious grading folder (assignment-evaluator passes `<output_dir>/evidence/`).
-- **Submission id** — student/group slug if known (`--id`); otherwise the script derives it from
-  the YouTube id or file stem.
-- **Rubric** (optional) — rubric-creator JSON (preferred) or its xlsx. Enables `evidence.json`.
-- **Tunables** — only if the user/brief implies them: `--interval` (s, default 5),
-  `--scene` (0–1, default 0.30), `--max-height` (default 1080), `--lang` (e.g. `es`),
-  `--max-duration` (s; e.g. 300 for a "≤ 5 min" requirement — flags, doesn't fail).
-  Lower `--interval` to 2–3 s for fast screen recordings with lots of scrolling.
-
-## Step 3 — Build the pack (script)
+## Step 1 — Capture (script)
 
 ```bash
-python3 "$S/video_evidence.py" <url-or-path> --out <out_dir> [--id <slug>] \
+python3 "$S/video_evidence.py" <url-or-path> --out <out_dir> --id <slug> \
   [--rubric <rubric.json|xlsx>] [--lang es] [--max-duration 300] [--interval 5]
 ```
 
-- Downloads go to an OS temp dir (outside synced folders) and are **deleted** after the pack is
-  built. Pass `--keep-video` only if the user asks.
-- Several videos: run them sequentially or a few in parallel via Bash background jobs —
-  transcription is CPU/GPU-heavy, so cap at ~2 concurrent on a laptop.
-- **Exit 3 (download failed)** — YouTube bot-check, private video, etc. Retry once with
-  `--cookies-from-browser chrome` (ask first — it reads browser cookies). Otherwise ask the user
-  to download the file manually (e.g. a GUI downloader) and re-run with the local path. Record
-  that the YouTube description could not be fetched — a criterion about the description then
-  becomes `REVIEW_REQUIRED`, never `Does Not Meet`.
-- The script prints a JSON summary; check `warnings`, `frames.max_gap_s`, and
-  `transcript.status` before grading. A `transcript sparse` warning means music/no narration —
-  Whisper may have hallucinated filler text, so the transcript is not narration evidence.
+- Inputs: source; output dir (assignment-evaluator passes `<output_dir>/evidence/`); submission
+  id (student/group slug); optional rubric (rubric-creator JSON preferred — carries level texts).
+- Tunables only when the brief implies them: `--interval` (default 5 s; 2–3 for fast-scrolling
+  recordings), `--scene` (0.30), `--max-height` (1080), `--lang`, `--max-duration` (flags, never
+  fails), `--dedupe-threshold` / `--no-dedupe`, `--mask-live` (only after checking the contact
+  sheet: the warning fires, and the always-changing region really is a webcam/animation).
+- Downloads go to an OS temp subdir and are deleted afterwards unless `--keep-video`.
+- Several videos: capture **sequentially** — YouTube rate-limits download bursts, and
+  transcription is heavy. Index/select stages parallelize instead.
+- **Exit 3 (download failed):** retry once with `--cookies-from-browser chrome` (ask first — it
+  reads browser cookies), else ask for a manual download and re-run on the local path **with
+  `--source-url <the YouTube URL>`** — the pack keeps `youtu.be/…?t=` watch links and fetches the
+  title/description if YouTube answers. If it can't, the warning says so and the judge must treat
+  description criteria as REVIEW_REQUIRED. Bursts of downloads trigger YouTube's bot check
+  (HTTP 429); capture sequentially when grading a whole class.
+- Read the printed summary: `warnings`, `frames.extracted → count` (dedupe), `max_gap_s`,
+  transcript status / `sparse`.
 
-## Step 4 — Grade from the pack (only if a rubric was given)
+## Step 2 — Index (Haiku)
 
-Delegate one **Sonnet** subagent per video (all in one message, so they run in parallel), using
-the brief in `references/grader-brief.md` filled with the pack path and rubric path. Each
-subagent reads `metadata.json`, `frames.json`, `transcript.json`, the contact sheet(s), and the
-individual frames it needs, and fills `evidence.json`.
+Split each pack's `frames.json → frames[]` into even batches of ≤ 36 and dispatch one Haiku agent
+per batch with `references/index-brief.md` (`model: haiku`, description
+`[Haiku] Index frames <id> b<NN>`) — every batch of every video in one message. Then:
 
-The lead then:
-1. Validates each `evidence.json`: every criterion has a verdict; every non-`REVIEW_REQUIRED`
-   verdict cites at least one frame file or transcript quote; cited frames exist.
-2. Spot-checks borderline items itself (open the cited frames). Resolve what it can; leave the
-   rest as `REVIEW_REQUIRED` with `mm:ss` for the human.
-3. Presents a per-video summary table (criterion → verdict → timestamps) and lists all
-   `REVIEW_REQUIRED` items with their `mm:ss` so the instructor can scrub to them.
+```bash
+python3 "$S/merge_index.py" <pack>
+```
 
-### Grading rules (non-negotiable)
+Exit 1 lists frames no batch described → re-dispatch just those. Haiku describes; it never
+decides small-text questions (name vs code etc.) — the selector and judge open the frames.
 
-- **Absence of evidence ≠ evidence of absence.** If the thing could have appeared between two
-  sampled frames (gap > a few seconds, fast scroll, transition), or text is too small/blurry to
-  read, the verdict is `REVIEW_REQUIRED` with the time window — **never** `Does Not Meet`.
-- `Does Not Meet` requires positive evidence: a frame showing the wrong thing, a transcript
-  statement, or a metadata fact (e.g. `duration_s` 412 vs a 300 s cap; description present and
-  lacking the declaration).
-- Cite every verdict: `mm:ss` + frame file and/or a transcript quote with its `mm:ss`.
-- Metadata-grounded criteria (duration, title, YouTube description, first frame = cover) are
-  graded from `metadata.json` / the `t0000.000` frame, not from impressions.
-- Write notes in the language of the assignment brief (fallback: rubric language).
+## Step 3 — Select (Sonnet) — only with a rubric
 
-## Step 5 — Hand off
+One Sonnet agent per video, all in one message, with `references/select-brief.md`
+(`model: sonnet`, description `[Sonnet] Select evidence <id>`). It fills `evidence-map.json` and
+runs `finalize_pack.py`, which validates the map and fills every `watch` link
+(`https://youtu.be/<id>?t=<s−3>` for YouTube, `mm:ss <path>` for local files).
 
-Standalone: report pack path(s), the summary table, and the `REVIEW_REQUIRED` list.
-Called from assignment-evaluator: return the `evidence.json` path(s); that skill maps verdicts to
-its row JSON (see its "Video submissions" section).
+Lead check: `python3 "$S/finalize_pack.py" <pack>` exits 0 for every pack.
+
+## Step 4 — Hand off
+
+Return the pack path(s) to assignment-evaluator, which judges from `evidence-map.json` + the cited
+frames and renders `review.md` with `$S/render_review.py`. Standalone use (no evaluator): report
+pack paths and stop — do not grade.
+
+Packs contain student data: keep them local, never publish them.
 
 ## Known limits
 
-- Frame sampling can miss sub-second events; `REVIEW_REQUIRED` exists for that.
-- Small UI text depends on the uploaded resolution; a 480p upload cannot be made legible.
-- Whisper hallucinates filler over music/silence; the `sparse` flag catches the common case only.
-- No timestamp labels are burned into the contact sheet when ffmpeg lacks `drawtext` (Homebrew's
-  default build); `contact-sheet.json` maps each grid cell to its timestamp instead.
-- Speaker-to-person attribution (who is talking) is not available — the transcript is unlabelled.
-- YouTube may bot-block downloads from some networks; see Step 3 exit 3.
+- Sampling can miss sub-second events; `coverage` notes and REVIEW_REQUIRED exist for that.
+- Small text depends on the uploaded resolution; a 480p upload cannot be made legible.
+- Dedupe compares low-res thumbnails; a tiny change (one digit) on an otherwise static screen can
+  be absorbed into the previous frame — `static_until` shows the span to re-check.
+- Dedupe saves little on busy recordings at 5 s sampling (measured: 18→17, 104→104, 13→13);
+  it pays off on static-heavy ones (19→5) and, with `--mask-live`, on webcam videos (102→66).
+- `--mask-live` (off by default) ignores always-changing regions — a webcam bubble, an animated
+  background. It is opt-in because a formula bar being typed into looks identical to that test:
+  on a real DAX recording it silently dropped the frames showing the formula being written. The
+  script warns when it detects such regions; check the contact sheet before re-running with it.
+- Whisper hallucinates filler over music/silence (`transcript.sparse`) and loops phrases past the
+  end of the audio; segments past the video's end and 3+ identical repeats are dropped
+  (`transcript.dropped_artifacts`).
+- Homebrew's ffmpeg lacks `drawtext`, so sheets carry no burned-in timestamps;
+  `contact-sheet.json` maps cells to times.
+- No speaker attribution in the transcript.

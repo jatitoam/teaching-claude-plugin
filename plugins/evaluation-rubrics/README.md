@@ -5,7 +5,20 @@
 | `rubric-creator` | Build an analytic rubric (JSON → xlsx), with an optional penalties block |
 | `assignment-evaluator` | Score one submission (document or video) against a rubric; append a row to the grades file |
 | `build-grades` | Rebuild the grades xlsx from the saved row JSONs |
-| `video-evidence` | Turn a video (YouTube URL or local file) into an auditable evidence pack and grade it against the rubric |
+| `video-evidence` | Turn a video (YouTube URL or local file) into an auditable evidence pack — frames, transcript, index, and a per-criterion evidence map with watch links. Captures and selects evidence; never grades |
+
+| Command | Purpose |
+|---|---|
+| `/evaluation-rubrics:install-video-deps` | Preview (`--dry-run`), confirm, install, and verify the video dependencies |
+
+## Video grading pipeline
+
+| Stage | Who | Output |
+|---|---|---|
+| Capture | script (no model) | metadata, de-duplicated frames, contact sheets, transcript |
+| Index | Haiku, ≤ 36 frames per agent | `frames-index.json` (describes, never judges) |
+| Select | Sonnet, one per video | `evidence-map.json` (candidate windows per criterion, no verdicts) |
+| Judge | `assignment-evaluator` (lead / delegated Sonnet) | `verdicts.json`, `review.md` (REVIEW_REQUIRED first, `youtu.be/…?t=` links), grades row |
 
 Python scripts need `openpyxl` (`pip install openpyxl`).
 
@@ -19,16 +32,16 @@ Python scripts need `openpyxl` (`pip install openpyxl`).
 | `ffmpeg` / `ffprobe` | exact duration, frame extraction (scene changes + interval), contact sheet |
 | `mlx_whisper` (Apple Silicon) · `whisper` (openai-whisper) · `faster-whisper` | timestamped transcript |
 
-Install / verify (idempotent; never uses sudo — on Linux it prints the commands for you to run):
+Install / verify — in Claude Code:
 
-```bash
-# locate the installed copy (config dir may be ~/.claude or $CLAUDE_CONFIG_DIR)
-SETUP=$(find "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins" -path '*evaluation-rubrics*/video-evidence/scripts/setup-video-deps.sh' | sort | tail -1)
-bash "$SETUP"            # install what's missing
-bash "$SETUP" --check    # report only
+```
+/evaluation-rubrics:install-video-deps            # dry-run preview → asks → installs → verifies
+/evaluation-rubrics:install-video-deps --dry-run  # preview only
 ```
 
-Or just ask Claude to grade a video: the preflight prints the absolute path of the setup script.
+The command wraps `skills/video-evidence/scripts/setup-video-deps.sh` (`--dry-run` prints the
+exact `WOULD RUN:` commands and changes nothing). It never uses sudo or edits shell rc files; on
+Linux it only prints the commands for you to run.
 
 Equivalent manual install:
 
@@ -36,13 +49,17 @@ Equivalent manual install:
 - macOS x86_64: `brew install ffmpeg yt-dlp pipx && pipx install openai-whisper`
 - Debian/Ubuntu: `sudo apt-get install -y ffmpeg pipx && pipx install yt-dlp && pipx install openai-whisper`
 
-The skill runs `scripts/preflight.py` before every job and stops with the exact install command
-if anything is missing, so a half-built evidence pack never happens.
+**How missing dependencies are flagged** (mirrors code-general's install pattern):
 
-**Why no SessionStart hook:** a hook would run on every session for every user of this plugin,
-including the many who never grade video, adding latency and a recurring warning for a
-dependency they may never need. The preflight gives the same guarantee at the only point it
-matters — right before a video job — with zero ambient cost.
+- **SessionStart hook** (`hooks/video-deps-notice.sh`): `command -v` lookups only (~4 ms, no
+  Python, no brew). **Silent** when everything is present. When something is missing it prints one
+  line pointing at `/evaluation-rubrics:install-video-deps`, **at most once per plugin version**
+  (stamp in `~/.cache/evaluation-rubrics/video-deps-notified-<version>`). It never installs and
+  never fails the session. This keeps the per-session cost at effectively zero — the reason v1.4.0
+  shipped without a hook — while still telling new installs what they need.
+- **Preflight at point of use** (`scripts/preflight.py`) remains the backstop: every video job
+  checks binaries first and stops with the exact install command, so a half-built pack never
+  happens.
 
 Privacy: downloaded videos go to the OS temp dir (outside synced folders) and are deleted once
 the pack is built, unless `--keep-video`. Evidence packs (frames, transcript) go where the caller

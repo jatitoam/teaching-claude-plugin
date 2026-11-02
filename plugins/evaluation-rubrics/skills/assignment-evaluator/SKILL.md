@@ -56,25 +56,48 @@ exactly as before.
 
 ## Video submissions
 
-If the submission is, or contains, a video link/file (several links → one pack each):
+If the submission is, or contains, a video link/file (several links → one pack each), you are
+the **judge**; `video-evidence` (same plugin) only captures, indexes and selects evidence.
 
-1. Invoke the `video-evidence` skill (same plugin) **first**: preflight, then build the pack with
-   `--out <output_dir>/evidence/ --id <slug> --rubric <rubric xlsx or its source JSON>` (prefer the
-   rubric-creator JSON when it sits next to the xlsx — it carries the level descriptions). Add
-   `--max-duration` / `--lang` when the brief implies them. If preflight fails, stop and give the
-   user the install command it prints.
-2. Let `video-evidence` grade the pack into `<output_dir>/evidence/<slug>/evidence.json`
-   (Sonnet subagent per video when grading several submissions; borderline items stay with you).
-3. In Step 3 below, score **from `evidence.json`**, not from impressions: its verdicts map 1:1 to
-   the score labels and penalty levels. Every observation for a Partially Meets / Does Not Meet
-   criterion cites timestamps, e.g. "chart at 02:14 shows product codes, not names
-   (frames/t0134.000.jpg)."
-4. `REVIEW_REQUIRED` items are **not** scores. List them with their `mm:ss` windows in the Step 4
-   pause and get the instructor's call; never convert one to Does Not Meet / not_met yourself.
-   The row JSON and `append_grade.py` only accept the three labels, so nothing is written until
-   every REVIEW_REQUIRED item is resolved.
-5. Steps 4–6 (row JSON, `append_grade.py`, `/build-grades`) are unchanged. The evidence pack stays
-   in `<output_dir>/evidence/` as the audit trail; the downloaded video itself is deleted.
+1. **Evidence.** Run `video-evidence` Steps 0–3 with `--out <output_dir>/evidence/ --id <slug>
+   --rubric <rubric JSON, else xlsx>` (+ `--max-duration` / `--lang` when the brief implies them).
+   Preflight fails → stop and point the user to `/evaluation-rubrics:install-video-deps`.
+   Model tiers are fixed: capture = script, index = Haiku, select = Sonnet, judge = you (the lead;
+   or one Sonnet per video when you delegate judging of many submissions — keep borderline items).
+2. **Judge from `evidence-map.json`.** For each item read its candidates and `coverage`, open
+   **every cited frame** at full resolution (open more frames if a candidate is ambiguous; follow
+   `static_until` spans), read cited quotes in context in `transcript.json`, and decide the
+   verdict against the rubric's level texts. Rules (non-negotiable):
+   - **Absence of evidence ≠ evidence of absence.** If the requirement could have appeared
+     between sampled frames, during a fast scroll/transition, or the text is unreadable →
+     `REVIEW_REQUIRED` with a `{from, to, reason}` window. Never Does Not Meet / not_met for that.
+   - `Does Not Meet` / `not_met` needs **positive** evidence: a frame showing the wrong thing, a
+     transcript statement, or a metadata fact (e.g. `probe.duration_s` 412 vs a 300 s cap).
+   - `metadata.transcript.sparse` → the transcript is not narration evidence (Whisper invents
+     filler over music); judge narration from frames or flag REVIEW_REQUIRED.
+   - YouTube description not fetched (`youtube` null / `download.status` ≠ `ok`) →
+     description-based items are REVIEW_REQUIRED.
+   - Small-text questions (product name vs code, exact values) are decided only from the
+     full-resolution frame — never from the Haiku index.
+3. **Write `<pack>/verdicts.json`** (shape in video-evidence `references/output-contract.md`): one
+   entry per evidence-map item with `verdict`, `note`, `cites` (t + frame/quote/metadata_field),
+   `review_required` windows, plus 5–10 chronological `key_moments` (cover → … → final state).
+   Then render the audit page:
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/skills/video-evidence/scripts/render_review.py" <pack> <pack>/verdicts.json
+   ```
+   It validates citations, adds `watch` links (YouTube `youtu.be/<id>?t=` ~3 s early; local
+   files `mm:ss path`) and writes `<pack>/review.md`: REVIEW_REQUIRED first, then verdicts with
+   watch links and thumbnails, then the key-moments sequence. `review.md` is student data — keep
+   it local, never publish it.
+4. **Step 3 below** maps verdicts 1:1 to score labels / penalty levels. Every Partially Meets /
+   Does Not Meet observation carries the watch link or mm:ss, e.g. "chart at 02:14 shows product
+   codes, not names (https://youtu.be/abc123?t=131)", so the xlsx points to the minute.
+5. **REVIEW_REQUIRED is not a score.** Present those items first at the Step 4 pause (with watch
+   links and the `review.md` path) and get the instructor's call; never convert one yourself. The
+   row JSON and `append_grade.py` accept only the three labels, so nothing is written until every
+   item is resolved. Steps 4–6 are otherwise unchanged; the pack stays as the audit trail and the
+   downloaded video itself is deleted.
 
 ## Step 3 — Evaluate the Submission
 
@@ -139,8 +162,8 @@ Omit `penalties` entirely for penalty-free rubrics (backward compatible).
 Save to `<output_dir>/evaluations/row_<slug>.json`.
 
 **Pause here.** Present the evaluation to the user in chat as a summary table (name, each
-criterion with its score, and any observations; for videos, also every REVIEW_REQUIRED item
-with its `mm:ss` window). Ask the user to confirm or request
+criterion with its score, and any observations; for videos, REVIEW_REQUIRED items first with
+their watch links, and the path to `review.md`). Ask the user to confirm or request
 corrections before writing the grades file. Do not run Step 5 until the user approves.
 
 ## Step 5 — Append to Grades File
