@@ -410,18 +410,22 @@ def _label_thumbs(chunk, pack, work, n):
 def clean_segments(segments, duration):
     """Drop Whisper artefacts: empty segments, segments starting past the end of the video,
     and hallucination loops (the same text repeated 3+ times in a row → keep the first).
-    Returns (segments, n_dropped)."""
-    out, run_text, run_len = [], None, 0
+    Returns (segments, dropped) — dropped is a list of {start, text, reason} for audit."""
+    out, dropped, run_text, run_len = [], [], None, 0
     for seg in segments:
-        if not seg["text"] or (duration and seg["start"] >= duration):
+        if not seg["text"]:
+            continue  # empty: not worth recording
+        if duration and seg["start"] >= duration:
+            dropped.append({"start": seg["start"], "text": seg["text"], "reason": "past_end"})
             continue
         norm = seg["text"].strip().lower()
         run_len = run_len + 1 if norm == run_text else 1
         run_text = norm
         if run_len >= 3:
+            dropped.append({"start": seg["start"], "text": seg["text"], "reason": "repeat_loop"})
             continue
         out.append(seg)
-    return out, len(segments) - len(out)
+    return out, dropped
 
 
 def transcribe(video, pack, work, engine, model, lang, duration=None):
@@ -461,7 +465,8 @@ def transcribe(video, pack, work, engine, model, lang, duration=None):
     write_json(pack / "transcript.json", {"engine": engine, "model": model,
                                            "language": language, "segments": segments})
     return {"status": "ok", "engine": engine, "model": model, "language": language,
-            "segments": len(segments), "dropped_artifacts": dropped, "error": None}
+            "segments": len(segments), "dropped_artifacts": len(dropped),
+            "dropped_samples": dropped[:20], "error": None}
 
 
 def _srt(segments):

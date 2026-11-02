@@ -34,7 +34,7 @@ any shape below bumps it (and the plugin's MAJOR version once released to other 
 | `probe` | `{duration_s (ffprobe exact), duration_mmss, width, height, fps, has_audio, codec}` |
 | `params` | tunables used |
 | `frames` | `{count (kept), extracted, dropped_duplicates, max_gap_s}` — `max_gap_s` is the sampling gap between extracted frames, incl. the tail |
-| `transcript` | `{status: ok\|failed\|skipped\|no_audio, engine, model, language, segments, error, words_per_min, sparse}` — `sparse` (< 30 words/min) = music/no narration, text may be hallucinated |
+| `transcript` | `{status: ok\|failed\|skipped\|no_audio, engine, model, language, segments, error, words_per_min, sparse, dropped_artifacts, dropped_samples[{start, text, reason: past_end\|repeat_loop}]}` — `sparse` (< 30 words/min) = music/no narration, text may be hallucinated |
 | `watch` | `{kind: "youtube", id, template: "https://youtu.be/<id>?t={s}"}` (YouTube URL, or local file + `--source-url`) · `{kind: "file", path}` · `{kind: "url", url}` (non-YouTube URL) |
 | `flags.over_max_duration` | `true`/`false`, `null` without `--max-duration` |
 | `video_kept`, `tool_versions` | hygiene / reproducibility |
