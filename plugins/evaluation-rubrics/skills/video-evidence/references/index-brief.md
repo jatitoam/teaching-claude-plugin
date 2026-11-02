@@ -1,13 +1,14 @@
-# Index brief — Haiku, one agent per batch of up to 24 frames
+# Index brief — Haiku, one agent per batch of up to 22 frames
 
 Dispatch with `model: haiku`, description `[Haiku] Index frames <submission-id> b<NN>`. All
 batches of all videos go in ONE message (parallel, ≤ 8 agents per message). Batches:
-consecutive slices of `frames.json → frames[]`, **up to 24 per batch** (split evenly), numbered
+consecutive slices of `frames.json → frames[]`, **up to 22 per batch** (split evenly), numbered
 `01, 02, …`. List the **`index-frames/<name>`** paths (1280-px copies), not `frames/`.
 
-Why 24 at 1280 px (measured): ~62k tokens fixed per agent + ~1.45k per 1280-px frame, so a
-24-frame batch stays just under Haiku's 100k-token price cliff (5× above it). Alignment held at
-24 when frames are read strictly one at a time; it drifted at 35. See SKILL.md Step 2. Fill `<…>`; paste the rest verbatim.
+Why 22 at 1280 px (measured): ~62k tokens fixed per agent + ~1.45k per 1280-px frame. Batches
+must satisfy F + n·h < 100k with margin — Haiku's price tier is 5× above 100k, and 24-frame
+batches measured 98–101.6k. Alignment held at 24 when frames are read strictly one at a time; it
+drifted at 35. See SKILL.md Step 2. Fill `<…>`; paste the rest verbatim.
 
 ---
 

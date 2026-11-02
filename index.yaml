@@ -42,7 +42,7 @@ plugins:
       Tools for designing analytic grading rubrics and evaluating student
       or group assignment submissions (documents or videos) with cumulative
       grade tracking.
-    version: 1.7.0
+    version: 1.7.1
     skills:
       - rubric-creator
       - assignment-evaluator
