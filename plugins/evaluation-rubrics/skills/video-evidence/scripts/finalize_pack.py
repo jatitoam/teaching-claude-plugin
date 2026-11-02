@@ -71,6 +71,8 @@ def finalize(pack, strict=False):
             errors.append(f"{iid}: no candidates and empty coverage")
         for n, c in enumerate(cands, 1):
             tag = f"{iid}/candidate {n}"
+            for key in ("frames", "quotes", "metadata_fields"):  # normalize to the contract
+                c.setdefault(key, [])
             f, t = c.get("from"), c.get("to")
             if not (is_num(f) and is_num(t)):
                 errors.append(f"{tag}: from/to must be numbers")
