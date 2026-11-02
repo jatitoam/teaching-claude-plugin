@@ -25,13 +25,13 @@ a second one by a Sonnet agent following only this file — 10/10 questions corr
 |---|---|
 | `TARGET_DOC_ID` | The Doc to format — from the session handover (Published column). |
 | `SOURCE_MD` | The `.md` that Doc was published from (e.g. `<folders.exams>/publicar/S18-temario-2.md`). **Source of truth** for stems and option order — the answer key depends on that order. |
-| `BASE_DOC_ID` | `course.yaml → publishing.exam_print.base_doc` (a previous exam already formatted by hand). |
+| `BASE_DOC_ID` | `course.yaml → publishing.exam_print.base_doc` — the sample exam provided at bootstrap. If empty, this skill does not run (the caller skips it). |
 | `TITLE_TEXT` | `course.yaml → publishing.exam_print.title`, with `{n}` filled (e.g. «Examen Parcial 2»). |
 | `PAGES` | `course.yaml → publishing.exam_print.pages` (e.g. 2). |
 | `BODY_PT` | `course.yaml → publishing.exam_print.body_pt` (e.g. 10). |
 
-If `publishing.exam_print` is absent from `course.yaml`, ask the conductor for the values and add the
-block (§course.yaml block) before starting. Menu names below are the Spanish UI (the course account's
+`publishing.exam_print` is filled at bootstrap (`course-bootstrap` question 7b). If `base_doc` is
+empty this skill is not run; if another field is missing, stop and report it to the caller. Menu names below are the Spanish UI (the course account's
 language); in an English UI they are Format › Paragraph styles / Line & paragraph spacing, etc.
 
 ## Hard rules (each one broke a Doc during development)
@@ -68,6 +68,10 @@ language); in an English UI they are Format › Paragraph styles / Line & paragr
   **TARGET** `https://docs.google.com/document/d/<TARGET_DOC_ID>/edit`. Screenshot both.
 - Read `SOURCE_MD` and build the ordered list: for each question N, its 4 options exactly as written
   after `☐ ` (keep accents and punctuation).
+- **Validate BASE** (screenshot of its page 1): it must show a first-page header (logo / name
+  fields), a title banner and, under question 1, a 2-column answer table (`[  ]` | option). If any
+  is missing, the sample is not usable: STOP and report «base_doc is not a formatted sample» — do
+  not improvise a layout.
 - If TARGET already shows the header, banner or answer tables, it was already formatted: STOP, report.
 
 ### 1 · Header (page 1 only)
@@ -123,14 +127,17 @@ appear; that resolves in step 6.
 
 ### 6 · Fit to PAGES
 1. Click in the body, `cmd+a`, Formato › Interlineado y espacio entre párrafos › **Sencillo**. Collapse
-   the selection with a click on plain stem text (outside any table) — not in the grey area, which
-   may be outside the window.
+   the selection with a **mouse click** on plain stem text (outside any table) — not in the grey
+   area, which may be outside the window. **No keys here:** `cmd+Up` at this point opens the page-2
+   header editor (harmless if you `Escape`, but don't).
 2. Scroll to the end. If a last page holds only an empty line (the paragraph Docs keeps after the last
    table): **click directly on that empty line**, set size **1** in the toolbar box, `Return`. If
    there is no such page, skip this.
 3. Scroll through the document; the «N de M» counter shows next to the right scrollbar while
    scrolling. Required: M = `PAGES`, header only on page 1, **no question's table split across
    pages**. If a table still splits or M > `PAGES`, report it — do not shrink fonts on your own.
+   A blank band (~90 px) at the top of page 2 and later pages is **expected**: it is the margin of
+   the empty non-first-page header. Do not report it or try to remove it.
 
 ### 7 · Verify and report
 - Full-resolution screenshots covering every page. Compare, question by question, each stem and the
@@ -159,6 +166,7 @@ publishing:
 
 ## Who calls it
 
-- The `exam` skill, as the last step of its publication: once per published version Doc,
+- The `exam` skill, **automatically**, as the last step of its publication whenever
+  `publishing.exam_print.base_doc` is set: once per published student Doc (never the key),
   sequentially, delegating each run to a Sonnet agent and verifying it per §Orchestrator verification.
-- The conductor, deliberately, for a single Doc.
+- The conductor, deliberately, to (re)format a single Doc.

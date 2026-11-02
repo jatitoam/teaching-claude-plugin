@@ -101,6 +101,14 @@ Ask the conductor, in order — batch related questions, confirm before generati
    mechanism per graded artifact type** (e.g. exercises = one PDF per exercise uploaded to the
    portal before end of class, with any attendance linkage; homework = channel + deadline rule) —
    the protocol's exercise/homework conventions and the penalties wording need these.
+   **7b. Exam print sample (ALWAYS ask when `exam` is enabled).** Ask for the Google Doc of a
+   **sample exam already formatted by hand** in the institution's print layout (first-page header
+   with logo/name fields, title banner, 2-column answer tables `[  ] | option`), plus the title
+   pattern (e.g. «Examen Parcial {n}»), the exact page count per version and the body text size.
+   Record them in `publishing.exam_print` (schema in `references/course-yaml-schema.md`). The
+   `exam` skill applies this format **automatically** to every published exam; if the conductor
+   has no sample yet, leave `base_doc: ""` — that is the only way the format step is skipped —
+   and list it in the report as a pending item they can fill later.
 8. **Sources of truth.** Which of syllabus / session briefs / glossary / decisions the conductor
    **already has** (record filenames in `sources:`) vs. which must be **authored later** (flag in
    the report; never fabricate their contents).
