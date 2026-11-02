@@ -126,7 +126,8 @@ After the **human validates** the `.md`:
     student Doc** (never the key), without asking the conductor: one Sonnet agent per Doc,
     **sequentially** (they share the browser and clipboard), each verified by you with your own
     screenshots per that skill's §Orchestrator verification. Record in the handover that each Doc
-    is print-ready (or what failed).
+    is print-ready (or what failed). If a run reports «base_doc is not a formatted sample», **stop
+    the remaining runs** — the same base would fail every Doc — and report it to the conductor.
   - **Empty or absent →** skip it, and say so in the closing summary in one line («print format
     skipped: no sample exam was provided at bootstrap — add `publishing.exam_print.base_doc` to
     enable it»). Never invent or pick a base Doc yourself.

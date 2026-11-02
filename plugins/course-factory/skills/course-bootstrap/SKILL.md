@@ -105,7 +105,8 @@ Ask the conductor, in order — batch related questions, confirm before generati
    **sample exam already formatted by hand** in the institution's print layout (first-page header
    with logo/name fields, title banner, 2-column answer tables `[  ] | option`), plus the title
    pattern (e.g. «Examen Parcial {n}»), the exact page count per version and the body text size.
-   Record them in `publishing.exam_print` (schema in `references/course-yaml-schema.md`). The
+   Record them in `publishing.exam_print` (schema in `references/course-yaml-schema.md`) —
+   `base_doc` holds the **Doc ID** (the segment after `/document/d/`), not the URL. The
    `exam` skill applies this format **automatically** to every published exam; if the conductor
    has no sample yet, leave `base_doc: ""` — that is the only way the format step is skipped —
    and list it in the report as a pending item they can fill later.
@@ -245,6 +246,8 @@ Before reporting done, verify:
 - [ ] `settings.local.json` has the base rules; Miro/ollama rules present **iff** enabled; **no
   token** in any rule.
 - [ ] Root `CLAUDE.md` is short and points to PROTOCOL/START/course.yaml with the key rules.
+- [ ] `publishing.exam_print` is present **iff** `exam` is enabled; `base_doc` is either a Doc ID
+  (not a URL) or `""` and listed as pending in the report.
 
 ## Close (report to the conductor)
 
@@ -266,6 +269,7 @@ Manual prerequisites (yours):
   - Portal assignments: <portal> has no API — create each assignment by hand
   - MIRO_TOKEN env var (only if Miro enabled) — set in your environment, never in a file
   - Sources of truth to author (if any): <syllabus / session briefs / glossary / decisions still missing>
+  - Exam print sample (only if exam enabled and base_doc is ""): add publishing.exam_print.base_doc — until then exam print format is skipped
   - Cross-plugin prerequisites: evaluation-rubrics for rubrics; exam-creator (optional) for multi-version MCQs
 
 Next: launch the first real agent —

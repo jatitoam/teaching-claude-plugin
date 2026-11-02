@@ -31,8 +31,9 @@ a second one by a Sonnet agent following only this file — 10/10 questions corr
 | `BODY_PT` | `course.yaml → publishing.exam_print.body_pt` (e.g. 10). |
 
 `publishing.exam_print` is filled at bootstrap (`course-bootstrap` question 7b). If `base_doc` is
-empty this skill is not run; if another field is missing, stop and report it to the caller. Menu names below are the Spanish UI (the course account's
-language); in an English UI they are Format › Paragraph styles / Line & paragraph spacing, etc.
+empty this skill is not run; if another field is missing, stop and report it to the caller. Menu
+names below are the Spanish UI (the course account's language); in an English UI they are
+Format › Paragraph styles / Line & paragraph spacing, etc.
 
 ## Hard rules (each one broke a Doc during development)
 

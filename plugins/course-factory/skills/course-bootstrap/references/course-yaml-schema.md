@@ -92,7 +92,7 @@ publishing:
                                      # skills REMIND the conductor to create assignments.
   exam_print:                        # print layout applied AUTOMATICALLY by `exam` (via the
                                      # `exam-print-format` skill) to every published exam Doc.
-    base_doc: ""                     # Doc ID of a sample exam already formatted by hand (header
+    base_doc: ""                     # Doc ID (not URL) of a sample exam formatted by hand (header
                                      # on page 1, title banner, [ ] | option tables). Asked at
                                      # bootstrap; "" = the format step is skipped.
     title: "Examen Parcial {n}"      # banner text; {n} = partial number
