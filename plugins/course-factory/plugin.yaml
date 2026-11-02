@@ -29,6 +29,8 @@ skills:
     path: skills/lab
   - id: exam
     path: skills/exam
+  - id: exam-print-format
+    path: skills/exam-print-format
   - id: practical-exam
     path: skills/practical-exam
   - id: homework
