@@ -16,8 +16,10 @@ launches the runs **sequentially** — they share one Chrome window — and veri
 itself (§Orchestrator verification) before launching the next. The orchestrator does not use the
 browser while a run is in progress.
 
-*(Proven on 2026-11-02: 10 statement Docs of one partial exam, formatted by Sonnet agents from the
-course-local predecessor of this file and verified by the lead with the scripts below.)*
+*(Procedure proven on 2026-11-02 with the course-local predecessor of this file: 10 statement Docs
+of one partial exam formatted by Sonnet agents and verified by the lead with course-specific
+scripts. `text-fingerprint.py` reproduces those verified fingerprints; the generalized
+`doc-report.js` is pending a live run.)*
 
 ## Inputs (all required — stop and ask if any is missing)
 
@@ -127,8 +129,9 @@ and font size **1**. Check again.
   `schemes` 0 (if `STRIP_SCHEME`); `comments` 0; title/subtitle/h1 = EXPECTED on pt, font, weight,
   color, band, align (ignore `text` and `spacing` — see §Orchestrator verification for the Title
   space); every url centred, `URL_PT`, weight 700, black, no decoration, `spanStyles` 1; every table
-  `headerBg` = EXPECTED's, white bold header, `spacing` `["0px/0px"]`, `pt` as in step 4; `body` =
-  BEFORE's `body` (same pt and spacing — proves table formatting did not leak). Column widths are
+  `headerBg` = EXPECTED's, white bold header, `spacing` `["0px/0px"]`, `pt` as in step 4; `body` and
+  `bodyStyles` = BEFORE's (same set of pt|spacing over every body paragraph — proves table
+  formatting did not leak). Column widths are
   judged on the screenshots.
 - Screenshots: cover page (both banners), every address, every table, the last page.
 - Close every tab you opened.
